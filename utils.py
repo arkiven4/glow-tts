@@ -31,9 +31,9 @@ def warm_start_model(checkpoint_path, model, ignore_layers):
         model_dict = dummy_dict
 
     if hasattr(model, 'module'):
-      model.module.load_state_dict(model_dict)
+      model.module.load_state_dict(model_dict, strict=False)
     else:
-      model.load_state_dict(model_dict)
+      model.load_state_dict(model_dict, strict=False)
     return model
 
 def load_checkpoint(checkpoint_path, model, optimizer=None):
