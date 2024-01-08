@@ -9,7 +9,7 @@
     "eps": 1e-9,
     "warmup_steps": 4000,
     "scheduler": "noam",
-    "batch_size": 24,
+    "batch_size": 20,
     "ddi": true,
     "fp16_run": true,
     "warm_start": true,
