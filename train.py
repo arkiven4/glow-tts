@@ -9,16 +9,17 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import torch.multiprocessing as mp
 import torch.distributed as dist
-from apex.parallel import DistributedDataParallel as DDP
-from apex import amp
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.cuda.amp import autocast, GradScaler
+# from apex.parallel import DistributedDataParallel as DDP
+# from apex import amp
 
 from data_utils import TextMelLoader, TextMelCollate
 import models
 import commons
 import utils
 from text.symbols import symbols
-                            
-
+                          
 global_step = 0
 
 
@@ -28,7 +29,7 @@ def main():
 
   n_gpus = torch.cuda.device_count()
   os.environ['MASTER_ADDR'] = 'localhost'
-  os.environ['MASTER_PORT'] = '80000'
+  os.environ['MASTER_PORT'] = '65535'
 
   hps = utils.get_hparams()
   mp.spawn(train_and_eval, nprocs=n_gpus, args=(n_gpus, hps,))
@@ -67,32 +68,46 @@ def train_and_eval(rank, n_gpus, hps):
       n_vocab=len(symbols) + getattr(hps.data, "add_blank", False), 
       out_channels=hps.data.n_mel_channels, 
       **hps.model).cuda(rank)
-  optimizer_g = commons.Adam(generator.parameters(), scheduler=hps.train.scheduler, dim_model=hps.model.hidden_channels, warmup_steps=hps.train.warmup_steps, lr=hps.train.learning_rate, betas=hps.train.betas, eps=hps.train.eps)
-  if hps.train.fp16_run:
-    generator, optimizer_g._optim = amp.initialize(generator, optimizer_g._optim, opt_level="O1")
-  generator = DDP(generator)
+  # optimizer_g = commons.Adam(generator.parameters(), scheduler=hps.train.scheduler, dim_model=hps.model.hidden_channels, warmup_steps=hps.train.warmup_steps, lr=hps.train.learning_rate, betas=hps.train.betas, eps=hps.train.eps)
+  # if hps.train.fp16_run:
+  #   generator, optimizer_g._optim = amp.initialize(generator, optimizer_g._optim, opt_level="O1")
+  
+  optimizer_g = torch.optim.AdamW(
+      generator.parameters(),
+      hps.train.learning_rate, 
+      betas=hps.train.betas, 
+      eps=hps.train.eps)
+
+  generator = DDP(generator, device_ids=[rank])
   epoch_str = 1
   global_step = 0
-  try:
-    _, _, _, epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.model_dir, "G_*.pth"), generator, optimizer_g)
-    epoch_str += 1
-    optimizer_g.step_num = (epoch_str - 1) * len(train_loader)
-    optimizer_g._update_learning_rate()
-    global_step = (epoch_str - 1) * len(train_loader)
-  except:
-    if hps.train.ddi and os.path.isfile(os.path.join(hps.model_dir, "ddi_G.pth")):
-      _ = utils.load_checkpoint(os.path.join(hps.model_dir, "ddi_G.pth"), generator, optimizer_g)
-  
+
+  if hps.train.warm_start:
+      generator = utils.warm_start_model(hps.train.warm_start_checkpoint, generator, hps.train.ignored_layer)
+  else:
+    try:
+      _, _, _, epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.model_dir, "G_*.pth"), generator, optimizer_g)
+      epoch_str += 1
+      optimizer_g.step_num = (epoch_str - 1) * len(train_loader)
+      optimizer_g._update_learning_rate()
+      global_step = (epoch_str - 1) * len(train_loader)
+    except:
+      pass
+      # if hps.train.ddi and os.path.isfile(os.path.join(hps.model_dir, "ddi_G.pth")):
+      #   _ = utils.load_checkpoint(os.path.join(hps.model_dir, "ddi_G.pth"), generator, optimizer_g)
+    
+  scaler = GradScaler(enabled=hps.train.fp16_run)
+
   for epoch in range(epoch_str, hps.train.epochs + 1):
     if rank==0:
-      train(rank, epoch, hps, generator, optimizer_g, train_loader, logger, writer)
+      train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, logger, writer)
       evaluate(rank, epoch, hps, generator, optimizer_g, val_loader, logger, writer_eval)
       utils.save_checkpoint(generator, optimizer_g, hps.train.learning_rate, epoch, os.path.join(hps.model_dir, "G_{}.pth".format(epoch)))
     else:
-      train(rank, epoch, hps, generator, optimizer_g, train_loader, None, None)
+      train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, None, None)
 
 
-def train(rank, epoch, hps, generator, optimizer_g, train_loader, logger, writer):
+def train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, logger, writer):
   train_loader.sampler.set_epoch(epoch)
   global global_step
 
@@ -102,23 +117,22 @@ def train(rank, epoch, hps, generator, optimizer_g, train_loader, logger, writer
     y, y_lengths = y.cuda(rank, non_blocking=True), y_lengths.cuda(rank, non_blocking=True)
 
     # Train Generator
+    with autocast(enabled=hps.train.fp16_run):
+      (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, logw, logw_) = generator(x, x_lengths, y, y_lengths, gen=False)
+      
+      with autocast(enabled=False):
+        l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
+        l_length = commons.duration_loss(logw, logw_, x_lengths)
+
+        loss_gs = [l_mle, l_length]
+        loss_g = sum(loss_gs)
+
     optimizer_g.zero_grad()
-    
-    (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, logw, logw_) = generator(x, x_lengths, y, y_lengths, gen=False)
-    l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
-    l_length = commons.duration_loss(logw, logw_, x_lengths)
-
-    loss_gs = [l_mle, l_length]
-    loss_g = sum(loss_gs)
-
-    if hps.train.fp16_run:
-      with amp.scale_loss(loss_g, optimizer_g._optim) as scaled_loss:
-        scaled_loss.backward()
-      grad_norm = commons.clip_grad_value_(amp.master_params(optimizer_g._optim), 5)
-    else:
-      loss_g.backward()
-      grad_norm = commons.clip_grad_value_(generator.parameters(), 5)
-    optimizer_g.step()
+    scaler.scale(loss_g).backward()
+    scaler.unscale_(optimizer_g)
+    grad_norm = commons.clip_grad_value_(generator.parameters(), 5)
+    scaler.step(optimizer_g)
+    scaler.update()
     
     if rank==0:
       if batch_idx % hps.train.log_interval == 0:
@@ -127,9 +141,9 @@ def train(rank, epoch, hps, generator, optimizer_g, train_loader, logger, writer
           epoch, batch_idx * len(x), len(train_loader.dataset),
           100. * batch_idx / len(train_loader),
           loss_g.item()))
-        logger.info([x.item() for x in loss_gs] + [global_step, optimizer_g.get_lr()])
+        logger.info([x.item() for x in loss_gs] + [global_step, optimizer_g.param_groups[0]['lr']])
         
-        scalar_dict = {"loss/g/total": loss_g, "learning_rate": optimizer_g.get_lr(), "grad_norm": grad_norm}
+        scalar_dict = {"loss/g/total": loss_g, "learning_rate": optimizer_g.param_groups[0]['lr'], "grad_norm": grad_norm}
         scalar_dict.update({"loss/g/{}".format(i): v for i, v in enumerate(loss_gs)})
         utils.summarize(
           writer=writer,

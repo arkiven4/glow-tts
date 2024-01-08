@@ -11,8 +11,30 @@ import torch
 
 MATPLOTLIB_FLAG = False
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.ERROR)
 logger = logging
+
+def warm_start_model(checkpoint_path, model, ignore_layers):
+    assert os.path.isfile(checkpoint_path)
+    print("Warm starting model from checkpoint '{}'".format(checkpoint_path))
+    checkpoint_dict = torch.load(checkpoint_path, map_location='cpu')
+    model_dict = checkpoint_dict['model']
+    if len(ignore_layers) > 0:
+        model_dict = {k: v for k, v in model_dict.items()
+                      if k not in ignore_layers}
+        if hasattr(model, 'module'):
+          dummy_dict = model.module.state_dict()
+          dummy_dict.update(model_dict)
+        else:
+          dummy_dict = model.state_dict()
+          dummy_dict.update(model_dict)
+        model_dict = dummy_dict
+
+    if hasattr(model, 'module'):
+      model.module.load_state_dict(model_dict)
+    else:
+      model.load_state_dict(model_dict)
+    return model
 
 def load_checkpoint(checkpoint_path, model, optimizer=None):
   assert os.path.isfile(checkpoint_path)

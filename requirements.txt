@@ -1,0 +1,10 @@
+Cython==0.29.21
+inflect==7.0.0
+layers==0.1.5
+librosa==0.8.0
+matplotlib==3.3.1
+numpy==1.18.5
+scipy==1.5.2
+tensorboardX==2.6.2.2
+torch==2.0.0
+Unidecode==1.1.1
