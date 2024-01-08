@@ -90,6 +90,7 @@ def train_and_eval(rank, n_gpus, hps):
       optimizer_g._update_learning_rate()
       global_step = (epoch_str - 1) * len(train_loader)
     except:
+      print("Error Load Checkpoint")
       pass
       # if hps.train.ddi and os.path.isfile(os.path.join(hps.model_dir, "ddi_G.pth")):
       #   _ = utils.load_checkpoint(os.path.join(hps.model_dir, "ddi_G.pth"), generator, optimizer_g)
