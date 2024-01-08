@@ -2,6 +2,8 @@ import os
 import json
 import argparse
 import math
+from tqdm import tqdm
+
 import torch
 from torch import nn, optim
 from torch.nn import functional as F
@@ -19,9 +21,10 @@ import models
 import commons
 import utils
 from text.symbols import symbols
+from Noam_Scheduler import Modified_Noam_Scheduler
                           
 global_step = 0
-
+global_tqdm = None
 
 def main():
   """Assume Single Node Multi GPUs Training Only"""
@@ -74,7 +77,12 @@ def train_and_eval(rank, n_gpus, hps):
       generator.parameters(),
       hps.train.learning_rate, 
       betas=hps.train.betas, 
-      eps=hps.train.eps)
+      eps=hps.train.eps,
+      weight_decay=1.0e-6)
+  
+  scheduler = Modified_Noam_Scheduler(
+      optimizer= optimizer_g,
+      base = hps.train.warmup_steps)
 
   generator = DDP(generator, device_ids=[rank])
   epoch_str = 1
@@ -99,19 +107,21 @@ def train_and_eval(rank, n_gpus, hps):
 
   for epoch in range(epoch_str, hps.train.epochs + 1):
     if rank==0:
-      train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, logger, writer)
+      train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, scheduler, logger, writer)
       evaluate(rank, epoch, hps, generator, optimizer_g, val_loader, logger, writer_eval)
-      utils.save_checkpoint(generator, optimizer_g, hps.train.learning_rate, epoch, os.path.join(hps.model_dir, "G_{}.pth".format(epoch)))
+      utils.save_checkpoint(generator, optimizer_g, scheduler, hps.train.learning_rate, epoch, os.path.join(hps.model_dir, "G_{}.pth".format(epoch)))
     else:
-      train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, None, None)
+      train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, scheduler, None, None)
+
+    scheduler.step()
 
 
-def train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, logger, writer):
+def train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, scheduler, logger, writer):
   train_loader.sampler.set_epoch(epoch)
   global global_step
 
   generator.train()
-  for batch_idx, (x, x_lengths, y, y_lengths, speakers) in enumerate(train_loader):
+  for batch_idx, (x, x_lengths, y, y_lengths, speakers) in enumerate(tqdm(train_loader)):
     x, x_lengths = x.cuda(rank, non_blocking=True), x_lengths.cuda(rank, non_blocking=True)
     y, y_lengths = y.cuda(rank, non_blocking=True), y_lengths.cuda(rank, non_blocking=True)
     speakers = speakers.cuda(rank, non_blocking=True)
@@ -133,15 +143,16 @@ def train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, logger
     grad_norm = commons.clip_grad_value_(generator.parameters(), 5)
     scaler.step(optimizer_g)
     scaler.update()
+    #scheduler.step()
     
     if rank==0:
       if batch_idx % hps.train.log_interval == 0:
         (y_gen, *_), *_ = generator.module(x[:1], x_lengths[:1], g=speakers[:1], gen=True)
-        logger.info('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-          epoch, batch_idx * len(x), len(train_loader.dataset),
-          100. * batch_idx / len(train_loader),
-          loss_g.item()))
-        logger.info([x.item() for x in loss_gs] + [global_step, optimizer_g.param_groups[0]['lr']])
+        # logger.info('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+        #   epoch, batch_idx * len(x), len(train_loader.dataset),
+        #   100. * batch_idx / len(train_loader),
+        #   loss_g.item()))
+        # logger.info([x.item() for x in loss_gs] + [global_step, optimizer_g.param_groups[0]['lr']])
         
         scalar_dict = {"loss/g/total": loss_g, "learning_rate": optimizer_g.param_groups[0]['lr'], "grad_norm": grad_norm}
         scalar_dict.update({"loss/g/{}".format(i): v for i, v in enumerate(loss_gs)})
