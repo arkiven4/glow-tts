@@ -51,6 +51,7 @@
     "mean_only": true,
     "hidden_channels_enc": 192,
     "hidden_channels_dec": 192,
-    "window_size": 4
+    "window_size": 4,
+    "gin_channels": 256
   }
 }
