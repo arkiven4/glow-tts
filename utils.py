@@ -36,7 +36,7 @@ def warm_start_model(checkpoint_path, model, ignore_layers):
       model.load_state_dict(model_dict, strict=False)
     return model
 
-def load_checkpoint(checkpoint_path, model, optimizer=None):
+def load_checkpoint(checkpoint_path, model, optimizer=None, scheduler=None):
   assert os.path.isfile(checkpoint_path)
   checkpoint_dict = torch.load(checkpoint_path, map_location='cpu')
   iteration = 1
@@ -46,6 +46,8 @@ def load_checkpoint(checkpoint_path, model, optimizer=None):
     learning_rate = checkpoint_dict['learning_rate']
   if optimizer is not None and 'optimizer' in checkpoint_dict.keys():
     optimizer.load_state_dict(checkpoint_dict['optimizer'])
+  if optimizer is not None and 'scheduler' in checkpoint_dict.keys():
+    scheduler.load_state_dict(checkpoint_dict['scheduler'])
   saved_state_dict = checkpoint_dict['model']
   if hasattr(model, 'module'):
     state_dict = model.module.state_dict()
@@ -64,7 +66,7 @@ def load_checkpoint(checkpoint_path, model, optimizer=None):
     model.load_state_dict(new_state_dict)
   logger.info("Loaded checkpoint '{}' (iteration {})" .format(
     checkpoint_path, iteration))
-  return model, optimizer, learning_rate, iteration
+  return model, optimizer, scheduler, learning_rate, iteration
 
 
 def save_checkpoint(model, optimizer, scheduler, learning_rate, iteration, checkpoint_path):

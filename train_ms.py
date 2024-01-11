@@ -77,8 +77,7 @@ def train_and_eval(rank, n_gpus, hps):
       generator.parameters(),
       hps.train.learning_rate, 
       betas=hps.train.betas, 
-      eps=hps.train.eps,
-      weight_decay=1.0e-6)
+      eps=hps.train.eps)
   
   scheduler = Modified_Noam_Scheduler(
       optimizer= optimizer_g,
@@ -92,14 +91,13 @@ def train_and_eval(rank, n_gpus, hps):
       generator = utils.warm_start_model(hps.train.warm_start_checkpoint, generator, hps.train.ignored_layer)
   else:
     try:
-      _, _, _, epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.model_dir, "G_*.pth"), generator, optimizer_g)
+      _, _, _, _,epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.model_dir, "G_*.pth"), generator, None, scheduler)
       epoch_str += 1
       optimizer_g.step_num = (epoch_str - 1) * len(train_loader)
-      optimizer_g._update_learning_rate()
+      #optimizer_g._update_learning_rate()
       global_step = (epoch_str - 1) * len(train_loader)
-    except:
-      print("Error Load Checkpoint")
-      pass
+    except Exception as e:
+      print(e)
       # if hps.train.ddi and os.path.isfile(os.path.join(hps.model_dir, "ddi_G.pth")):
       #   _ = utils.load_checkpoint(os.path.join(hps.model_dir, "ddi_G.pth"), generator, optimizer_g)
     
@@ -113,7 +111,7 @@ def train_and_eval(rank, n_gpus, hps):
     else:
       train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, scheduler, None, None)
 
-    scheduler.step()
+    # scheduler.step()
 
 
 def train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, scheduler, logger, writer):
@@ -143,7 +141,7 @@ def train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, schedu
     grad_norm = commons.clip_grad_value_(generator.parameters(), 5)
     scaler.step(optimizer_g)
     scaler.update()
-    #scheduler.step()
+    scheduler.step()
     
     if rank==0:
       if batch_idx % hps.train.log_interval == 0:
@@ -192,12 +190,12 @@ def evaluate(rank, epoch, hps, generator, optimizer_g, val_loader, logger, write
         else:
           losses_tot = [x + y for (x, y) in zip(losses_tot, loss_gs)]
 
-        if batch_idx % hps.train.log_interval == 0:
-          logger.info('Eval Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-            epoch, batch_idx * len(x), len(val_loader.dataset),
-            100. * batch_idx / len(val_loader),
-            loss_g.item()))
-          logger.info([x.item() for x in loss_gs])
+        # if batch_idx % hps.train.log_interval == 0:
+        #   logger.info('Eval Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+        #     epoch, batch_idx * len(x), len(val_loader.dataset),
+        #     100. * batch_idx / len(val_loader),
+        #     loss_g.item()))
+        #   logger.info([x.item() for x in loss_gs])
     
     losses_tot = [x/len(val_loader) for x in losses_tot]
     loss_tot = sum(losses_tot)
