@@ -16,7 +16,7 @@ from torch.cuda.amp import autocast, GradScaler
 # from apex.parallel import DistributedDataParallel as DDP
 # from apex import amp
 
-from data_utils import TextMelSpeakerLoader, TextMelSpeakerCollate
+from data_utils import TextMelSpeakerLoader, TextMelSpeakerEmbedsCollate
 import models
 import commons
 import utils
@@ -57,7 +57,7 @@ def train_and_eval(rank, n_gpus, hps):
       num_replicas=n_gpus,
       rank=rank,
       shuffle=True)
-  collate_fn = TextMelSpeakerCollate(1)
+  collate_fn = TextMelSpeakerEmbedsCollate(1)
   train_loader = DataLoader(train_dataset, num_workers=8, shuffle=False,
       batch_size=hps.train.batch_size, pin_memory=True,
       drop_last=True, collate_fn=collate_fn, sampler=train_sampler)
@@ -70,7 +70,7 @@ def train_and_eval(rank, n_gpus, hps):
   generator = models.FlowGenerator(
       n_vocab=len(symbols) + getattr(hps.data, "add_blank", False), 
       out_channels=hps.data.n_mel_channels, 
-      n_speakers=hps.data.n_speakers, 
+      #n_speakers=hps.data.n_speakers,
       **hps.model).cuda(rank)
   
   optimizer_g = torch.optim.AdamW(

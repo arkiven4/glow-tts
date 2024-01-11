@@ -212,6 +212,7 @@ class FlowGenerator(nn.Module):
       hidden_channels_enc=None,
       hidden_channels_dec=None,
       prenet=False,
+      use_spk_embeds=False,
       **kwargs):
 
     super().__init__()
@@ -240,6 +241,7 @@ class FlowGenerator(nn.Module):
     self.hidden_channels_enc = hidden_channels_enc
     self.hidden_channels_dec = hidden_channels_dec
     self.prenet = prenet
+    self.use_spk_embeds = use_spk_embeds
 
     self.encoder = TextEncoder(
         n_vocab, 
@@ -270,9 +272,13 @@ class FlowGenerator(nn.Module):
         sigmoid_scale=sigmoid_scale,
         gin_channels=gin_channels)
 
-    if n_speakers > 1:
-      self.emb_g = nn.Embedding(n_speakers, gin_channels)
-      nn.init.uniform_(self.emb_g.weight, -0.1, 0.1)
+    if self.use_spk_embeds:
+      print("Use Speaker Embed Linear Norm")
+      self.emb_g = modules.LinearNorm(512, gin_channels)
+    else:
+      if n_speakers > 1:
+        self.emb_g = nn.Embedding(n_speakers, gin_channels)
+        nn.init.uniform_(self.emb_g.weight, -0.1, 0.1)
 
   def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, gen=False, noise_scale=1., length_scale=1.):
     if g is not None:

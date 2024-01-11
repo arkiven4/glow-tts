@@ -140,6 +140,7 @@ class TextMelSpeakerLoader(torch.utils.data.Dataset):
             hparams.n_mel_channels, hparams.sampling_rate, hparams.mel_fmin,
             hparams.mel_fmax)
 
+        self.spk_embeds_path = hparams.spk_embeds_path
         self._filter_text_len()
         random.seed(1234)
         random.shuffle(self.audiopaths_sid_text)
@@ -156,8 +157,13 @@ class TextMelSpeakerLoader(torch.utils.data.Dataset):
         audiopath, sid, text = audiopath_sid_text[0], audiopath_sid_text[1], audiopath_sid_text[2]
         text = self.get_text(text)
         mel = self.get_mel(audiopath)
-        sid = self.get_sid(sid)
-        return (text, mel, sid)
+        if self.spk_embeds_path is not "":
+            filename = audiopath.split("/")[-1].split(".")[0]
+            spk_emb = torch.Tensor(np.load(f"{self.spk_embeds_path}/{filename}.npy"))
+            return (text, mel, spk_emb)
+        else:
+            sid = self.get_sid(sid)
+            return (text, mel, sid)
 
     def get_mel(self, filename):
         if not self.load_mel_from_disk:
@@ -240,3 +246,51 @@ class TextMelSpeakerCollate():
             sid[i] = batch[ids_sorted_decreasing[i]][2]
 
         return text_padded, input_lengths, mel_padded, output_lengths, sid
+    
+class TextMelSpeakerEmbedsCollate():
+    """ Zero-pads model inputs and targets based on number of frames per step
+    """
+    def __init__(self, n_frames_per_step=1):
+        self.n_frames_per_step = n_frames_per_step
+
+    def __call__(self, batch):
+        """Collate's training batch from normalized text and mel-spectrogram
+        PARAMS
+        ------
+        batch: [text_normalized, mel_normalized]
+        """
+        # Right zero-pad all one-hot text sequences to max input length
+        input_lengths, ids_sorted_decreasing = torch.sort(
+            torch.LongTensor([len(x[0]) for x in batch]),
+            dim=0, descending=True)
+        max_input_len = input_lengths[0]
+
+        text_padded = torch.LongTensor(len(batch), max_input_len)
+        text_padded.zero_()
+        for i in range(len(ids_sorted_decreasing)):
+            text = batch[ids_sorted_decreasing[i]][0]
+            text_padded[i, :text.size(0)] = text
+
+        # Right zero-pad mel-spec
+        num_mels = batch[0][1].size(0)
+        max_target_len = max([x[1].size(1) for x in batch])
+        if max_target_len % self.n_frames_per_step != 0:
+            max_target_len += self.n_frames_per_step - max_target_len % self.n_frames_per_step
+            assert max_target_len % self.n_frames_per_step == 0
+
+        # include mel padded & sid
+        mel_padded = torch.FloatTensor(len(batch), num_mels, max_target_len)
+        mel_padded.zero_()
+        output_lengths = torch.LongTensor(len(batch))
+        #sid = torch.LongTensor(len(batch))
+
+        spk_embeds = torch.FloatTensor(len(batch), 512)
+        
+        for i in range(len(ids_sorted_decreasing)):
+            mel = batch[ids_sorted_decreasing[i]][1]
+            mel_padded[i, :, :mel.size(1)] = mel
+            output_lengths[i] = mel.size(1)
+
+            spk_embeds[i, :] = batch[ids_sorted_decreasing[i]][2]
+
+        return text_padded, input_lengths, mel_padded, output_lengths, spk_embeds
