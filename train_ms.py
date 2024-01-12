@@ -91,7 +91,7 @@ def train_and_eval(rank, n_gpus, hps):
       generator = utils.warm_start_model(hps.train.warm_start_checkpoint, generator, hps.train.ignored_layer)
   else:
     try:
-      _, _, _, _,epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.model_dir, "G_*.pth"), generator, None, scheduler)
+      _, _, _, _, epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.model_dir, "G_*.pth"), generator, None, scheduler)
       epoch_str += 1
       optimizer_g.step_num = (epoch_str - 1) * len(train_loader)
       #optimizer_g._update_learning_rate()
@@ -135,13 +135,14 @@ def train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, schedu
         loss_gs = [l_mle, l_length]
         loss_g = sum(loss_gs)
 
+    scheduler.step()
+
     optimizer_g.zero_grad()
     scaler.scale(loss_g).backward()
     scaler.unscale_(optimizer_g)
     grad_norm = commons.clip_grad_value_(generator.parameters(), 5)
     scaler.step(optimizer_g)
     scaler.update()
-    scheduler.step()
     
     if rank==0:
       if batch_idx % hps.train.log_interval == 0:

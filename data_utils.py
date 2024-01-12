@@ -157,7 +157,7 @@ class TextMelSpeakerLoader(torch.utils.data.Dataset):
         audiopath, sid, text = audiopath_sid_text[0], audiopath_sid_text[1], audiopath_sid_text[2]
         text = self.get_text(text)
         mel = self.get_mel(audiopath)
-        if self.spk_embeds_path is not "":
+        if self.spk_embeds_path != "":
             filename = audiopath.split("/")[-1].split(".")[0]
             spk_emb = torch.Tensor(np.load(f"{self.spk_embeds_path}/{filename}.npy"))
             return (text, mel, spk_emb)
