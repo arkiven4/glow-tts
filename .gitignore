@@ -12,3 +12,4 @@ build
 monotonic_align/monotonic_align
 .env
 pretrained_blank.pth
+temp

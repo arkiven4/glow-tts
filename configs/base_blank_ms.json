@@ -32,7 +32,8 @@
     "add_noise": true,
     "add_blank": true,
     "n_speakers": 109,
-    "spk_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/VCTK/spk_embeds/"
+    "spk_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/VCTK/spk_embeds/",
+    "emo_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/VCTK/spk_embeds/"
   },
   "model": {
     "hidden_channels": 192,
