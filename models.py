@@ -412,6 +412,16 @@ class FlowGenerator(nn.Module):
       y = y[:,:,:y_max_length]
     y_lengths = (y_lengths // self.n_sqz) * self.n_sqz
     return y, y_lengths, y_max_length
+  
+  def voice_conversion(self, y, y_lengths, spk_embed_src, spk_embed_tgt):
+    g_src = self.emb_g(spk_embed_src).unsqueeze(-1)
+    g_tgt = self.emb_g(spk_embed_tgt).unsqueeze(-1)
+
+    z_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, None), 1)
+    z, _ = self.decoder(y, z_mask, g=g_src, reverse=False)
+
+    y_conv, _ = self.decoder(z, z_mask, g=g_tgt, reverse=True)
+    return y_conv
 
   def store_inverse(self):
     self.decoder.store_inverse()

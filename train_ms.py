@@ -16,7 +16,7 @@ from torch.cuda.amp import autocast, GradScaler
 # from apex.parallel import DistributedDataParallel as DDP
 # from apex import amp
 
-from data_utils import TextMelMyOwnLoader, TextMelMyOwnCollate
+from data_utils import TextMelMyOwnLoader, TextMelMyOwnCollate, DistributedBucketSampler
 import models
 import commons
 import utils
@@ -52,15 +52,24 @@ def train_and_eval(rank, n_gpus, hps):
   torch.cuda.set_device(rank)
 
   train_dataset = TextMelMyOwnLoader(hps.data.training_files, hps.data)
-  train_sampler = torch.utils.data.distributed.DistributedSampler(
+  # train_sampler = torch.utils.data.distributed.DistributedSampler(
+  #     train_dataset,
+  #     num_replicas=n_gpus,
+  #     rank=rank,
+  #     shuffle=True)
+  train_sampler = DistributedBucketSampler(
       train_dataset,
+      hps.train.batch_size,
+      [32,300,400,500,600,700,800,900,1000],
       num_replicas=n_gpus,
       rank=rank,
       shuffle=True)
   collate_fn = TextMelMyOwnCollate(1)
-  train_loader = DataLoader(train_dataset, num_workers=8, shuffle=False,
-      batch_size=hps.train.batch_size, pin_memory=True,
-      drop_last=True, collate_fn=collate_fn, sampler=train_sampler)
+  train_loader = DataLoader(train_dataset, num_workers=8, shuffle=False, pin_memory=True,
+      collate_fn=collate_fn, batch_sampler=train_sampler)
+  # train_loader = DataLoader(train_dataset, num_workers=8, shuffle=False,
+  #     batch_size=hps.train.batch_size, pin_memory=True,
+  #     drop_last=True, collate_fn=collate_fn, sampler=train_sampler)
   if rank == 0:
     val_dataset = TextMelMyOwnLoader(hps.data.validation_files, hps.data)
     val_loader = DataLoader(val_dataset, num_workers=8, shuffle=False,
@@ -115,7 +124,7 @@ def train_and_eval(rank, n_gpus, hps):
 
 
 def train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, scheduler, logger, writer):
-  train_loader.sampler.set_epoch(epoch)
+  train_loader.batch_sampler.set_epoch(epoch)
   global global_step
 
   generator.train()
@@ -153,9 +162,11 @@ def train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, schedu
         #   100. * batch_idx / len(train_loader),
         #   loss_g.item()))
         # logger.info([x.item() for x in loss_gs] + [global_step, optimizer_g.param_groups[0]['lr']])
-        
+
+        #loss_mel = F.l1_loss(y[0], y_gen[0]) *45
         scalar_dict = {"loss/g/total": loss_g, "learning_rate": optimizer_g.param_groups[0]['lr'], "grad_norm": grad_norm}
         scalar_dict.update({"loss/g/{}".format(i): v for i, v in enumerate(loss_gs)})
+        #scalar_dict.update({"loss/g/mel": loss_mel})
         utils.summarize(
           writer=writer,
           global_step=global_step, 
