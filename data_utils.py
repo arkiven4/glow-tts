@@ -304,8 +304,8 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
         2) normalizes text and converts them to sequences of one-hot vectors
         3) computes mel-spectrograms from audio files.
     """
-    def __init__(self, audiopaths_sid_text, hparams):
-        self.audiopaths_sid_text = load_filepaths_and_text(audiopaths_sid_text)
+    def __init__(self, audiopaths_lid_text, hparams):
+        self.audiopaths_lid_text = load_filepaths_and_text(audiopaths_lid_text)
         self.text_cleaners = hparams.text_cleaners
         self.max_wav_value = hparams.max_wav_value
         self.sampling_rate = hparams.sampling_rate
@@ -326,28 +326,29 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
         self.emo_embeds_path = hparams.emo_embeds_path
         self._filter_text_len()
         random.seed(1234)
-        random.shuffle(self.audiopaths_sid_text)
+        random.shuffle(self.audiopaths_lid_text)
 
     def _filter_text_len(self):
-      audiopaths_sid_text_new = []
+      audiopaths_lid_text_new = []
       lengths = []
-      for audiopath, sid, text in self.audiopaths_sid_text:
+      for audiopath, sid, text in self.audiopaths_lid_text:
         if self.min_text_len <= len(text) and len(text) <= self.max_text_len:
-          audiopaths_sid_text_new.append([audiopath, sid, text])
+          audiopaths_lid_text_new.append([audiopath, sid, text])
           lengths.append(os.path.getsize(audiopath) // (2 * self.hop_length))
-      self.audiopaths_sid_text = audiopaths_sid_text_new
+      self.audiopaths_lid_text = audiopaths_lid_text_new
       self.lengths = lengths
 
-    def get_mel_text_speaker_pair(self, audiopath_sid_text):
+    def get_mel_text_speaker_pair(self, audiopath_lid_text):
         # separate filename, speaker_id and text
-        audiopath, sid, text = audiopath_sid_text[0], audiopath_sid_text[1], audiopath_sid_text[2]
+        audiopath, lid, text = audiopath_lid_text[0], audiopath_lid_text[1], audiopath_lid_text[2]
         filename = audiopath.split("/")[-1].split(".")[0]
 
         text = self.get_text(text)
         mel = self.get_mel(audiopath)
         spk_emb = torch.Tensor(np.load(f"{self.spk_embeds_path}/{filename}.npy"))
         emo_emb = torch.Tensor(np.load(f"{self.emo_embeds_path}/{filename}.npy"))
-        return (text, mel, spk_emb, emo_emb)
+        lid = self.get_lid(lid)
+        return (text, mel, spk_emb, emo_emb, lid)
 
     def get_mel(self, filename):
         if not self.load_mel_from_disk:
@@ -376,20 +377,20 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
         text_norm = torch.IntTensor(text_norm)
         return text_norm
 
-    def get_sid(self, sid):
-        sid = torch.IntTensor([int(sid)])
-        return sid
+    def get_lid(self, lid):
+        lid = torch.IntTensor([int(lid)])
+        return lid
 
     def __getitem__(self, index):
         try:
-            self.get_mel_text_speaker_pair(self.audiopaths_sid_text[index])
+            self.get_mel_text_speaker_pair(self.audiopaths_lid_text[index])
         except:
             print(index)
-            print(self.get_mel_text_speaker_pair(self.audiopaths_sid_text[index]))
-        return self.get_mel_text_speaker_pair(self.audiopaths_sid_text[index])
+            print(self.get_mel_text_speaker_pair(self.audiopaths_lid_text[index]))
+        return self.get_mel_text_speaker_pair(self.audiopaths_lid_text[index])
 
     def __len__(self):
-        return len(self.audiopaths_sid_text)
+        return len(self.audiopaths_lid_text)
     
 class TextMelMyOwnCollate():
     """ Zero-pads model inputs and targets based on number of frames per step
@@ -430,6 +431,7 @@ class TextMelMyOwnCollate():
 
         spk_embeds = torch.FloatTensor(len(batch), 512)
         emo_embeds = torch.FloatTensor(len(batch), 1024)
+        lid = torch.LongTensor(len(batch))
         
         for i in range(len(ids_sorted_decreasing)):
             mel = batch[ids_sorted_decreasing[i]][1]
@@ -438,10 +440,10 @@ class TextMelMyOwnCollate():
 
             spk_embeds[i, :] = batch[ids_sorted_decreasing[i]][2]
             emo_embeds[i, :] = batch[ids_sorted_decreasing[i]][3]
+            lid[i] = batch[ids_sorted_decreasing[i]][4]
 
-        return text_padded, input_lengths, mel_padded, output_lengths, spk_embeds, emo_embeds
+        return text_padded, input_lengths, mel_padded, output_lengths, spk_embeds, emo_embeds, lid
     
-
 
 class DistributedBucketSampler(torch.utils.data.distributed.DistributedSampler):
     """

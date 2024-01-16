@@ -129,15 +129,16 @@ def train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, schedu
   global global_step
 
   generator.train()
-  for batch_idx, (x, x_lengths, y, y_lengths, speakers, emos) in enumerate(tqdm(train_loader)):
+  for batch_idx, (x, x_lengths, y, y_lengths, speakers, emos, lids) in enumerate(tqdm(train_loader)):
     x, x_lengths = x.cuda(rank, non_blocking=True), x_lengths.cuda(rank, non_blocking=True)
     y, y_lengths = y.cuda(rank, non_blocking=True), y_lengths.cuda(rank, non_blocking=True)
     speakers = speakers.cuda(rank, non_blocking=True)
     emos = emos.cuda(rank, non_blocking=True)
+    lids = lids.cuda(rank, non_blocking=True)
 
     # Train Generator
     with autocast(enabled=hps.train.fp16_run):
-      (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, logw, logw_) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, gen=False)
+      (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, logw, logw_) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids, gen=False)
       
       with autocast(enabled=False):
         l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
@@ -157,7 +158,7 @@ def train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, schedu
     
     if rank==0:
       if batch_idx % hps.train.log_interval == 0:
-        (y_gen, *_), *_ = generator.module(x[:1], x_lengths[:1], g=speakers[:1], emo=emos[:1], gen=True)
+        (y_gen, *_), *_ = generator.module(x[:1], x_lengths[:1], g=speakers[:1], emo=emos[:1], l=lids[:1], gen=True)
         # logger.info('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
         #   epoch, batch_idx * len(x), len(train_loader.dataset),
         #   100. * batch_idx / len(train_loader),
@@ -187,13 +188,14 @@ def evaluate(rank, epoch, hps, generator, optimizer_g, val_loader, logger, write
     generator.eval()
     losses_tot = []
     with torch.no_grad():
-      for batch_idx, (x, x_lengths, y, y_lengths, speakers, emos) in enumerate(val_loader):
+      for batch_idx, (x, x_lengths, y, y_lengths, speakers, emos, lids) in enumerate(val_loader):
         x, x_lengths = x.cuda(rank, non_blocking=True), x_lengths.cuda(rank, non_blocking=True)
         y, y_lengths = y.cuda(rank, non_blocking=True), y_lengths.cuda(rank, non_blocking=True)
         speakers = speakers.cuda(rank, non_blocking=True)
         emos = emos.cuda(rank, non_blocking=True)
+        lids = lids.cuda(rank, non_blocking=True)
         
-        (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, logw, logw_) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, gen=False)
+        (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, logw, logw_) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids, gen=False)
         l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
         l_length = commons.duration_loss(logw, logw_, x_lengths)
 

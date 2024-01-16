@@ -287,7 +287,9 @@ class FlowGenerator(nn.Module):
       n_block_layers=4,
       p_dropout_dec=0., 
       n_speakers=0, 
+      n_lang=0, 
       gin_channels=0, 
+      lin_channels=0,
       n_split=4,
       n_sqz=1,
       sigmoid_scale=False,
@@ -298,6 +300,7 @@ class FlowGenerator(nn.Module):
       hidden_channels_dec=None,
       prenet=False,
       use_spk_embeds=False,
+      use_lang_embeds=False,
       **kwargs):
 
     super().__init__()
@@ -316,7 +319,9 @@ class FlowGenerator(nn.Module):
     self.n_block_layers = n_block_layers
     self.p_dropout_dec = p_dropout_dec
     self.n_speakers = n_speakers
+    self.n_lang = n_lang
     self.gin_channels = gin_channels
+    self.lin_channels = lin_channels
     self.n_split = n_split
     self.n_sqz = n_sqz
     self.sigmoid_scale = sigmoid_scale
@@ -327,6 +332,7 @@ class FlowGenerator(nn.Module):
     self.hidden_channels_dec = hidden_channels_dec
     self.prenet = prenet
     self.use_spk_embeds = use_spk_embeds
+    self.use_lang_embeds = use_lang_embeds
 
     self.encoder = TextEncoder(
         n_vocab, 
@@ -342,7 +348,7 @@ class FlowGenerator(nn.Module):
         block_length=block_length,
         mean_only=mean_only,
         prenet=prenet,
-        gin_channels=gin_channels)
+        gin_channels=gin_channels + lin_channels) # Multi Lang
 
     self.decoder = FlowSpecDecoder(
         out_channels, 
@@ -355,19 +361,29 @@ class FlowGenerator(nn.Module):
         n_split=n_split,
         n_sqz=n_sqz,
         sigmoid_scale=sigmoid_scale,
-        gin_channels=gin_channels)
+        gin_channels=gin_channels + lin_channels) # Multi Lang
 
     if self.use_spk_embeds:
       print("Use Speaker Embed Linear Norm")
       self.emb_g = modules.LinearNorm(512, gin_channels)
     else:
       if n_speakers > 1:
+        print("Use Speaker Cathegorical")
         self.emb_g = nn.Embedding(n_speakers, gin_channels)
         nn.init.uniform_(self.emb_g.weight, -0.1, 0.1)
+    
+    if self.use_lang_embeds:
+      self.emb_l = nn.Embedding(n_lang, lin_channels)
+      nn.init.uniform_(self.emb_l.weight, -0.1, 0.1)
 
-  def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, gen=False, noise_scale=1., length_scale=1.):
+  def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None, gen=False, noise_scale=1., length_scale=1.):
     if g is not None:
       g = F.normalize(self.emb_g(g)).unsqueeze(-1) # [b, h]
+
+    if l is not None:
+      l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
+      g = torch.cat([g, l], 1)
+
     x_m, x_logs, logw, x_mask = self.encoder(x, x_lengths, g=g, emo=emo)
 
     if gen:
