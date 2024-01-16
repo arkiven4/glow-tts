@@ -373,6 +373,7 @@ class FlowGenerator(nn.Module):
         nn.init.uniform_(self.emb_g.weight, -0.1, 0.1)
     
     if self.use_lang_embeds:
+      print("Use Multilanguage Cathegorical")
       self.emb_l = nn.Embedding(n_lang, lin_channels)
       nn.init.uniform_(self.emb_l.weight, -0.1, 0.1)
 
