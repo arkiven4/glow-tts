@@ -164,18 +164,18 @@ def train(rank, epoch, hps, generator, optimizer_g, train_loader, scaler, schedu
         #   100. * batch_idx / len(train_loader),
         #   loss_g.item()))
         # logger.info([x.item() for x in loss_gs] + [global_step, optimizer_g.param_groups[0]['lr']])
+        halflen_mel = y_gen[0].data.cpu().numpy().shape[1] // 2
 
-        #loss_mel = F.l1_loss(y[0], y_gen[0]) *45
+        loss_mel = F.l1_loss(y[0][:, 0:halflen_mel], y_gen[0][:, 0:halflen_mel]) * 45
         scalar_dict = {"loss/g/total": loss_g, "learning_rate": optimizer_g.param_groups[0]['lr'], "grad_norm": grad_norm}
         scalar_dict.update({"loss/g/{}".format(i): v for i, v in enumerate(loss_gs)})
-        #scalar_dict.update({"loss/g/mel": loss_mel})
-        len_mel_generated_half = y_gen[0].data.cpu().numpy().shape[1] // 2
+        scalar_dict.update({"loss/g/mel": loss_mel})
 
         utils.summarize(
           writer=writer,
           global_step=global_step, 
-          images={"y_org": utils.plot_spectrogram_to_numpy(y[0].data.cpu().numpy()[:, 0:len_mel_generated_half]), 
-            "y_gen": utils.plot_spectrogram_to_numpy(y_gen[0].data.cpu().numpy()[:, 0:len_mel_generated_half]), 
+          images={"y_org": utils.plot_spectrogram_to_numpy(y[0].data.cpu().numpy()[:, 0:halflen_mel]), 
+            "y_gen": utils.plot_spectrogram_to_numpy(y_gen[0].data.cpu().numpy()[:, 0:halflen_mel]), 
             "attn": utils.plot_alignment_to_numpy(attn[0,0].data.cpu().numpy()),
             },
           scalars=scalar_dict)
