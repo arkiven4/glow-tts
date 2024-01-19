@@ -331,6 +331,10 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
     def _filter_text_len(self):
       audiopaths_lid_text_new = []
       lengths = []
+      for now in self.audiopaths_lid_text: 
+        if len(now) > 3:
+            print(now)
+
       for audiopath, sid, text in self.audiopaths_lid_text:
         if self.min_text_len <= len(text) and len(text) <= self.max_text_len:
           audiopaths_lid_text_new.append([audiopath, sid, text])
@@ -342,11 +346,12 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
         # separate filename, speaker_id and text
         audiopath, lid, text = audiopath_lid_text[0], audiopath_lid_text[1], audiopath_lid_text[2]
         filename = audiopath.split("/")[-1].split(".")[0]
+        database_name = audiopath.split("/")[8]
 
         text = self.get_text(text)
         mel = self.get_mel(audiopath)
-        spk_emb = torch.Tensor(np.load(f"{self.spk_embeds_path}/{filename}.npy"))
-        emo_emb = torch.Tensor(np.load(f"{self.emo_embeds_path}/{filename}.npy"))
+        spk_emb = torch.Tensor(np.load(f"{self.spk_embeds_path.replace('dataset_name', database_name)}/{filename}.npy"))
+        emo_emb = torch.Tensor(np.load(f"{self.emo_embeds_path.replace('dataset_name', database_name)}/{filename}.npy"))
         lid = self.get_lid(lid)
         return (text, mel, spk_emb, emo_emb, lid)
 
@@ -454,11 +459,12 @@ class DistributedBucketSampler(torch.utils.data.distributed.DistributedSampler):
     It removes samples which are not included in the boundaries.
     Ex) boundaries = [b1, b2, b3] -> any x s.t. length(x) <= b1 or length(x) > b3 are discarded.
     """
-    def __init__(self, dataset, batch_size, boundaries, num_replicas=None, rank=None, shuffle=True):
+    def __init__(self, dataset, batch_size, boundaries, num_replicas=None, rank=None, shuffle=True, weights=None):
         super().__init__(dataset, num_replicas=num_replicas, rank=rank, shuffle=shuffle)
         self.lengths = dataset.lengths
         self.batch_size = batch_size
         self.boundaries = boundaries
+        self.weights = weights
   
         self.buckets, self.num_samples_per_bucket = self._create_buckets()
         self.total_size = sum(self.num_samples_per_bucket)

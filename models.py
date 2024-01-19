@@ -375,7 +375,8 @@ class FlowGenerator(nn.Module):
     if self.use_lang_embeds:
       print("Use Multilanguage Cathegorical")
       self.emb_l = nn.Embedding(n_lang, lin_channels)
-      nn.init.uniform_(self.emb_l.weight, -0.1, 0.1)
+      torch.nn.init.xavier_uniform_(self.emb_l.weight)
+      #nn.init.uniform_(self.emb_l.weight, -0.1, 0.1)
 
   def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None, gen=False, noise_scale=1., length_scale=1.):
     if g is not None:
@@ -430,9 +431,14 @@ class FlowGenerator(nn.Module):
     y_lengths = (y_lengths // self.n_sqz) * self.n_sqz
     return y, y_lengths, y_max_length
   
-  def voice_conversion(self, y, y_lengths, spk_embed_src, spk_embed_tgt):
+  def voice_conversion(self, y, y_lengths, spk_embed_src, spk_embed_tgt, l=None):
     g_src = self.emb_g(spk_embed_src).unsqueeze(-1)
     g_tgt = self.emb_g(spk_embed_tgt).unsqueeze(-1)
+
+    if l is not None:
+      l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
+      g_src = torch.cat([g_src, l], 1)
+      g_tgt = torch.cat([g_tgt, l], 1)
 
     z_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, None), 1)
     z, _ = self.decoder(y, z_mask, g=g_src, reverse=False)

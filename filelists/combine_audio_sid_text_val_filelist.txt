@@ -1,0 +1,150 @@
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0009/Happy/0009_000995.wav|1|文学和经济，我喜欢很多著作。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0002/Angry/0002_000553.wav|1|希望我有一天也可以去那里。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0009/Surprise/0009_001409.wav|1|就是这个意思，你又聪明又好看。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0009/Sad/0009_001237.wav|1|我们一起为他办个惊喜派对。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0017/Surprise/0017_001482.wav|0|A fair jaw cracker dwarf language must be!
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0002/Neutral/0002_000314.wav|1|现在全城的人都要向我借钱了！
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0017/Neutral/0017_000338.wav|0|Paul's teeth ached because of lemon.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0011/Sad/0011_001279.wav|0|The first year they sowed rye.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0001/Angry/0001_000503.wav|1|我们还等什么
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0006/Neutral/0006_000312.wav|1|如果她拒绝我，我会死的。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0005/Happy/0005_000862.wav|1|原来你也在玩这个
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0008/Neutral/0008_000154.wav|1|我还不会说其他外语，只会普通话。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0017/Happy/0017_000776.wav|0|The hag looked in the stove.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0014/Neutral/0014_000176.wav|0|She just smiled calmly, mother knows that is the best smile.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0001/Neutral/0001_000028.wav|1|没错，就是车门。另外两个人问他说
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0015/Neutral/0015_000204.wav|0|The song is really louding on a gate.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0015/Angry/0015_000595.wav|0|Do you think it's a woozle?
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0003/Happy/0003_001034.wav|1|我曾经养过，我太高兴了。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0010/Neutral/0010_000151.wav|1|我也最喜欢你，不要开枪。我投降
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Angry/0020_000617.wav|0|Chapter eleven on the doorstep.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0013/Sad/0013_001258.wav|0|How somebody killed something.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0016/Surprise/0016_001536.wav|0|She has eaten the tapioca all of it.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Happy/0020_000953.wav|0|I have a soothsayer.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0005/Sad/0005_001053.wav|1|我老家在北京。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0002/Neutral/0002_000113.wav|1|玛丽，你看来很喜欢挖苦我。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0003/Happy/0003_000813.wav|1|玛丽，你看来很喜欢挖苦我。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Sad/0020_001292.wav|0|Give me your hand or I will cry harder than before.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0007/Surprise/0007_001514.wav|1|我也是，我还有点儿口渴。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0007/Sad/0007_001212.wav|1|原来你也在玩这个
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0004/Surprise/0004_001523.wav|1|那你就说你为之神魂颠倒了。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0006/Happy/0006_001015.wav|1|我需要插着电源才能说话。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0004/Neutral/0004_000129.wav|1|对别人没有，而对我就有。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0007/Neutral/0007_000138.wav|1|我总是控制不了它。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0007/Surprise/0007_001462.wav|1|我是顺路过来跟你告别的。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0003/Neutral/0003_000109.wav|1|我其实挺饿的。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0013/Neutral/0013_000202.wav|0|that sounds good.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0006/Sad/0006_001245.wav|1|我以为你们国家的人都是麻将高手。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0007/Neutral/0007_000336.wav|1|谢谢你的夸奖，鲍伯上年纪了。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0003/Happy/0003_000815.wav|1|真是个好习惯，通常看书或消遣。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0017/Angry/0017_000452.wav|0|This is Jack, the relatives of Tom.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0019/Happy/0019_000911.wav|0|From each cake, there sprang a huge dog.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0003/Sad/0003_001080.wav|1|除非你打飞碟球，但这是不可能的。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0002/Sad/0002_001164.wav|1|我也是，我还有点儿口渴。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0011/Sad/0011_001216.wav|0|They ate beef at the butcher shop.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0005/Surprise/0005_001508.wav|1|让我们看看哪一种球技比较好。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0006/Sad/0006_001156.wav|1|做不了什么，通常我会保持沉默。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0009/Happy/0009_000855.wav|1|我只打算放松一下自己。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0008/Happy/0008_000924.wav|1|这个对我来说有点难！
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0009/Surprise/0009_001494.wav|1|很神奇的样子，我搞不懂为什么。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0013/Happy/0013_000912.wav|0|No thank you.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0019/Happy/0019_000875.wav|0|All this have we won by our labour.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0014/Happy/0014_000984.wav|0|Chapter eighteen, the return journey.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0016/Sad/0016_001370.wav|0|Goat Billy asked the old Chinese guy.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0013/Neutral/0013_000117.wav|0|They were children of mine.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0018/Angry/0018_000403.wav|0|He was still in the forest!
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0014/Happy/0014_000839.wav|0|Cuckoos is downheaded and crying.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0003/Angry/0003_000405.wav|1|它实际会形成一氧化碳，
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0017/Sad/0017_001248.wav|0|I'd shoot myself. a pause.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0006/Angry/0006_000657.wav|1|有时内在美更加重要。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0005/Surprise/0005_001618.wav|1|明天是星期天，我们去透透气吧。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0013/Surprise/0013_001675.wav|0|You shouldn't have pricked him with your horn.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0018/Surprise/0018_001513.wav|0|Mister Lawson saw George last night.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0018/Angry/0018_000484.wav|0|Rare rabbit had a little apron.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0019/Angry/0019_000362.wav|0|Her shoes were like fishes.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0002/Happy/0002_000884.wav|1|二零一六年十一月五号是星期六。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0004/Angry/0004_000515.wav|1|其实我们前天已经分手了。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0003/Sad/0003_001229.wav|1|她和维克分手了，所以她申请转调。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0011/Sad/0011_001327.wav|0|The end part is fish mouth.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0014/Neutral/0014_000082.wav|0|A fair jaw cracker dwarf language must be!
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0006/Surprise/0006_001704.wav|1|我刚从苏格兰回来。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0005/Angry/0005_000596.wav|1|领带对男人来说真必不可少。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0006/Neutral/0006_000045.wav|1|我知道人生并不总是一帆风顺，
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0012/Surprise/0012_001745.wav|0|A whirring noise was heard.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0011/Neutral/0011_000332.wav|0|where are you going?
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0006/Neutral/0006_000178.wav|1|你转一个，我想学习下。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0001/Angry/0001_000396.wav|1|我们可以轮流开车。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0003/Neutral/0003_000253.wav|1|你比吴亦凡帅，我同意你的观点。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0012/Neutral/0012_000306.wav|0|Please invite Tom if there is not requires.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0007/Happy/0007_000967.wav|1|这可是我学会的第一首古诗。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0014/Neutral/0014_000004.wav|0|They went up to the dark mass job had pointed out.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0011/Neutral/0011_000190.wav|0|And they were sandy yellow brownish all over.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0013/Sad/0013_001274.wav|0|Do you know the lid opens?
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0005/Happy/0005_000995.wav|1|文学和经济，我喜欢很多著作。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0017/Happy/0017_000818.wav|0|Look out! said Alice.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0007/Neutral/0007_000029.wav|1|很可爱啊，就像你一样。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0007/Angry/0007_000452.wav|1|我昨天遇到马克，他看起来很忧郁。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0013/Surprise/0013_001499.wav|0|I've hit the wrong nose.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0019/Neutral/0019_000207.wav|0|What am I, I'm a racer, son of god.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0005/Happy/0005_000930.wav|1|那不打扰你了，我不敢约出去。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0018/Neutral/0018_000305.wav|0|The fisherman and his wife see George every day.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0019/Happy/0019_000986.wav|0|One two three, where is your breakfast.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0013/Happy/0013_000750.wav|0|Rabbit gave dog a hurrying up sort of nudge.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0008/Happy/0008_000847.wav|1|不知道。或许一双新鞋。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0011/Neutral/0011_000129.wav|0|A large flat ferry boat was moored beside it.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0009/Neutral/0009_000147.wav|1|不知道。或许一双新鞋。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Sad/0020_001105.wav|0|A deafening chirruping rent the air.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0006/Sad/0006_001212.wav|1|原来你也在玩这个
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0009/Surprise/0009_001650.wav|1|我不用转头，不需要脖子。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0001/Happy/0001_001006.wav|1|我在一个机械化农场做工程师。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0009/Neutral/0009_000022.wav|1|我和我朋友刚从巴厘岛回来。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0509.wav|2|sudah sepatutnya sebagai generasi penerus bangsa bersikap berani.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0559.wav|2|tidak sepatutnya dia bersikap curang dalam perlombaan itu.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Sedih/vibid_fyat_514.wav|2|biarkan saja zulfa menemukan kehidupan barunya di sana.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0174.wav|2|aku datang ke sini setengah jam lalu.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0787.wav|2|saya paling tidak terima apabila ada orang yang menyakiti hati keluarga saya.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0077.wav|2|aku ingin berteriak keras di tepi pantai.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0507.wav|2|pelatih sepak bola itu terkena serangan jantung kemarin dan tidak tertolong.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Bahagia/vibid_fyat_026.wav|2|mari sama sama kita buat karya yang bagus.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Sedih/vibid_mdpa_640.wav|2|betapa beratnya ujian yang diberikan sensei kawahara.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Marah/vibid_fyat_297.wav|2|jangan takut.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Marah/vibid_fyat_283.wav|2|naufal jangan menyela percakapan orang dewasa.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0171.wav|2|dia sudah lama mendiami tempat ini.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0858.wav|2|dampak kenaikan bbm akan sangat dirasakan oleh kalangan buruh nasional kita.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Sedih/vibid_mdpa_566.wav|2|berhentilah.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_1015.wav|2|bagaimana kabar kaki lisa yang kemarin lusa tertabrak motor?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0704.wav|2|kulitnya jadi menghitam akibat sering bermain di bawah terik matahari.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0973.wav|2|apa gunanya jadi saudara jika tidak bisa meringankan beban satu dengan lainnya.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0974.wav|2|walikota surabaya menggelar pesta rakyat akbar di hari ulang tahunnya yang ke lima puluh enam.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_1013.wav|2|sudah berapa lama anak kecil yang kurus kering badannya dirawat di rumah sakit?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_1212.wav|2|dengan cara bagaimana ana harus memberikan pemahaman pada soni tentang janin yang dikandungnya?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0269.wav|2|pelajar sekolah dasar diminta untuk periksa gigi setiap enam bulan sekali.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_1185.wav|2|dimana tempat sampah terdekat yang dapat digunakan untuk membuang kotoran kering?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0042.wav|2|gadis itu sering melamun di teras rumahnya.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0446.wav|2|reuni akbar akan diadakan di sekolahan dua bulan lagi.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Marah/vibid_mdpa_304.wav|2|anggaplah dia orang gila.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Marah/vibid_mdpa_331.wav|2|jangan berkelakuan negatif.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0241.wav|2|parameter-parameter ini yang akan menjadi bahan pertimbangan.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Marah/vibid_mdpa_350.wav|2|laporkan perkembangan kepadaku bahkan jika aku sedang tidur di kabin.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_1506.wav|2|masakan rendang khas kota padang ini dibuat khusus untuk kakak tercinta.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Sedih/vibid_fyat_546.wav|2|biarkanlah waktu yang mengobati kesedihan di hati ini.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Bahagia/vibid_mdpa_092.wav|2|jangan lupa nanti sore ya gus.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_1345.wav|2|bagaimana nasib para karyawan yang sudah diberhentikan tersebut?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_1294.wav|2|apakah adik kecil itu sungguh-sungguh ingin belajar matematika?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0653.wav|2|pohon pepaya di belakang rumahku berbuah ranum dan manis rasanya.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Marah/vibid_fyat_224.wav|2|ayo cepat selesaikan dan pergi dari sini.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0251.wav|2|rumah itu memang terkesan rindang dan nyaman.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Bahagia/vibid_mdpa_032.wav|2|ayo segera bersiap siap dan temui mereka.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0475.wav|2|nenekku memelihara ayam di kandang belakang rumah.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0104.wav|2|baru saja tukang bakso lewat depan rumah.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0046.wav|2|siswa baru itu sering terlambat masuk kelas.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_1316.wav|2|kapan bapak akan menunaikan ibadah haji?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Sedih/vibid_mdpa_579.wav|2|tenangkanlah dirimu.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Bahagia/vibid_fyat_111.wav|2|sebutkan hal hal yang membuatmu senang dan gembira.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0015.wav|2|siang ini udaranya panas tidak mendung lagi.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_1316.wav|2|kapan bapak akan menunaikan ibadah haji?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0369.wav|2|pagi ini hujan deras turun di kota kelahiranku.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0163.wav|2|belum lama ini ada berita buruk.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Sedih/vibid_fyat_565.wav|2|carilah jalan keluar lain selain mundur dari organisasi ini.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0676.wav|2|lusa guru ngajiku akan berkunjung ke rumahku bersama teman yang lainnya.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0640.wav|2|coba bersabarlah dulu dengan kondisimu sekarang.

@@ -9,12 +9,12 @@
     "eps": 1e-9,
     "warmup_steps": 4000,
     "scheduler": "noam",
-    "batch_size": 52,
+    "batch_size": 32,
     "ddi": true,
     "fp16_run": true,
-    "warm_start": true,
-    "warm_start_checkpoint": "logs/base_blank_emo/G_224.pth",
-    "ignored_layer": ["encoder.emb.weight", "encoder.proj_w.conv_1.weight",
+    "warm_start": false,
+    "warm_start_checkpoint": "logs/base_blank_emo_lang_chn/G_60.pth",
+    "ignored_layer": ["encoder.emb.weight", "encoder.proj_w.conv_1.weight", "emb_l.weight",
     "decoder.flows.2.wn.cond_layer.weight_v",
     "decoder.flows.5.wn.cond_layer.weight_v",
     "decoder.flows.8.wn.cond_layer.weight_v",
@@ -30,9 +30,9 @@
   },
   "data": {
     "load_mel_from_disk": false,
-    "training_files":"filelists/esdall_audio_sid_text_train_filelist.txt",
-    "validation_files":"filelists/esdall_audio_sid_text_val_filelist.txt",
-    "text_cleaners":["basic_cleaners"],
+    "training_files":"filelists/combine_audio_sid_text_train_filelist.txt",
+    "validation_files":"filelists/combine_audio_sid_text_val_filelist.txt",
+    "text_cleaners":["universal_cleaners"],
     "max_wav_value": 32768.0,
     "sampling_rate": 22050,
     "filter_length": 1024,
@@ -45,8 +45,8 @@
     "add_blank": true,
     "n_speakers": 109,
     "n_lang": 10,
-    "spk_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/spk_embeds/",
-    "emo_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/emo_embeds/"
+    "spk_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/spk_embeds/",
+    "emo_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/emo_embeds/"
   },
   "model": {
     "hidden_channels": 192,
@@ -70,6 +70,6 @@
     "gin_channels": 256,
     "use_spk_embeds": true,
     "use_lang_embeds": true,
-    "lin_channels": 256
+    "lin_channels": 16
   }
 }
