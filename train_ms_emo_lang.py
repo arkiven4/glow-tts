@@ -279,7 +279,6 @@ def train(
                     g=speakers[:1],
                     emo=emos[:1],
                     l=lids[:1],
-                    gen=True,
                 )
                 # logger.info('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 #   epoch, batch_idx * len(x), len(train_loader.dataset),
