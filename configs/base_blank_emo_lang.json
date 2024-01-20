@@ -12,21 +12,9 @@
     "batch_size": 32,
     "ddi": true,
     "fp16_run": true,
-    "warm_start": false,
-    "warm_start_checkpoint": "logs/base_blank_emo_lang_chn/G_60.pth",
-    "ignored_layer": ["encoder.emb.weight", "encoder.proj_w.conv_1.weight", "emb_l.weight",
-    "decoder.flows.2.wn.cond_layer.weight_v",
-    "decoder.flows.5.wn.cond_layer.weight_v",
-    "decoder.flows.8.wn.cond_layer.weight_v",
-    "decoder.flows.11.wn.cond_layer.weight_v",
-    "decoder.flows.14.wn.cond_layer.weight_v",
-    "decoder.flows.17.wn.cond_layer.weight_v",
-    "decoder.flows.20.wn.cond_layer.weight_v",
-    "decoder.flows.23.wn.cond_layer.weight_v",
-    "decoder.flows.26.wn.cond_layer.weight_v",
-    "decoder.flows.29.wn.cond_layer.weight_v",
-    "decoder.flows.32.wn.cond_layer.weight_v",
-    "decoder.flows.35.wn.cond_layer.weight_v"]
+    "warm_start": true,
+    "warm_start_checkpoint": "logs/base_blank_emo_lang_onlyintextencoder/G_143.pth",
+    "ignored_layer": ["encoder.emb.weight", "encoder.proj_w.conv_1.weight", "emb_l.weight"]
   },
   "data": {
     "load_mel_from_disk": false,
@@ -46,7 +34,7 @@
     "n_speakers": 109,
     "n_lang": 10,
     "spk_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/spk_embeds/",
-    "emo_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/emo_embeds/"
+    "emo_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/emo_embeds_coords/"
   },
   "model": {
     "hidden_channels": 192,
@@ -70,6 +58,8 @@
     "gin_channels": 256,
     "use_spk_embeds": true,
     "use_lang_embeds": true,
-    "lin_channels": 16
+    "use_emo_embeds": true,
+    "lin_channels": 16,
+    "emoin_channels": 256
   }
 }

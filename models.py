@@ -8,6 +8,77 @@ import commons
 import attentions
 import monotonic_align
 
+class CVAE_Emo(nn.Module):
+    def __init__(self, feature_size, latent_size, hidden_state=96, class_size=3):
+        super(CVAE_Emo, self).__init__()
+        self.feature_size = feature_size
+        self.latent_size = latent_size
+        self.hidden_state = hidden_state
+        self.class_size = class_size
+
+        self.fc1_a  = modules.LinearNorm(feature_size, hidden_state)
+        self.fc21_a = modules.LinearNorm(hidden_state, latent_size)
+        self.fc22_a = modules.LinearNorm(hidden_state, latent_size)
+
+        self.fc1_d  = modules.LinearNorm(feature_size, hidden_state)
+        self.fc21_d = modules.LinearNorm(hidden_state, latent_size)
+        self.fc22_d = modules.LinearNorm(hidden_state, latent_size)
+
+        self.fc1_v  = modules.LinearNorm(feature_size, hidden_state)
+        self.fc21_v = modules.LinearNorm(hidden_state, latent_size)
+        self.fc22_v = modules.LinearNorm(hidden_state, latent_size)
+
+        self.elu = nn.ELU()
+        self.sigmoid = nn.Sigmoid()
+
+    def encode_a(self, x): # Q(z|x, c)
+        '''
+        x: (bs, feature_size)
+        c: (bs, class_size)
+        '''
+        inputs = x # (bs, coordinate)
+        h1 = self.elu(self.fc1_a(inputs))
+        z_mu = self.fc21_a(h1)
+        z_var = self.fc22_a(h1)
+        return z_mu, z_var
+    
+    def encode_d(self, x): # Q(z|x, c)
+        '''
+        x: (bs, feature_size)
+        c: (bs, class_size)
+        '''
+        inputs = x # (bs, coordinate)
+        h1 = self.elu(self.fc1_d(inputs))
+        z_mu = self.fc21_d(h1)
+        z_var = self.fc22_d(h1)
+        return z_mu, z_var
+    
+    def encode_d(self, x): # Q(z|x, c)
+        '''
+        x: (bs, feature_size)
+        c: (bs, class_size)
+        '''
+        inputs = x # (bs, coordinate)
+        h1 = self.elu(self.fc1_v(inputs))
+        z_mu = self.fc21_v(h1)
+        z_var = self.fc22_v(h1)
+        return z_mu, z_var
+
+    def reparameterize(self, mu, logvar):
+        std = torch.exp(0.5*logvar)
+        eps = torch.randn_like(std)
+        return mu + eps*std
+
+    def forward(self, x):
+        mu_a, logvar_a = self.encode_a(x[:,0] - 1) # -1 because when precessing accidentaly adding 1
+        mu_d, logvar_d = self.encode_d(x[:,0] - 1)
+        mu_v, logvar_v = self.encode_v(x[:,0] - 1)
+
+        z_a = self.reparameterize(mu_a, logvar_a)
+        z_d = self.reparameterize(mu_d, logvar_d)
+        z_v = self.reparameterize(mu_v, logvar_v)
+
+        return z_a + z_d + z_v
 
 class StochasticDurationPredictor(nn.Module):
   def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, gin_channels=0):
@@ -155,10 +226,11 @@ class TextEncoder(nn.Module):
     self.emb = nn.Embedding(n_vocab, hidden_channels)
     nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
 
-    self.emo_proj = nn.Linear(1024, hidden_channels)
+    #self.emo_proj = modules.LinearNorm(1024, hidden_channels) #Follow emoin_channels
 
     if prenet:
       self.pre = modules.ConvReluNorm(hidden_channels, hidden_channels, hidden_channels, kernel_size=5, n_layers=3, p_dropout=0.5)
+    
     self.encoder = attentions.Encoder(
       hidden_channels,
       filter_channels,
@@ -174,11 +246,12 @@ class TextEncoder(nn.Module):
     if not mean_only:
       self.proj_s = nn.Conv1d(hidden_channels, out_channels, 1)
     self.proj_w = DurationPredictor(hidden_channels + gin_channels, filter_channels_dp, kernel_size, p_dropout)
-  
+
   def forward(self, x, x_lengths, g=None, emo=None):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
+
     if emo is not None:
-      x = x + self.emo_proj(emo.unsqueeze(1))
+      x = x + emo
     
     x = torch.transpose(x, 1, -1) # [b, h, t]
     x_mask = torch.unsqueeze(commons.sequence_mask(x_lengths, x.size(2)), 1).to(x.dtype)
@@ -290,6 +363,7 @@ class FlowGenerator(nn.Module):
       n_lang=0, 
       gin_channels=0, 
       lin_channels=0,
+      emoin_channels=0,
       n_split=4,
       n_sqz=1,
       sigmoid_scale=False,
@@ -301,6 +375,7 @@ class FlowGenerator(nn.Module):
       prenet=False,
       use_spk_embeds=False,
       use_lang_embeds=False,
+      use_emo_embeds=False,
       **kwargs):
 
     super().__init__()
@@ -322,6 +397,7 @@ class FlowGenerator(nn.Module):
     self.n_lang = n_lang
     self.gin_channels = gin_channels
     self.lin_channels = lin_channels
+    self.emoin_channels = emoin_channels
     self.n_split = n_split
     self.n_sqz = n_sqz
     self.sigmoid_scale = sigmoid_scale
@@ -333,6 +409,7 @@ class FlowGenerator(nn.Module):
     self.prenet = prenet
     self.use_spk_embeds = use_spk_embeds
     self.use_lang_embeds = use_lang_embeds
+    self.use_emo_embeds = use_emo_embeds
 
     self.encoder = TextEncoder(
         n_vocab, 
@@ -378,15 +455,23 @@ class FlowGenerator(nn.Module):
       torch.nn.init.xavier_uniform_(self.emb_l.weight)
       #nn.init.uniform_(self.emb_l.weight, -0.1, 0.1)
 
+    if self.use_emo_embeds:
+      print("Use Emotion Embedding")
+      self.emb_emo = CVAE_Emo(1, hidden_channels_enc, 96)
+      #self.emb_emo = modules.LinearNorm(1024, emoin_channels)
+
   def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None, gen=False, noise_scale=1., length_scale=1.):
     if g is not None:
       g = F.normalize(self.emb_g(g)).unsqueeze(-1) # [b, h]
+
+    if emo is not None:
+      emo_x = F.normalize(self.emb_emo(emo)).unsqueeze(-1) # [b, h]
 
     if l is not None:
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
       g = torch.cat([g, l], 1)
 
-    x_m, x_logs, logw, x_mask = self.encoder(x, x_lengths, g=g, emo=emo)
+    x_m, x_logs, logw, x_mask = self.encoder(x, x_lengths, g=g, emo=emo_x)
 
     if gen:
       w = torch.exp(logw) * x_mask * length_scale
@@ -395,6 +480,7 @@ class FlowGenerator(nn.Module):
       y_max_length = None
     else:
       y_max_length = y.size(2)
+
     y, y_lengths, y_max_length = self.preprocess(y, y_lengths, y_max_length)
     z_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, y_max_length), 1).to(x_mask.dtype)
     attn_mask = torch.unsqueeze(x_mask, -1) * torch.unsqueeze(z_mask, 2)

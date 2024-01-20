@@ -19,6 +19,19 @@ def warm_start_model(checkpoint_path, model, ignore_layers):
     print("Warm starting model from checkpoint '{}'".format(checkpoint_path))
     checkpoint_dict = torch.load(checkpoint_path, map_location='cpu')
     model_dict = checkpoint_dict['model']
+
+    mismatched_layers = []
+    for key, value in model_dict.items():
+        if hasattr(model, 'module'):
+          if key in model.module.state_dict() and value.size() != model.module.state_dict()[key].size():
+            mismatched_layers.append(key)
+        else:
+          if key in model.state_dict() and value.size() != model.state_dict()[key].size():
+            mismatched_layers.append(key)
+            
+    print(mismatched_layers)
+    
+    ignore_layers = ignore_layers + mismatched_layers
     if len(ignore_layers) > 0:
         model_dict = {k: v for k, v in model_dict.items()
                       if k not in ignore_layers}
