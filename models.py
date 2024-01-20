@@ -36,7 +36,7 @@ class CVAE_Emo(nn.Module):
         x: (bs, feature_size)
         c: (bs, class_size)
         '''
-        inputs = x # (bs, coordinate)
+        inputs = x.unsqueeze(1) # (bs, coordinate)
         h1 = self.elu(self.fc1_a(inputs))
         z_mu = self.fc21_a(h1)
         z_var = self.fc22_a(h1)
@@ -47,18 +47,18 @@ class CVAE_Emo(nn.Module):
         x: (bs, feature_size)
         c: (bs, class_size)
         '''
-        inputs = x # (bs, coordinate)
+        inputs = x.unsqueeze(1) # (bs, coordinate)
         h1 = self.elu(self.fc1_d(inputs))
         z_mu = self.fc21_d(h1)
         z_var = self.fc22_d(h1)
         return z_mu, z_var
     
-    def encode_d(self, x): # Q(z|x, c)
+    def encode_v(self, x): # Q(z|x, c)
         '''
         x: (bs, feature_size)
         c: (bs, class_size)
         '''
-        inputs = x # (bs, coordinate)
+        inputs = x.unsqueeze(1) # (bs, coordinate)
         h1 = self.elu(self.fc1_v(inputs))
         z_mu = self.fc21_v(h1)
         z_var = self.fc22_v(h1)
@@ -251,7 +251,7 @@ class TextEncoder(nn.Module):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
     if emo is not None:
-      x = x + emo
+      x = x + emo.unsqueeze(1) # [b, t, h]
     
     x = torch.transpose(x, 1, -1) # [b, h, t]
     x_mask = torch.unsqueeze(commons.sequence_mask(x_lengths, x.size(2)), 1).to(x.dtype)
@@ -464,12 +464,12 @@ class FlowGenerator(nn.Module):
     if g is not None:
       g = F.normalize(self.emb_g(g)).unsqueeze(-1) # [b, h]
 
-    if emo is not None:
-      emo_x = F.normalize(self.emb_emo(emo)).unsqueeze(-1) # [b, h]
-
     if l is not None:
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
       g = torch.cat([g, l], 1)
+
+    if emo is not None:
+      emo_x = F.normalize(self.emb_emo(emo)) # [b, h]
 
     x_m, x_logs, logw, x_mask = self.encoder(x, x_lengths, g=g, emo=emo_x)
 
