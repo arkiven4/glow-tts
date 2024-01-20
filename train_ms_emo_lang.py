@@ -256,10 +256,11 @@ def train(
 
             with autocast(enabled=False):
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
-                loss_kl = commons.kl_loss(z, logdet, x_m, x_logs, z_mask) * 1.0
+                #loss_kl = commons.kl_loss(z, z_logs, x_m, x_logs, z_mask) * 1.0
                 #l_length = commons.duration_loss(logw, logw_, x_lengths)
+                l_length = torch.sum(l_length.float())
 
-                loss_gs = [l_mle, l_length, loss_kl]
+                loss_gs = [l_mle, l_length]
                 loss_g = sum(loss_gs)
 
         scheduler.step()
@@ -355,10 +356,11 @@ def evaluate(rank, epoch, hps, generator, optimizer_g, val_loader, logger, write
                     x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids
                 )
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
-                loss_kl = commons.kl_loss(z, logdet, x_m, x_logs, z_mask) * 1.0
+                #loss_kl = commons.kl_loss(z, logdet, x_m, x_logs, z_mask) * 1.0
                 #l_length = commons.duration_loss(logw, logw_, x_lengths)
+                l_length = torch.sum(l_length.float())
 
-                loss_gs = [l_mle, l_length, loss_kl]
+                loss_gs = [l_mle, l_length]
                 loss_g = sum(loss_gs)
 
                 if batch_idx == 0:

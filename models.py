@@ -80,8 +80,11 @@ class CVAE_Emo(nn.Module):
         return z_a + z_d + z_v
 
 class StochasticDurationPredictor(nn.Module):
-  def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, gin_channels=0):
+  def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, gin_channels=0, lin_channels=0):
     super().__init__()
+    if lin_channels != 0 :
+      in_channels += lin_channels
+    
     filter_channels = in_channels # it needs to be removed from future version.
     self.in_channels = in_channels
     self.filter_channels = filter_channels
@@ -89,6 +92,7 @@ class StochasticDurationPredictor(nn.Module):
     self.p_dropout = p_dropout
     self.n_flows = n_flows
     self.gin_channels = gin_channels
+    self.lin_channels = lin_channels
 
     self.log_flow = modules.Log()
     self.flows = nn.ModuleList()
@@ -109,15 +113,25 @@ class StochasticDurationPredictor(nn.Module):
     self.pre = nn.Conv1d(in_channels, filter_channels, 1)
     self.proj = nn.Conv1d(filter_channels, filter_channels, 1)
     self.convs = modules.DDSConv(filter_channels, kernel_size, n_layers=3, p_dropout=p_dropout)
+
     if gin_channels != 0:
       self.cond = nn.Conv1d(gin_channels, filter_channels, 1)
 
-  def forward(self, x, x_mask, w=None, g=None, reverse=False, noise_scale=1.0):
+    if lin_channels != 0 :
+      self.cond_lang = nn.Conv1d(lin_channels, filter_channels, 1)
+
+  def forward(self, x, x_mask, w=None, g=None, l=None, reverse=False, noise_scale=1.0):
     x = torch.detach(x)
     x = self.pre(x)
+
     if g is not None:
       g = torch.detach(g)
       x = x + self.cond(g)
+
+    if l is not None:
+      l = torch.detach(l)
+      x = x + self.cond_lang(l)
+
     x = self.convs(x, x_mask)
     x = self.proj(x) * x_mask
 
@@ -261,16 +275,19 @@ class TextEncoder(nn.Module):
     self.emb = nn.Embedding(n_vocab, hidden_channels)
     nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
 
+    if lin_channels > 0:
+        hidden_channels += lin_channels
+
     #self.emo_proj = modules.LinearNorm(1024, hidden_channels) #Follow emoin_channels
     self.emo_proj_a = modules.LinearNorm(1, hidden_channels)
     self.emo_proj_d = modules.LinearNorm(1, hidden_channels)
     self.emo_proj_v = modules.LinearNorm(1, hidden_channels)
 
     if prenet:
-      self.pre = modules.ConvReluNorm(hidden_channels + lin_channels, hidden_channels, hidden_channels, kernel_size=5, n_layers=3, p_dropout=0.5)
+      self.pre = modules.ConvReluNorm(hidden_channels, hidden_channels, hidden_channels, kernel_size=5, n_layers=3, p_dropout=0.5)
     
     self.encoder = attentions.Encoder(
-      hidden_channels + lin_channels,
+      hidden_channels,
       filter_channels,
       n_heads,
       n_layers,
@@ -280,22 +297,17 @@ class TextEncoder(nn.Module):
       block_length=block_length,
     )
 
-    self.proj_m = nn.Conv1d(hidden_channels + lin_channels, out_channels, 1)
+    self.proj_m = nn.Conv1d(hidden_channels, out_channels, 1)
     if not mean_only:
-      self.proj_s = nn.Conv1d(hidden_channels + lin_channels, out_channels, 1)
-
-    #self.proj_w = DurationPredictor(hidden_channels + gin_channels, filter_channels_dp, kernel_size, p_dropout)
+      self.proj_s = nn.Conv1d(hidden_channels, out_channels, 1)
 
   def forward(self, x, x_lengths, l=None, emo=None):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
     if l is not None:
-      l_exp = l.expand(-1, -1, x.size(-1))
-      x_dp = torch.cat([torch.detach(x), l_exp], 1)
-    else:
-      x_dp = torch.detach(x)
+      x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
     
-    x = torch.transpose(x_dp, 1, -1) # [b, h, t]
+    x = torch.transpose(x, 1, -1) # [b, h, t]
     x_mask = torch.unsqueeze(commons.sequence_mask(x_lengths, x.size(2)), 1).to(x.dtype)
 
     if self.prenet:
@@ -317,7 +329,7 @@ class TextEncoder(nn.Module):
       x_logs = torch.zeros_like(x_m)
 
     #logw = self.proj_w(x_dp, x_mask)
-    return x_m, x_logs, x_mask
+    return x, x_m, x_logs, x_mask
 
 
 class FlowSpecDecoder(nn.Module):
@@ -484,7 +496,7 @@ class FlowGenerator(nn.Module):
         n_split=n_split,
         n_sqz=n_sqz,
         sigmoid_scale=sigmoid_scale,
-        gin_channels=gin_channels + lin_channels) # Multi Lang
+        gin_channels=gin_channels) # Multi Lang
 
     if self.use_spk_embeds:
       print("Use Speaker Embed Linear Norm")
@@ -507,9 +519,10 @@ class FlowGenerator(nn.Module):
       #self.emb_emo = modules.LinearNorm(1024, emoin_channels)
 
     if use_sdp:
-      self.dp = StochasticDurationPredictor(hidden_channels + lin_channels, 192, 3, 0.5, 4, gin_channels=gin_channels)
+      print("Use SDP")
+      self.dp = StochasticDurationPredictor(hidden_channels, 192, 3, 0.5, 4, gin_channels=gin_channels, lin_channels=lin_channels)
     else:
-      self.dp = DurationPredictor(hidden_channels + lin_channels, 256, 3, 0.5, gin_channels=gin_channels)
+      self.dp = DurationPredictor(hidden_channels, 256, 3, 0.5, gin_channels=gin_channels)
 
   def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None):
     if g is not None:
@@ -517,10 +530,8 @@ class FlowGenerator(nn.Module):
 
     if l is not None:
       l = self.emb_l(l).unsqueeze(-1)
-      #l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
-      #g = torch.cat([g, l], 1)
 
-    x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
+    x_e, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
 
     y_max_length = y.size(2)
 
@@ -539,13 +550,13 @@ class FlowGenerator(nn.Module):
 
       attn = monotonic_align.maximum_path(logp, attn_mask.squeeze(1)).unsqueeze(1).detach()
     
-    w = attn.sum(2)
+    w = attn.sum(-1)
     if self.use_sdp:
-      l_length = self.dp(x_m, x_mask, w, g=g)
+      l_length = self.dp(x_e, x_mask, w, g=g, l=l)
       l_length = l_length / torch.sum(x_mask)
     else:
       logw_ = torch.log(w + 1e-6) * x_mask
-      logw = self.dp(x_m, x_mask, g=g)
+      logw = self.dp(x_e, x_mask, g=g)
       l_length = torch.sum((logw - logw_)**2, [1,2]) / torch.sum(x_mask) # for averaging 
 
     # expand prior
@@ -561,12 +572,12 @@ class FlowGenerator(nn.Module):
     if l is not None:
       l = self.emb_l(l).unsqueeze(-1)
 
-    x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
+    x_e, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
 
     if self.use_sdp:
-      logw = self.dp(x, x_mask, g=g, reverse=True, noise_scale=noise_scale)
+      logw = self.dp(x_e, x_mask, g=g, l=l, reverse=True, noise_scale=noise_scale)
     else:
-      logw = self.dp(x, x_mask, g=g)
+      logw = self.dp(x_e, x_mask, g=g)
 
     w = torch.exp(logw) * x_mask * length_scale
     w_ceil = torch.ceil(w)
