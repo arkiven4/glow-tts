@@ -29,7 +29,6 @@ class CVAE_Emo(nn.Module):
         self.fc22_v = modules.LinearNorm(hidden_state, latent_size)
 
         self.elu = nn.ELU()
-        self.sigmoid = nn.Sigmoid()
 
     def encode_a(self, x): # Q(z|x, c)
         '''
@@ -227,6 +226,9 @@ class TextEncoder(nn.Module):
     nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
 
     #self.emo_proj = modules.LinearNorm(1024, hidden_channels) #Follow emoin_channels
+    self.emo_proj_a = modules.LinearNorm(1, hidden_channels)
+    self.emo_proj_d = modules.LinearNorm(1, hidden_channels)
+    self.emo_proj_v = modules.LinearNorm(1, hidden_channels)
 
     if prenet:
       self.pre = modules.ConvReluNorm(hidden_channels, hidden_channels, hidden_channels, kernel_size=5, n_layers=3, p_dropout=0.5)
@@ -249,9 +251,6 @@ class TextEncoder(nn.Module):
 
   def forward(self, x, x_lengths, g=None, emo=None):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
-
-    if emo is not None:
-      x = x + emo.unsqueeze(1) # [b, t, h]
     
     x = torch.transpose(x, 1, -1) # [b, h, t]
     x_mask = torch.unsqueeze(commons.sequence_mask(x_lengths, x.size(2)), 1).to(x.dtype)
@@ -259,6 +258,14 @@ class TextEncoder(nn.Module):
     if self.prenet:
       x = self.pre(x, x_mask)
     x = self.encoder(x, x_mask)
+    
+    if emo is not None:
+      emb_a = self.emo_proj_a(emo[:,0].unsqueeze(1))
+      emb_d = self.emo_proj_d(emo[:,1].unsqueeze(1))
+      emb_v = self.emo_proj_v(emo[:,2].unsqueeze(1))
+
+      emb_emo = emb_a + emb_d + emb_v
+      x = x + emb_emo.unsqueeze(2) # [b, t, h]
 
     if g is not None:
       g_exp = g.expand(-1, -1, x.size(-1))
@@ -457,7 +464,7 @@ class FlowGenerator(nn.Module):
 
     if self.use_emo_embeds:
       print("Use Emotion Embedding")
-      self.emb_emo = CVAE_Emo(1, hidden_channels_enc, 96)
+      #self.emb_emo = CVAE_Emo(1, hidden_channels_enc, 96)
       #self.emb_emo = modules.LinearNorm(1024, emoin_channels)
 
   def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None, gen=False, noise_scale=1., length_scale=1.):
@@ -468,10 +475,10 @@ class FlowGenerator(nn.Module):
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
       g = torch.cat([g, l], 1)
 
-    if emo is not None:
-      emo_x = F.normalize(self.emb_emo(emo)) # [b, h]
+    # if emo is not None:
+    #   emo_x = F.normalize(self.emb_emo(emo)) # [b, h]
 
-    x_m, x_logs, logw, x_mask = self.encoder(x, x_lengths, g=g, emo=emo_x)
+    x_m, x_logs, logw, x_mask = self.encoder(x, x_lengths, g=g, emo=emo)
 
     if gen:
       w = torch.exp(logw) * x_mask * length_scale
