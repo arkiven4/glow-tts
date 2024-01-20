@@ -249,16 +249,17 @@ def train(
             (
                 (z, z_m, z_logs, logdet, z_mask),
                 (x_m, x_logs, x_mask),
-                (attn, logw, logw_),
+                (attn, l_length),
             ) = generator(
-                x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids, gen=False
+                x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids
             )
 
             with autocast(enabled=False):
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
-                l_length = commons.duration_loss(logw, logw_, x_lengths)
+                loss_kl = commons.kl_loss(z, logdet, x_m, x_logs, z_mask) * 1.0
+                #l_length = commons.duration_loss(logw, logw_, x_lengths)
 
-                loss_gs = [l_mle, l_length]
+                loss_gs = [l_mle, l_length, loss_kl]
                 loss_g = sum(loss_gs)
 
         scheduler.step()
@@ -272,7 +273,7 @@ def train(
 
         if rank == 0:
             if batch_idx % hps.train.log_interval == 0:
-                (y_gen, *_), *_ = generator.module(
+                (y_gen, *_), *_ = generator.module.infer(
                     x[:1],
                     x_lengths[:1],
                     g=speakers[:1],
@@ -350,14 +351,15 @@ def evaluate(rank, epoch, hps, generator, optimizer_g, val_loader, logger, write
                 (
                     (z, z_m, z_logs, logdet, z_mask),
                     (x_m, x_logs, x_mask),
-                    (attn, logw, logw_),
+                    (attn, l_length),
                 ) = generator(
-                    x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids, gen=False
+                    x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids
                 )
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
-                l_length = commons.duration_loss(logw, logw_, x_lengths)
+                loss_kl = commons.kl_loss(z, logdet, x_m, x_logs, z_mask) * 1.0
+                #l_length = commons.duration_loss(logw, logw_, x_lengths)
 
-                loss_gs = [l_mle, l_length]
+                loss_gs = [l_mle, l_length, loss_kl]
                 loss_g = sum(loss_gs)
 
                 if batch_idx == 0:
