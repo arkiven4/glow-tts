@@ -286,11 +286,11 @@ def train(
                 #   100. * batch_idx / len(train_loader),
                 #   loss_g.item()))
                 # logger.info([x.item() for x in loss_gs] + [global_step, optimizer_g.param_groups[0]['lr']])
-                halflen_mel = y_gen[0].data.cpu().numpy().shape[1] // 2
-
+                halflen_mel = min(y_gen[0].data.cpu().numpy().shape[1] // 2, y[0].data.cpu().numpy().shape[1] // 2)
                 loss_mel = (
                     F.l1_loss(y[0][:, 0:halflen_mel], y_gen[0][:, 0:halflen_mel]) * 45
                 )
+
                 scalar_dict = {
                     "loss/g/total": loss_g,
                     "learning_rate": optimizer_g.param_groups[0]["lr"],

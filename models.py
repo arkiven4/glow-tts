@@ -162,7 +162,8 @@ class StochasticDurationPredictor(nn.Module):
         z, logdet = flow(z, x_mask, g=x, reverse=reverse)
         logdet_tot = logdet_tot + logdet
       nll = torch.sum(0.5 * (math.log(2*math.pi) + (z**2)) * x_mask, [1,2]) - logdet_tot
-      return nll + logq # [b]
+      return nll + logq # [b] # stoch_dur_loss
+    
     else:
       flows = list(reversed(self.flows))
       flows = flows[:-2] + [flows[-1]] # remove a useless vflow
@@ -171,17 +172,20 @@ class StochasticDurationPredictor(nn.Module):
         z = flow(z, x_mask, g=x, reverse=reverse)
       z0, z1 = torch.split(z, [1, 1], 1)
       logw = z0
-      return logw
+      return logw # log_durs_predicted
     
 class DurationPredictor(nn.Module):
-  def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, gin_channels=0):
+  def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, gin_channels=0, lin_channels=0):
     super().__init__()
+    if lin_channels != 0 :
+      in_channels += lin_channels
 
     self.in_channels = in_channels
     self.filter_channels = filter_channels
     self.kernel_size = kernel_size
     self.p_dropout = p_dropout
     self.gin_channels = gin_channels
+    self.lin_channels = lin_channels
 
     self.drop = nn.Dropout(p_dropout)
     self.conv_1 = nn.Conv1d(in_channels, filter_channels, kernel_size, padding=kernel_size//2)
@@ -193,11 +197,20 @@ class DurationPredictor(nn.Module):
     if gin_channels != 0:
       self.cond = nn.Conv1d(gin_channels, in_channels, 1)
 
-  def forward(self, x, x_mask, g=None):
+    if lin_channels != 0 :
+      self.cond_lang = nn.Conv1d(lin_channels, in_channels, 1)
+
+  def forward(self, x, x_mask, g=None, l=None):
     x = torch.detach(x)
+
     if g is not None:
       g = torch.detach(g)
       x = x + self.cond(g)
+
+    if l is not None:
+      l = torch.detach(l)
+      x = x + self.cond_lang(l)
+
     x = self.conv_1(x * x_mask)
     x = torch.relu(x)
     x = self.norm_1(x)
@@ -513,8 +526,8 @@ class FlowGenerator(nn.Module):
       torch.nn.init.xavier_uniform_(self.emb_l.weight)
       #nn.init.uniform_(self.emb_l.weight, -0.1, 0.1)
 
-    if self.use_emo_embeds:
-      print("Use Emotion Embedding")
+    # if self.use_emo_embeds:
+    #   print("Use Emotion Embedding")
       #self.emb_emo = CVAE_Emo(1, hidden_channels_enc, 96)
       #self.emb_emo = modules.LinearNorm(1024, emoin_channels)
 
@@ -522,7 +535,7 @@ class FlowGenerator(nn.Module):
       print("Use SDP")
       self.dp = StochasticDurationPredictor(hidden_channels, 192, 3, 0.5, 4, gin_channels=gin_channels, lin_channels=lin_channels)
     else:
-      self.dp = DurationPredictor(hidden_channels, 256, 3, 0.5, gin_channels=gin_channels)
+      self.dp = DurationPredictor(hidden_channels, 256, 3, 0.5, gin_channels=gin_channels, lin_channels=lin_channels)
 
   def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None):
     if g is not None:
@@ -531,7 +544,7 @@ class FlowGenerator(nn.Module):
     if l is not None:
       l = self.emb_l(l).unsqueeze(-1)
 
-    x_e, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
+    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
 
     y_max_length = y.size(2)
 
@@ -549,20 +562,20 @@ class FlowGenerator(nn.Module):
       logp = logp1 + logp2 + logp3 + logp4 # [b, t, t']
 
       attn = monotonic_align.maximum_path(logp, attn_mask.squeeze(1)).unsqueeze(1).detach()
-    
-    w = attn.sum(-1)
+
+    w = attn.squeeze(1).sum(2).unsqueeze(1)
     if self.use_sdp:
-      l_length = self.dp(x_e, x_mask, w, g=g, l=l)
+      l_length = self.dp(x, x_mask, w, g=g, l=l)
       l_length = l_length / torch.sum(x_mask)
     else:
       logw_ = torch.log(w + 1e-6) * x_mask
-      logw = self.dp(x_e, x_mask, g=g)
+      logw = self.dp(x, x_mask, g=g, l=l)
       l_length = torch.sum((logw - logw_)**2, [1,2]) / torch.sum(x_mask) # for averaging 
 
     # expand prior
     z_m = torch.matmul(attn.squeeze(1).transpose(1, 2), x_m.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     z_logs = torch.matmul(attn.squeeze(1).transpose(1, 2), x_logs.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
-    #logw_ = torch.log(1e-8 + torch.sum(attn, -1)) * x_mask
+    
     return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length)
 
   def infer(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None, noise_scale=1., length_scale=1.):
@@ -572,12 +585,12 @@ class FlowGenerator(nn.Module):
     if l is not None:
       l = self.emb_l(l).unsqueeze(-1)
 
-    x_e, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
+    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
 
     if self.use_sdp:
-      logw = self.dp(x_e, x_mask, g=g, l=l, reverse=True, noise_scale=noise_scale)
+      logw = self.dp(x, x_mask, g=g, l=l, reverse=True, noise_scale=noise_scale)
     else:
-      logw = self.dp(x_e, x_mask, g=g)
+      logw = self.dp(x, x_mask, g=g, l=l)
 
     w = torch.exp(logw) * x_mask * length_scale
     w_ceil = torch.ceil(w)
