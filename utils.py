@@ -21,13 +21,23 @@ def warm_start_model(checkpoint_path, model, ignore_layers):
     model_dict = checkpoint_dict['model']
 
     mismatched_layers = []
-    for key, value in model_dict.items():
-        if hasattr(model, 'module'):
-          if key in model.module.state_dict() and value.size() != model.module.state_dict()[key].size():
-            mismatched_layers.append(key)
+    for key, value in model_dict.items(): # model_dict warmstart weight
+        if hasattr(model, 'module'): # model is current model
+            if key in model.module.state_dict() and value.size() != model.module.state_dict()[key].size():
+                try:
+                    model_dict[key] = transfer_weight(model_dict[key], model.module.state_dict()[key].size())
+                    if model_dict[key].size() != model.module.state_dict()[key].size():
+                      mismatched_layers.append(key)
+                except:
+                    mismatched_layers.append(key)
         else:
-          if key in model.state_dict() and value.size() != model.state_dict()[key].size():
-            mismatched_layers.append(key)
+            if key in model.state_dict() and value.size() != model.state_dict()[key].size():
+                try:
+                    model_dict[key] = transfer_weight(model_dict[key], model.state_dict()[key].size())
+                    if model_dict[key].size() != model.state_dict()[key].size():
+                      mismatched_layers.append(key)
+                except:
+                    mismatched_layers.append(key)
             
     print(mismatched_layers)
     
@@ -294,3 +304,23 @@ class HParams():
 
   def __repr__(self):
     return self.__dict__.__repr__()
+  
+def transfer_weight(original_tensor, target_size):
+    differences = [target_size[i] - original_tensor.size(i) for i in range(len(target_size))]
+    for i, diff in enumerate(differences):
+        if diff > 0:
+            new_dims = list(original_tensor.size())
+            new_dims[i] = diff
+            rand_weight = torch.randn(*new_dims)
+            original_tensor = torch.cat([original_tensor, rand_weight], dim=i)
+        elif diff < 0:
+            slices = []
+            for j in range(len(target_size)):
+                if j == i:
+                    slices.append(slice(0, original_tensor.size(j) + diff))
+                else:
+                    slices.append(slice(0, original_tensor.size(j)))
+            slices[i] = slice(0, target_size[i])
+            original_tensor = original_tensor[slices]
+
+    return original_tensor

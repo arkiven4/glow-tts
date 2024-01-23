@@ -320,20 +320,21 @@ class TextEncoder(nn.Module):
     if l is not None:
       x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
     
-    x = torch.transpose(x, 1, -1) # [b, h, t]
-    x_mask = torch.unsqueeze(commons.sequence_mask(x_lengths, x.size(2)), 1).to(x.dtype)
-
-    if self.prenet:
-      x = self.pre(x, x_mask)
-    x = self.encoder(x, x_mask)
-    
     if emo is not None:
       emb_a = self.emo_proj_a(emo[:,0].unsqueeze(1))
       emb_d = self.emo_proj_d(emo[:,1].unsqueeze(1))
       emb_v = self.emo_proj_v(emo[:,2].unsqueeze(1))
 
       emb_emo = emb_a + emb_d + emb_v
-      x = x + emb_emo.unsqueeze(2) # [b, t, h]
+      emb_emo = emb_emo.unsqueeze(1)
+      x = x + emb_emo # [b, t, h]
+
+    x = torch.transpose(x, 1, -1) # [b, h, t]
+    x_mask = torch.unsqueeze(commons.sequence_mask(x_lengths, x.size(2)), 1).to(x.dtype)
+
+    if self.prenet:
+      x = self.pre(x, x_mask)
+    x = self.encoder(x, x_mask)
 
     x_m = self.proj_m(x) * x_mask # Stats
     if not self.mean_only:
@@ -547,7 +548,6 @@ class FlowGenerator(nn.Module):
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
 
     y_max_length = y.size(2)
-
     y, y_lengths, y_max_length = self.preprocess(y, y_lengths, y_max_length)
     z_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, y_max_length), 1).to(x_mask.dtype)
     attn_mask = torch.unsqueeze(x_mask, -1) * torch.unsqueeze(z_mask, 2)
@@ -568,7 +568,7 @@ class FlowGenerator(nn.Module):
       l_length = self.dp(x, x_mask, w, g=g, l=l)
       l_length = l_length / torch.sum(x_mask)
     else:
-      logw_ = torch.log(w + 1e-6) * x_mask
+      logw_ = torch.log(w + 1e-8) * x_mask
       logw = self.dp(x, x_mask, g=g, l=l)
       l_length = torch.sum((logw - logw_)**2, [1,2]) / torch.sum(x_mask) # for averaging 
 
@@ -578,7 +578,7 @@ class FlowGenerator(nn.Module):
     
     return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length)
 
-  def infer(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None, noise_scale=1., length_scale=1.):
+  def infer(self, x, x_lengths, g=None, emo=None, l=None, noise_scale=1., length_scale=1.):
     if g is not None:
       g = F.normalize(self.emb_g(g)).unsqueeze(-1) # [b, h]
 
@@ -597,11 +597,11 @@ class FlowGenerator(nn.Module):
     y_lengths = torch.clamp_min(torch.sum(w_ceil, [1, 2]), 1).long()
     y_max_length = None
 
-    y, y_lengths, y_max_length = self.preprocess(y, y_lengths, y_max_length)
+    y, y_lengths, y_max_length = self.preprocess(None, y_lengths, y_max_length)
     z_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, y_max_length), 1).to(x_mask.dtype)
     attn_mask = torch.unsqueeze(x_mask, -1) * torch.unsqueeze(z_mask, 2)
+
     attn = commons.generate_path(w_ceil.squeeze(1), attn_mask.squeeze(1)).unsqueeze(1)
-    
     z_m = torch.matmul(attn.squeeze(1).transpose(1, 2), x_m.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     z_logs = torch.matmul(attn.squeeze(1).transpose(1, 2), x_logs.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     logw_ = torch.log(1e-8 + torch.sum(attn, -1)) * x_mask
