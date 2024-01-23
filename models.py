@@ -175,42 +175,22 @@ class StochasticDurationPredictor(nn.Module):
       return logw # log_durs_predicted
     
 class DurationPredictor(nn.Module):
-  def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, gin_channels=0, lin_channels=0):
+  def __init__(self, in_channels, filter_channels, kernel_size, p_dropout):
     super().__init__()
-    if lin_channels != 0 :
-      in_channels += lin_channels
 
     self.in_channels = in_channels
     self.filter_channels = filter_channels
     self.kernel_size = kernel_size
     self.p_dropout = p_dropout
-    self.gin_channels = gin_channels
-    self.lin_channels = lin_channels
 
     self.drop = nn.Dropout(p_dropout)
     self.conv_1 = nn.Conv1d(in_channels, filter_channels, kernel_size, padding=kernel_size//2)
-    self.norm_1 = modules.LayerNorm(filter_channels)
+    self.norm_1 = attentions.LayerNorm(filter_channels)
     self.conv_2 = nn.Conv1d(filter_channels, filter_channels, kernel_size, padding=kernel_size//2)
-    self.norm_2 = modules.LayerNorm(filter_channels)
+    self.norm_2 = attentions.LayerNorm(filter_channels)
     self.proj = nn.Conv1d(filter_channels, 1, 1)
 
-    if gin_channels != 0:
-      self.cond = nn.Conv1d(gin_channels, in_channels, 1)
-
-    if lin_channels != 0 :
-      self.cond_lang = nn.Conv1d(lin_channels, in_channels, 1)
-
-  def forward(self, x, x_mask, g=None, l=None):
-    x = torch.detach(x)
-
-    if g is not None:
-      g = torch.detach(g)
-      x = x + self.cond(g)
-
-    if l is not None:
-      l = torch.detach(l)
-      x = x + self.cond_lang(l)
-
+  def forward(self, x, x_mask):
     x = self.conv_1(x * x_mask)
     x = torch.relu(x)
     x = self.norm_1(x)
@@ -266,6 +246,8 @@ class TextEncoder(nn.Module):
       block_length=None,
       mean_only=False,
       prenet=False,
+      use_sdp=False, 
+      gin_channels=0,
       lin_channels=0):
 
     super().__init__()
@@ -283,6 +265,8 @@ class TextEncoder(nn.Module):
     self.block_length = block_length
     self.mean_only = mean_only
     self.prenet = prenet
+    self.use_sdp = use_sdp
+    self.gin_channels = gin_channels
     self.lin_channels = lin_channels
 
     self.emb = nn.Embedding(n_vocab, hidden_channels)
@@ -291,10 +275,17 @@ class TextEncoder(nn.Module):
     if lin_channels > 0:
         hidden_channels += lin_channels
 
+    if use_sdp:
+      print("Use StochasticDurationPredictor")
+      self.proj_w = StochasticDurationPredictor(hidden_channels, 192, 3, 0.5, 4, gin_channels=gin_channels, lin_channels=lin_channels)
+    else:
+      print("Use DurationPredictor")
+      self.proj_w = DurationPredictor(hidden_channels + gin_channels + lin_channels, filter_channels_dp, kernel_size, p_dropout)
+
     #self.emo_proj = modules.LinearNorm(1024, hidden_channels) #Follow emoin_channels
-    self.emo_proj_a = modules.LinearNorm(1, hidden_channels)
-    self.emo_proj_d = modules.LinearNorm(1, hidden_channels)
-    self.emo_proj_v = modules.LinearNorm(1, hidden_channels)
+    # self.emo_proj_a = modules.LinearNorm(1, hidden_channels)
+    # self.emo_proj_d = modules.LinearNorm(1, hidden_channels)
+    # self.emo_proj_v = modules.LinearNorm(1, hidden_channels)
 
     if prenet:
       self.pre = modules.ConvReluNorm(hidden_channels, hidden_channels, hidden_channels, kernel_size=5, n_layers=3, p_dropout=0.5)
@@ -320,14 +311,14 @@ class TextEncoder(nn.Module):
     if l is not None:
       x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
     
-    if emo is not None:
-      emb_a = self.emo_proj_a(emo[:,0].unsqueeze(1))
-      emb_d = self.emo_proj_d(emo[:,1].unsqueeze(1))
-      emb_v = self.emo_proj_v(emo[:,2].unsqueeze(1))
+    # if emo is not None:
+    #   emb_a = self.emo_proj_a(emo[:,0].unsqueeze(1))
+    #   emb_d = self.emo_proj_d(emo[:,1].unsqueeze(1))
+    #   emb_v = self.emo_proj_v(emo[:,2].unsqueeze(1))
 
-      emb_emo = emb_a + emb_d + emb_v
-      emb_emo = emb_emo.unsqueeze(1)
-      x = x + emb_emo # [b, t, h]
+    #   emb_emo = emb_a + emb_d + emb_v
+    #   emb_emo = emb_emo.unsqueeze(1)
+    #   x = x + emb_emo # [b, t, h]
 
     x = torch.transpose(x, 1, -1) # [b, h, t]
     x_mask = torch.unsqueeze(commons.sequence_mask(x_lengths, x.size(2)), 1).to(x.dtype)
@@ -497,6 +488,8 @@ class FlowGenerator(nn.Module):
         block_length=block_length,
         mean_only=mean_only,
         prenet=prenet,
+        use_sdp=use_sdp,
+        gin_channels=gin_channels,
         lin_channels=lin_channels) # Multi Lang
 
     self.decoder = FlowSpecDecoder(
@@ -532,18 +525,12 @@ class FlowGenerator(nn.Module):
       #self.emb_emo = CVAE_Emo(1, hidden_channels_enc, 96)
       #self.emb_emo = modules.LinearNorm(1024, emoin_channels)
 
-    if use_sdp:
-      print("Use SDP")
-      self.dp = StochasticDurationPredictor(hidden_channels, 192, 3, 0.5, 4, gin_channels=gin_channels, lin_channels=lin_channels)
-    else:
-      self.dp = DurationPredictor(hidden_channels, 256, 3, 0.5, gin_channels=gin_channels, lin_channels=lin_channels)
-
   def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None):
     if g is not None:
       g = F.normalize(self.emb_g(g)).unsqueeze(-1) # [b, h]
 
     if l is not None:
-      l = self.emb_l(l).unsqueeze(-1)
+      l = F.normalize(self.emb_l(l)).unsqueeze(-1)
 
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
 
@@ -565,11 +552,23 @@ class FlowGenerator(nn.Module):
 
     w = attn.squeeze(1).sum(2).unsqueeze(1)
     if self.use_sdp:
-      l_length = self.dp(x, x_mask, w, g=g, l=l)
+      l_length = self.encoder.proj_w(x, x_mask, w, g=g, l=l)
       l_length = l_length / torch.sum(x_mask)
     else:
+      if g is not None:
+        g_exp = g.expand(-1, -1, x.size(-1))
+        x_dp = torch.cat([torch.detach(x), g_exp], 1)
+      else:
+        x_dp = torch.detach(x)
+
+      if l is not None:
+        l_exp = l.expand(-1, -1, x.size(-1))
+        x_dp = torch.cat([torch.detach(x_dp), l_exp], 1)
+      else:
+        x_dp = torch.detach(x)
+
       logw_ = torch.log(w + 1e-8) * x_mask
-      logw = self.dp(x, x_mask, g=g, l=l)
+      logw = self.encoder.proj_w(x_dp, x_mask)
       l_length = torch.sum((logw - logw_)**2, [1,2]) / torch.sum(x_mask) # for averaging 
 
     # expand prior
@@ -588,9 +587,21 @@ class FlowGenerator(nn.Module):
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
 
     if self.use_sdp:
-      logw = self.dp(x, x_mask, g=g, l=l, reverse=True, noise_scale=noise_scale)
+      logw = self.encoder.proj_w(x, x_mask, g=g, l=l, reverse=True, noise_scale=noise_scale)
     else:
-      logw = self.dp(x, x_mask, g=g, l=l)
+      if g is not None:
+        g_exp = g.expand(-1, -1, x.size(-1))
+        x_dp = torch.cat([torch.detach(x), g_exp], 1)
+      else:
+        x_dp = torch.detach(x)
+
+      if l is not None:
+        l_exp = l.expand(-1, -1, x.size(-1))
+        x_dp = torch.cat([torch.detach(x_dp), l_exp], 1)
+      else:
+        x_dp = torch.detach(x)
+
+      logw = self.encoder.proj_w(x_dp, x_mask)
 
     w = torch.exp(logw) * x_mask * length_scale
     w_ceil = torch.ceil(w)

@@ -20,6 +20,7 @@ def warm_start_model(checkpoint_path, model, ignore_layers):
     checkpoint_dict = torch.load(checkpoint_path, map_location='cpu')
     model_dict = checkpoint_dict['model']
 
+    random_weight_layer = []
     mismatched_layers = []
     for key, value in model_dict.items(): # model_dict warmstart weight
         if hasattr(model, 'module'): # model is current model
@@ -28,6 +29,8 @@ def warm_start_model(checkpoint_path, model, ignore_layers):
                     model_dict[key] = transfer_weight(model_dict[key], model.module.state_dict()[key].size())
                     if model_dict[key].size() != model.module.state_dict()[key].size():
                       mismatched_layers.append(key)
+                    else:
+                      random_weight_layer.append(key)
                 except:
                     mismatched_layers.append(key)
         else:
@@ -36,10 +39,16 @@ def warm_start_model(checkpoint_path, model, ignore_layers):
                     model_dict[key] = transfer_weight(model_dict[key], model.state_dict()[key].size())
                     if model_dict[key].size() != model.state_dict()[key].size():
                       mismatched_layers.append(key)
+                    else:
+                      random_weight_layer.append(key)
                 except:
                     mismatched_layers.append(key)
             
+    print("Mismatched")
     print(mismatched_layers)
+
+    print("random_weight_layer")
+    print(random_weight_layer)
     
     ignore_layers = ignore_layers + mismatched_layers
     if len(ignore_layers) > 0:
@@ -313,14 +322,14 @@ def transfer_weight(original_tensor, target_size):
             new_dims[i] = diff
             rand_weight = torch.randn(*new_dims)
             original_tensor = torch.cat([original_tensor, rand_weight], dim=i)
-        elif diff < 0:
-            slices = []
-            for j in range(len(target_size)):
-                if j == i:
-                    slices.append(slice(0, original_tensor.size(j) + diff))
-                else:
-                    slices.append(slice(0, original_tensor.size(j)))
-            slices[i] = slice(0, target_size[i])
-            original_tensor = original_tensor[slices]
+        # elif diff < 0:
+        #     slices = []
+        #     for j in range(len(target_size)):
+        #         if j == i:
+        #             slices.append(slice(0, original_tensor.size(j) + diff))
+        #         else:
+        #             slices.append(slice(0, original_tensor.size(j)))
+        #     slices[i] = slice(0, target_size[i])
+        #     original_tensor = original_tensor[slices]
 
     return original_tensor
