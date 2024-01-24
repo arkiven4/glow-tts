@@ -13,3 +13,5 @@ monotonic_align/monotonic_align
 .env
 pretrained_blank.pth
 temp
+inference_hifigan.ipynb
+sample_sound/*
