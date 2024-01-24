@@ -13,7 +13,7 @@
     "ddi": true,
     "fp16_run": true,
     "warm_start": true,
-    "warm_start_checkpoint": "logs/base_blank_emo_lang_catinbegining/G_72.pth",
+    "warm_start_checkpoint": "logs/base_blank_emo_lang_sebelumllangtext/G_43.pth",
     "ignored_layer": ["encoder.emb.weight"]
   },
   "data": {
@@ -37,7 +37,7 @@
     "emo_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/emo_embeds_coords/"
   },
   "model": {
-    "hidden_channels": 192,
+    "hidden_channels": 188,
     "filter_channels": 768,
     "filter_channels_dp": 256,
     "kernel_size": 3,
@@ -52,15 +52,15 @@
     "n_sqz": 2,
     "prenet": true,
     "mean_only": true,
-    "hidden_channels_enc": 192,
-    "hidden_channels_dec": 192,
+    "hidden_channels_enc": 188,
+    "hidden_channels_dec": 188,
     "window_size": 4,
-    "gin_channels": 256,
+    "gin_channels": 252,
     "use_sdp": false,
     "use_spk_embeds": true,
     "use_lang_embeds": true,
     "use_emo_embeds": true,
-    "lin_channels": 64,
+    "lin_channels": 4,
     "emoin_channels": 256
   }
 }

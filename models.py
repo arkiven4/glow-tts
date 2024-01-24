@@ -272,8 +272,8 @@ class TextEncoder(nn.Module):
     self.emb = nn.Embedding(n_vocab, hidden_channels)
     nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
 
-    # if lin_channels > 0:
-    #     hidden_channels += lin_channels
+    if lin_channels > 0:
+        hidden_channels += lin_channels
 
     if use_sdp:
       print("Use StochasticDurationPredictor")
@@ -308,8 +308,8 @@ class TextEncoder(nn.Module):
   def forward(self, x, x_lengths, l=None, emo=None):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
-    # if l is not None:
-    #   x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
+    if l is not None:
+      x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
     
     # if emo is not None:
     #   emb_a = self.emo_proj_a(emo[:,0].unsqueeze(1))
