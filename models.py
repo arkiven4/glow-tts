@@ -82,8 +82,8 @@ class CVAE_Emo(nn.Module):
 class StochasticDurationPredictor(nn.Module):
   def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, gin_channels=0, lin_channels=0):
     super().__init__()
-    if lin_channels != 0 :
-      in_channels += lin_channels
+    # if lin_channels != 0 :
+    #   in_channels += lin_channels
     
     filter_channels = in_channels # it needs to be removed from future version.
     self.in_channels = in_channels
@@ -94,25 +94,25 @@ class StochasticDurationPredictor(nn.Module):
     self.gin_channels = gin_channels
     self.lin_channels = lin_channels
 
-    self.log_flow = modules.Log()
+    # condition encoder text
+    self.pre = nn.Conv1d(in_channels, filter_channels, 1)
+    self.convs = modules.DilatedDepthSeparableConv(filter_channels, kernel_size, num_layers=3, dropout_p=p_dropout)
+    self.proj = nn.Conv1d(filter_channels, filter_channels, 1)
+
+    # posterior encoder
     self.flows = nn.ModuleList()
     self.flows.append(modules.ElementwiseAffine(2))
-    for i in range(n_flows):
-      self.flows.append(modules.ConvFlow(2, filter_channels, kernel_size, n_layers=3))
-      self.flows.append(modules.Flip())
+    self.flows += [modules.ConvFlow(2, filter_channels, kernel_size, num_layers=3) for _ in range(n_flows)]
 
+    # condition encoder duration
     self.post_pre = nn.Conv1d(1, filter_channels, 1)
+    self.post_convs = modules.DilatedDepthSeparableConv(filter_channels, kernel_size, num_layers=3, dropout_p=p_dropout)
     self.post_proj = nn.Conv1d(filter_channels, filter_channels, 1)
-    self.post_convs = modules.DDSConv(filter_channels, kernel_size, n_layers=3, p_dropout=p_dropout)
+
+    # flow layers
     self.post_flows = nn.ModuleList()
     self.post_flows.append(modules.ElementwiseAffine(2))
-    for i in range(4):
-      self.post_flows.append(modules.ConvFlow(2, filter_channels, kernel_size, n_layers=3))
-      self.post_flows.append(modules.Flip())
-
-    self.pre = nn.Conv1d(in_channels, filter_channels, 1)
-    self.proj = nn.Conv1d(filter_channels, filter_channels, 1)
-    self.convs = modules.DDSConv(filter_channels, kernel_size, n_layers=3, p_dropout=p_dropout)
+    self.post_flows += [modules.ConvFlow(2, filter_channels, kernel_size, num_layers=3) for _ in range(n_flows)]
 
     if gin_channels != 0:
       self.cond = nn.Conv1d(gin_channels, filter_channels, 1)
@@ -120,77 +120,109 @@ class StochasticDurationPredictor(nn.Module):
     if lin_channels != 0 :
       self.cond_lang = nn.Conv1d(lin_channels, filter_channels, 1)
 
-  def forward(self, x, x_mask, w=None, g=None, l=None, reverse=False, noise_scale=1.0):
+  def forward(self, x, x_mask, dr=None, g=None, l=None, reverse=False, noise_scale=1.0):
     x = torch.detach(x)
     x = self.pre(x)
-
     if g is not None:
-      g = torch.detach(g)
-      x = x + self.cond(g)
+        g = torch.detach(g)
+        x = x + self.cond(g)
 
     if l is not None:
-      l = torch.detach(l)
-      x = x + self.cond_lang(l)
+        l = torch.detach(l)
+        x = x + self.cond_lang(l)
 
     x = self.convs(x, x_mask)
     x = self.proj(x) * x_mask
 
     if not reverse:
-      flows = self.flows
-      assert w is not None
+        flows = self.flows
+        assert dr is not None
 
-      logdet_tot_q = 0 
-      h_w = self.post_pre(w)
-      h_w = self.post_convs(h_w, x_mask)
-      h_w = self.post_proj(h_w) * x_mask
-      e_q = torch.randn(w.size(0), 2, w.size(2)).to(device=x.device, dtype=x.dtype) * x_mask
-      z_q = e_q
-      for flow in self.post_flows:
-        z_q, logdet_q = flow(z_q, x_mask, g=(x + h_w))
-        logdet_tot_q += logdet_q
-      z_u, z1 = torch.split(z_q, [1, 1], 1) 
-      u = torch.sigmoid(z_u) * x_mask
-      z0 = (w - u) * x_mask
-      logdet_tot_q += torch.sum((F.logsigmoid(z_u) + F.logsigmoid(-z_u)) * x_mask, [1,2])
-      logq = torch.sum(-0.5 * (math.log(2*math.pi) + (e_q**2)) * x_mask, [1,2]) - logdet_tot_q
+        # condition encoder duration
+        h = self.post_pre(dr)
+        h = self.post_convs(h, x_mask)
+        h = self.post_proj(h) * x_mask
+        noise = torch.randn(dr.size(0), 2, dr.size(2)).to(device=x.device, dtype=x.dtype) * x_mask
+        z_q = noise
 
-      logdet_tot = 0
-      z0, logdet = self.log_flow(z0, x_mask)
-      logdet_tot += logdet
-      z = torch.cat([z0, z1], 1)
-      for flow in flows:
-        z, logdet = flow(z, x_mask, g=x, reverse=reverse)
-        logdet_tot = logdet_tot + logdet
-      nll = torch.sum(0.5 * (math.log(2*math.pi) + (z**2)) * x_mask, [1,2]) - logdet_tot
-      return nll + logq # [b] # stoch_dur_loss
-    
-    else:
-      flows = list(reversed(self.flows))
-      flows = flows[:-2] + [flows[-1]] # remove a useless vflow
-      z = torch.randn(x.size(0), 2, x.size(2)).to(device=x.device, dtype=x.dtype) * noise_scale
-      for flow in flows:
+        # posterior encoder
+        logdet_tot_q = 0.0
+        for idx, flow in enumerate(self.post_flows):
+            z_q, logdet_q = flow(z_q, x_mask, g=(x + h))
+            logdet_tot_q = logdet_tot_q + logdet_q
+            if idx > 0:
+                z_q = torch.flip(z_q, [1])
+
+        z_u, z_v = torch.split(z_q, [1, 1], 1)
+        u = torch.sigmoid(z_u) * x_mask
+        z0 = (dr - u) * x_mask
+
+        # posterior encoder - neg log likelihood
+        logdet_tot_q += torch.sum((F.logsigmoid(z_u) + F.logsigmoid(-z_u)) * x_mask, [1, 2])
+        nll_posterior_encoder = (
+            torch.sum(-0.5 * (math.log(2 * math.pi) + (noise**2)) * x_mask, [1, 2]) - logdet_tot_q
+        )
+
+        z0 = torch.log(torch.clamp_min(z0, 1e-5)) * x_mask
+        logdet_tot = torch.sum(-z0, [1, 2])
+        z = torch.cat([z0, z_v], 1)
+
+        # flow layers
+        for idx, flow in enumerate(flows):
+            z, logdet = flow(z, x_mask, g=x, reverse=reverse)
+            logdet_tot = logdet_tot + logdet
+            if idx > 0:
+                z = torch.flip(z, [1])
+
+        # flow layers - neg log likelihood
+        nll_flow_layers = torch.sum(0.5 * (math.log(2 * math.pi) + (z**2)) * x_mask, [1, 2]) - logdet_tot
+        return nll_flow_layers + nll_posterior_encoder
+
+    flows = list(reversed(self.flows))
+    flows = flows[:-2] + [flows[-1]]  # remove a useless vflow
+    z = torch.randn(x.size(0), 2, x.size(2)).to(device=x.device, dtype=x.dtype) * noise_scale
+    for flow in flows:
+        z = torch.flip(z, [1])
         z = flow(z, x_mask, g=x, reverse=reverse)
-      z0, z1 = torch.split(z, [1, 1], 1)
-      logw = z0
-      return logw # log_durs_predicted
+
+    z0, _ = torch.split(z, [1, 1], 1)
+    logw = z0
+    return logw
     
 class DurationPredictor(nn.Module):
-  def __init__(self, in_channels, filter_channels, kernel_size, p_dropout):
+  def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, gin_channels=0, lin_channels=0):
     super().__init__()
 
     self.in_channels = in_channels
     self.filter_channels = filter_channels
     self.kernel_size = kernel_size
     self.p_dropout = p_dropout
+    self.gin_channels = gin_channels
+    self.lin_channels = lin_channels
 
     self.drop = nn.Dropout(p_dropout)
     self.conv_1 = nn.Conv1d(in_channels, filter_channels, kernel_size, padding=kernel_size//2)
     self.norm_1 = attentions.LayerNorm(filter_channels)
     self.conv_2 = nn.Conv1d(filter_channels, filter_channels, kernel_size, padding=kernel_size//2)
     self.norm_2 = attentions.LayerNorm(filter_channels)
-    self.proj = nn.Conv1d(filter_channels, 1, 1)
 
-  def forward(self, x, x_mask):
+    # Output Layer
+    self.proj = nn.Conv1d(filter_channels, 1, 1)
+    if gin_channels != 0:
+        self.cond = nn.Conv1d(gin_channels, in_channels, 1)
+
+    if lin_channels != 0:
+        self.cond_lang = nn.Conv1d(lin_channels, in_channels, 1)
+
+  def forward(self, x, x_mask, g=None, lang_emb=None):
+    if g is not None:
+        g = torch.detach(g)
+        x = x + self.cond(g)
+
+    if lang_emb is not None:
+        l = torch.detach(l)
+        x = x + self.cond_lang(lang_emb)
+
     x = self.conv_1(x * x_mask)
     x = torch.relu(x)
     x = self.norm_1(x)
@@ -280,7 +312,7 @@ class TextEncoder(nn.Module):
       self.proj_w = StochasticDurationPredictor(hidden_channels, 192, 3, 0.5, 4, gin_channels=gin_channels, lin_channels=lin_channels)
     else:
       print("Use DurationPredictor")
-      self.proj_w = DurationPredictor(hidden_channels + gin_channels + lin_channels, filter_channels_dp, kernel_size, p_dropout)
+      self.proj_w = DurationPredictor(hidden_channels, filter_channels_dp, kernel_size, p_dropout)
 
     #self.emo_proj = modules.LinearNorm(1024, hidden_channels) #Follow emoin_channels
     # self.emo_proj_a = modules.LinearNorm(1, hidden_channels)
@@ -551,7 +583,7 @@ class FlowGenerator(nn.Module):
 
       attn = monotonic_align.maximum_path(logp, attn_mask.squeeze(1)).unsqueeze(1).detach()
 
-    w = attn.squeeze(1).sum(2).unsqueeze(1)
+    w = attn.squeeze(1).sum(2).unsqueeze(1) # Attention Duration
     if self.use_sdp:
       l_length = self.encoder.proj_w(x, x_mask, w, g=g, l=l)
       l_length = l_length / torch.sum(x_mask)

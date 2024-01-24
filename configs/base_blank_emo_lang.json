@@ -13,7 +13,7 @@
     "ddi": true,
     "fp16_run": true,
     "warm_start": true,
-    "warm_start_checkpoint": "logs/base_blank_emo_lang_sebelumllangtext/G_43.pth",
+    "warm_start_checkpoint": "logs/base_blank_emo_lang_cfa344a/G_65.pth",
     "ignored_layer": ["encoder.emb.weight"]
   },
   "data": {
