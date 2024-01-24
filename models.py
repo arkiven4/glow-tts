@@ -503,7 +503,7 @@ class FlowGenerator(nn.Module):
         n_split=n_split,
         n_sqz=n_sqz,
         sigmoid_scale=sigmoid_scale,
-        gin_channels=gin_channels) # Multi Lang
+        gin_channels=gin_channels + lin_channels) # Multi Lang
 
     if self.use_spk_embeds:
       print("Use Speaker Embed Linear Norm")
@@ -530,7 +530,8 @@ class FlowGenerator(nn.Module):
       g = F.normalize(self.emb_g(g)).unsqueeze(-1) # [b, h]
 
     if l is not None:
-      l = F.normalize(self.emb_l(l)).unsqueeze(-1)
+      l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
+      g = torch.cat([g, l], 1)
 
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
 
@@ -561,12 +562,6 @@ class FlowGenerator(nn.Module):
       else:
         x_dp = torch.detach(x)
 
-      if l is not None:
-        l_exp = l.expand(-1, -1, x.size(-1))
-        x_dp = torch.cat([torch.detach(x_dp), l_exp], 1)
-      else:
-        x_dp = torch.detach(x)
-
       logw_ = torch.log(w + 1e-8) * x_mask
       logw = self.encoder.proj_w(x_dp, x_mask)
       l_length = torch.sum((logw - logw_)**2, [1,2]) / torch.sum(x_mask) # for averaging 
@@ -582,7 +577,8 @@ class FlowGenerator(nn.Module):
       g = F.normalize(self.emb_g(g)).unsqueeze(-1) # [b, h]
 
     if l is not None:
-      l = self.emb_l(l).unsqueeze(-1)
+      l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
+      g = torch.cat([g, l], 1)
 
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
 
@@ -592,12 +588,6 @@ class FlowGenerator(nn.Module):
       if g is not None:
         g_exp = g.expand(-1, -1, x.size(-1))
         x_dp = torch.cat([torch.detach(x), g_exp], 1)
-      else:
-        x_dp = torch.detach(x)
-
-      if l is not None:
-        l_exp = l.expand(-1, -1, x.size(-1))
-        x_dp = torch.cat([torch.detach(x_dp), l_exp], 1)
       else:
         x_dp = torch.detach(x)
 
