@@ -362,7 +362,7 @@ class TextEncoder(nn.Module):
       self.proj_w = StochasticDurationPredictor(hidden_channels, 192, 3, 0.5, 4, gin_channels=gin_channels, lin_channels=lin_channels)
     else:
       print("Use DurationPredictor")
-      self.proj_w = DurationPredictor(hidden_channels, filter_channels_dp, kernel_size, p_dropout, gin_channels=gin_channels, lin_channels=lin_channels , emoin_channels=hidden_channels-lin_channels)
+      self.proj_w = DurationPredictor(hidden_channels, filter_channels_dp, kernel_size, p_dropout, gin_channels=gin_channels, lin_channels=lin_channels , emoin_channels=hidden_channels)
 
     #self.emo_proj = modules.LinearNorm(1024, hidden_channels) #Follow emoin_channels
     # self.emo_proj_a = modules.LinearNorm(1, hidden_channels)
@@ -390,9 +390,6 @@ class TextEncoder(nn.Module):
   def forward(self, x, x_lengths, l=None, emo=None):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
-    if emo is not None:
-      x = x + emo.transpose(2, 1)
-
     if l is not None:
       x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
     
@@ -411,6 +408,9 @@ class TextEncoder(nn.Module):
     if self.prenet:
       x = self.pre(x, x_mask)
     x = self.encoder(x, x_mask)
+
+    if emo is not None:
+      x = x + emo
 
     x_m = self.proj_m(x) * x_mask # Stats
     if not self.mean_only:
@@ -607,7 +607,7 @@ class FlowGenerator(nn.Module):
 
     if self.use_emo_embeds:
       print("Use Emotion Embedding")
-      self.emb_emo = Styling_Emotion(1, hidden_channels_enc, 96)
+      self.emb_emo = Styling_Emotion(1, hidden_channels_enc + lin_channels, 96)
 
   def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None):
     if g is not None:
