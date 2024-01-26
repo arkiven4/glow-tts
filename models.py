@@ -362,7 +362,7 @@ class TextEncoder(nn.Module):
       self.proj_w = StochasticDurationPredictor(hidden_channels, 192, 3, 0.5, 4, gin_channels=gin_channels, lin_channels=lin_channels)
     else:
       print("Use DurationPredictor")
-      self.proj_w = DurationPredictor(hidden_channels, filter_channels_dp, kernel_size, p_dropout, gin_channels=gin_channels, lin_channels=lin_channels ,emoin_channels=hidden_channels-lin_channels)
+      self.proj_w = DurationPredictor(hidden_channels, filter_channels_dp, kernel_size, p_dropout, gin_channels=gin_channels, lin_channels=lin_channels , emoin_channels=hidden_channels-lin_channels)
 
     #self.emo_proj = modules.LinearNorm(1024, hidden_channels) #Follow emoin_channels
     # self.emo_proj_a = modules.LinearNorm(1, hidden_channels)
@@ -391,7 +391,7 @@ class TextEncoder(nn.Module):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
     if emo is not None:
-      x = x + emo
+      x = x + emo.transpose(2, 1)
 
     if l is not None:
       x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
@@ -614,11 +614,11 @@ class FlowGenerator(nn.Module):
       g = F.normalize(self.emb_g(g)).unsqueeze(-1) # [b, h]
 
     if l is not None:
-      l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
+      l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h, 1]
       #g = torch.cat([g, l], 1)
 
     if emo is not None:
-      emo = F.normalize(self.emb_emo(emo)).unsqueeze(-1) # [b, h]
+      emo = F.normalize(self.emb_emo(emo)).unsqueeze(-1) # [b, h, 1]
 
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
 
@@ -667,10 +667,13 @@ class FlowGenerator(nn.Module):
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
       #g = torch.cat([g, l], 1)
 
+    if emo is not None:
+      emo = F.normalize(self.emb_emo(emo)).unsqueeze(-1) # [b, h, 1]
+
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
 
     if self.use_sdp:
-      logw = self.encoder.proj_w(x, x_mask, g=g, l=l, reverse=True, noise_scale=noise_scale)
+      logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=emo, reverse=True, noise_scale=noise_scale)
     else:
       # if g is not None:
       #   g_exp = g.expand(-1, -1, x.size(-1))
@@ -678,7 +681,7 @@ class FlowGenerator(nn.Module):
       # else:
       #   x_dp = torch.detach(x)
 
-      logw = self.encoder.proj_w(x, x_mask, g=g, l=l)
+      logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=emo)
 
     w = torch.exp(logw) * x_mask * length_scale
     w_ceil = torch.ceil(w)
