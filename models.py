@@ -121,7 +121,7 @@ class Styling_Emotion(nn.Module):
         return z_a + z_d + z_v + z_ad + z_vd
 
 class StochasticDurationPredictor(nn.Module):
-  def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, gin_channels=0, lin_channels=0):
+  def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, gin_channels=0, lin_channels=0, emoin_channels=0):
     super().__init__()
     # if lin_channels != 0 :
     #   in_channels += lin_channels
@@ -161,12 +161,20 @@ class StochasticDurationPredictor(nn.Module):
     if lin_channels != 0 :
       self.cond_lang = nn.Conv1d(lin_channels, filter_channels, 1)
 
-  def forward(self, x, x_mask, dr=None, g=None, l=None, reverse=False, noise_scale=1.0):
+    if emoin_channels != 0:
+      self.cond_emo = nn.Conv1d(emoin_channels, in_channels, 1)
+
+  def forward(self, x, x_mask, dr=None, g=None, l=None, emo=None, reverse=False, noise_scale=1.0):
     x = torch.detach(x)
     x = self.pre(x)
+
     if g is not None:
         g = torch.detach(g)
         x = x + self.cond(g)
+
+    if emo is not None:
+        emo = torch.detach(emo)
+        x = x + self.cond_emo(emo)
 
     if l is not None:
         l = torch.detach(l)
@@ -359,10 +367,10 @@ class TextEncoder(nn.Module):
 
     if use_sdp:
       print("Use StochasticDurationPredictor")
-      self.proj_w = StochasticDurationPredictor(hidden_channels, 192, 3, 0.5, 4, gin_channels=gin_channels, lin_channels=lin_channels)
+      self.proj_w = StochasticDurationPredictor(hidden_channels, 192, 3, 0.5, 4, gin_channels=gin_channels, lin_channels=lin_channels, emoin_channels=hidden_channels-lin_channels)
     else:
       print("Use DurationPredictor")
-      self.proj_w = DurationPredictor(hidden_channels, filter_channels_dp, kernel_size, p_dropout, gin_channels=gin_channels, lin_channels=lin_channels , emoin_channels=hidden_channels)
+      self.proj_w = DurationPredictor(hidden_channels, filter_channels_dp, kernel_size, p_dropout, gin_channels=gin_channels, lin_channels=lin_channels, emoin_channels=hidden_channels-lin_channels)
 
     #self.emo_proj = modules.LinearNorm(1024, hidden_channels) #Follow emoin_channels
     # self.emo_proj_a = modules.LinearNorm(1, hidden_channels)
@@ -390,6 +398,9 @@ class TextEncoder(nn.Module):
   def forward(self, x, x_lengths, l=None, emo=None):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
+    if emo is not None:
+      x = x + emo.transpose(2, 1) # [b, 1, h]
+
     if l is not None:
       x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
     
@@ -408,9 +419,6 @@ class TextEncoder(nn.Module):
     if self.prenet:
       x = self.pre(x, x_mask)
     x = self.encoder(x, x_mask)
-
-    if emo is not None:
-      x = x + emo
 
     x_m = self.proj_m(x) * x_mask # Stats
     if not self.mean_only:
@@ -607,7 +615,7 @@ class FlowGenerator(nn.Module):
 
     if self.use_emo_embeds:
       print("Use Emotion Embedding")
-      self.emb_emo = Styling_Emotion(1, hidden_channels_enc + lin_channels, 96)
+      self.emb_emo = Styling_Emotion(1, hidden_channels_enc, 96)
 
   def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None):
     if g is not None:

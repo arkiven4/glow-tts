@@ -14,5 +14,4 @@ monotonic_align/monotonic_align
 pretrained_blank.pth
 temp
 inference_hifigan.ipynb
-sample_sound/*
 sample_sound
