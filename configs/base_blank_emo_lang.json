@@ -33,7 +33,6 @@
     "add_blank": true,
     "n_speakers": 109,
     "n_lang": 10,
-    "use_emo_vad": true,
     "spk_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/spk_embeds/",
     "emo_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/emo_embeds_coords/"
   },

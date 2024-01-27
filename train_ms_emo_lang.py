@@ -121,16 +121,16 @@ def train_and_eval(rank, n_gpus, hps):
             collate_fn=collate_fn,
         )
 
-    if hps.data.use_emo_vad:
-        print("Using External Emotion Encoder")
-        emo_encoder = model_vad.VAD_CartesianEncoder().cuda(rank)
-        emo_encoder = DDP(emo_encoder, device_ids=[rank])
-        saved_state_dict = torch.load("vae_model_newest.pth", map_location="cpu")
-        if hasattr(emo_encoder, 'module'):
-            emo_encoder.module.load_state_dict(saved_state_dict)
-        else:
-            emo_encoder.load_state_dict(saved_state_dict)
-        _ = emo_encoder.eval()
+    # if hps.data.use_emo_vad:
+    #     print("Using External Emotion Encoder")
+    #     emo_encoder = model_vad.VAD_CartesianEncoder().cuda(rank)
+    #     emo_encoder = DDP(emo_encoder, device_ids=[rank])
+    #     saved_state_dict = torch.load("vae_model_newest.pth", map_location="cpu")
+    #     if hasattr(emo_encoder, 'module'):
+    #         emo_encoder.module.load_state_dict(saved_state_dict)
+    #     else:
+    #         emo_encoder.load_state_dict(saved_state_dict)
+    #     _ = emo_encoder.eval()
 
     generator = models.FlowGenerator(
         n_vocab=len(symbols) + getattr(hps.data, "add_blank", False),
@@ -191,7 +191,6 @@ def train_and_eval(rank, n_gpus, hps):
                 scheduler,
                 logger,
                 writer,
-                emo_encoder,
             )
             evaluate(
                 rank,
@@ -202,7 +201,6 @@ def train_and_eval(rank, n_gpus, hps):
                 val_loader,
                 logger,
                 writer_eval,
-                emo_encoder,
             )
             utils.save_checkpoint(
                 generator,
@@ -224,7 +222,6 @@ def train_and_eval(rank, n_gpus, hps):
                 scheduler,
                 None,
                 None,
-                emo_encoder,
             )
 
         # scheduler.step()
@@ -241,7 +238,6 @@ def train(
     scheduler,
     logger,
     writer,
-    emo_encoder,
 ):
     train_loader.batch_sampler.set_epoch(epoch)
     global global_step
@@ -257,9 +253,6 @@ def train(
         speakers = speakers.cuda(rank, non_blocking=True)
         emos = emos.cuda(rank, non_blocking=True)
         lids = lids.cuda(rank, non_blocking=True)
-
-        if hps.data.use_emo_vad:
-            emos = emo_encoder(emos)
 
         # Train Generator
         with autocast(enabled=hps.train.fp16_run):
@@ -293,7 +286,7 @@ def train(
                     x[:1],
                     x_lengths[:1],
                     g=speakers[:1],
-                    emo=emo_encoder(emos[:1]) if hps.data.use_emo_vad else emos[:1],
+                    emo=emos[:1],
                     l=lids[:1],
                 )
                 # logger.info('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
@@ -350,7 +343,6 @@ def evaluate(
     val_loader,
     logger,
     writer_eval,
-    emo_encoder,
 ):
     if rank == 0:
         global global_step
@@ -375,9 +367,6 @@ def evaluate(
                 speakers = speakers.cuda(rank, non_blocking=True)
                 emos = emos.cuda(rank, non_blocking=True)
                 lids = lids.cuda(rank, non_blocking=True)
-
-                if hps.data.use_emo_vad:
-                    emos = emo_encoder(emos)
 
                 (
                     (z, z_m, z_logs, logdet, z_mask),
