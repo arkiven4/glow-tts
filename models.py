@@ -70,55 +70,55 @@ class Styling_Emotion(nn.Module):
         z_var = self.fc22_v(h1)
         return z_mu, z_var
     
-    def encode_ad(self, x): # Q(z|x, c)
-        '''
-        x: (bs, feature_size)
-        c: (bs, class_size)
-        '''
-        inputs = x.unsqueeze(1) # (bs, coordinate)
-        h1 = self.elu(self.fc1_ad(inputs))
-        z_mu = self.fc21_ad(h1)
-        z_var = self.fc22_ad(h1)
-        return z_mu, z_var
+    # def encode_ad(self, x): # Q(z|x, c)
+    #     '''
+    #     x: (bs, feature_size)
+    #     c: (bs, class_size)
+    #     '''
+    #     inputs = x.unsqueeze(1) # (bs, coordinate)
+    #     h1 = self.elu(self.fc1_ad(inputs))
+    #     z_mu = self.fc21_ad(h1)
+    #     z_var = self.fc22_ad(h1)
+    #     return z_mu, z_var
     
-    def encode_vd(self, x): # Q(z|x, c)
-        '''
-        x: (bs, feature_size)
-        c: (bs, class_size)
-        '''
-        inputs = x.unsqueeze(1) # (bs, coordinate)
-        h1 = self.elu(self.fc1_vd(inputs))
-        z_mu = self.fc21_vd(h1)
-        z_var = self.fc22_vd(h1)
-        return z_mu, z_var
+    # def encode_vd(self, x): # Q(z|x, c)
+    #     '''
+    #     x: (bs, feature_size)
+    #     c: (bs, class_size)
+    #     '''
+    #     inputs = x.unsqueeze(1) # (bs, coordinate)
+    #     h1 = self.elu(self.fc1_vd(inputs))
+    #     z_mu = self.fc21_vd(h1)
+    #     z_var = self.fc22_vd(h1)
+    #     return z_mu, z_var
 
-    def reparameterize(self, mu, logvar):
-        std = torch.exp(0.5*logvar)
-        eps = torch.randn_like(std)
-        return mu + eps*std
+    # def reparameterize(self, mu, logvar):
+    #     std = torch.exp(0.5*logvar)
+    #     eps = torch.randn_like(std)
+    #     return mu + eps*std
 
     def forward(self, x):
         arousal_input = x[:,0] - 1
         valence_input = x[:,2] - 1
         dominance_input = x[:,1] - 1
 
-        a_perd = arousal_input / dominance_input
-        v_perd = valence_input / dominance_input
+        # a_perd = arousal_input / dominance_input
+        # v_perd = valence_input / dominance_input
 
         mu_a, logvar_a = self.encode_a(arousal_input) # -1 because when precessing accidentaly adding 1
         mu_d, logvar_d = self.encode_d(dominance_input)
         mu_v, logvar_v = self.encode_v(valence_input)
 
-        mu_ad, logvar_ad = self.encode_ad(a_perd)
-        mu_vd, logvar_vd = self.encode_vd(v_perd)
+        # mu_ad, logvar_ad = self.encode_ad(a_perd)
+        # mu_vd, logvar_vd = self.encode_vd(v_perd)
 
         z_a = self.reparameterize(mu_a, logvar_a)
         z_d = self.reparameterize(mu_d, logvar_d)
         z_v = self.reparameterize(mu_v, logvar_v)
-        z_ad = self.reparameterize(mu_ad, logvar_ad)
-        z_vd = self.reparameterize(mu_vd, logvar_vd)
+        # z_ad = self.reparameterize(mu_ad, logvar_ad)
+        # z_vd = self.reparameterize(mu_vd, logvar_vd)
 
-        return z_a + z_d + z_v + z_ad + z_vd
+        return z_a + z_d + z_v
 
 class StochasticDurationPredictor(nn.Module):
   def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, gin_channels=0, lin_channels=0, emoin_channels=0):
