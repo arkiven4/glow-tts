@@ -21,6 +21,7 @@ from torch.utils.data.sampler import WeightedRandomSampler
 
 from data_utils import TextMelMyOwnLoader, TextMelMyOwnCollate, DistributedBucketSampler
 import models
+import model_vad
 import commons
 import utils
 from text.symbols import symbols
@@ -120,6 +121,17 @@ def train_and_eval(rank, n_gpus, hps):
             collate_fn=collate_fn,
         )
 
+    if hps.data.use_emo_vad:
+        print("Using External Emotion Encoder")
+        emo_encoder = model_vad.VAD_CartesianEncoder().cuda(rank)
+        emo_encoder = DDP(emo_encoder, device_ids=[rank])
+        saved_state_dict = torch.load("vae_model_newest.pth", map_location="cpu")
+        if hasattr(emo_encoder, 'module'):
+            emo_encoder.module.load_state_dict(saved_state_dict)
+        else:
+            emo_encoder.load_state_dict(saved_state_dict)
+        _ = emo_encoder.eval()
+
     generator = models.FlowGenerator(
         n_vocab=len(symbols) + getattr(hps.data, "add_blank", False),
         out_channels=hps.data.n_mel_channels,
@@ -179,6 +191,7 @@ def train_and_eval(rank, n_gpus, hps):
                 scheduler,
                 logger,
                 writer,
+                emo_encoder,
             )
             evaluate(
                 rank,
@@ -189,6 +202,7 @@ def train_and_eval(rank, n_gpus, hps):
                 val_loader,
                 logger,
                 writer_eval,
+                emo_encoder,
             )
             utils.save_checkpoint(
                 generator,
@@ -210,6 +224,7 @@ def train_and_eval(rank, n_gpus, hps):
                 scheduler,
                 None,
                 None,
+                emo_encoder,
             )
 
         # scheduler.step()
@@ -226,14 +241,13 @@ def train(
     scheduler,
     logger,
     writer,
+    emo_encoder,
 ):
     train_loader.batch_sampler.set_epoch(epoch)
     global global_step
 
     generator.train()
-    for batch_idx, (x, x_lengths, y, y_lengths, speakers, emos, lids) in enumerate(
-        tqdm(train_loader)
-    ):
+    for batch_idx, (x, x_lengths, y, y_lengths, speakers, emos, lids) in enumerate(tqdm(train_loader)):
         x, x_lengths = x.cuda(rank, non_blocking=True), x_lengths.cuda(
             rank, non_blocking=True
         )
@@ -244,20 +258,21 @@ def train(
         emos = emos.cuda(rank, non_blocking=True)
         lids = lids.cuda(rank, non_blocking=True)
 
+        if hps.data.use_emo_vad:
+            emos = emo_encoder(emos)
+
         # Train Generator
         with autocast(enabled=hps.train.fp16_run):
             (
                 (z, z_m, z_logs, logdet, z_mask),
                 (x_m, x_logs, x_mask),
                 (attn, l_length),
-            ) = generator(
-                x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids
-            )
+            ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids)
 
             with autocast(enabled=False):
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
-                #loss_kl = commons.kl_loss(z, z_logs, x_m, x_logs, z_mask) * 1.0
-                #l_length = commons.duration_loss(logw, logw_, x_lengths)
+                # loss_kl = commons.kl_loss(z, z_logs, x_m, x_logs, z_mask) * 1.0
+                # l_length = commons.duration_loss(logw, logw_, x_lengths)
                 l_length = torch.sum(l_length.float())
 
                 loss_gs = [l_mle, l_length]
@@ -278,7 +293,7 @@ def train(
                     x[:1],
                     x_lengths[:1],
                     g=speakers[:1],
-                    emo=emos[:1],
+                    emo=emo_encoder(emos[:1]) if hps.data.use_emo_vad else emos[:1],
                     l=lids[:1],
                 )
                 # logger.info('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
@@ -286,7 +301,10 @@ def train(
                 #   100. * batch_idx / len(train_loader),
                 #   loss_g.item()))
                 # logger.info([x.item() for x in loss_gs] + [global_step, optimizer_g.param_groups[0]['lr']])
-                halflen_mel = min(y_gen[0].data.cpu().numpy().shape[1] // 2, y[0].data.cpu().numpy().shape[1] // 2)
+                halflen_mel = min(
+                    y_gen[0].data.cpu().numpy().shape[1] // 2,
+                    y[0].data.cpu().numpy().shape[1] // 2,
+                )
                 loss_mel = (
                     F.l1_loss(y[0][:, 0:halflen_mel], y_gen[0][:, 0:halflen_mel]) * 45
                 )
@@ -323,7 +341,17 @@ def train(
         logger.info("====> Epoch: {}".format(epoch))
 
 
-def evaluate(rank, epoch, hps, generator, optimizer_g, val_loader, logger, writer_eval):
+def evaluate(
+    rank,
+    epoch,
+    hps,
+    generator,
+    optimizer_g,
+    val_loader,
+    logger,
+    writer_eval,
+    emo_encoder,
+):
     if rank == 0:
         global global_step
         generator.eval()
@@ -348,16 +376,17 @@ def evaluate(rank, epoch, hps, generator, optimizer_g, val_loader, logger, write
                 emos = emos.cuda(rank, non_blocking=True)
                 lids = lids.cuda(rank, non_blocking=True)
 
+                if hps.data.use_emo_vad:
+                    emos = emo_encoder(emos)
+
                 (
                     (z, z_m, z_logs, logdet, z_mask),
                     (x_m, x_logs, x_mask),
                     (attn, l_length),
-                ) = generator(
-                    x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids
-                )
+                ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids)
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
-                #loss_kl = commons.kl_loss(z, logdet, x_m, x_logs, z_mask) * 1.0
-                #l_length = commons.duration_loss(logw, logw_, x_lengths)
+                # loss_kl = commons.kl_loss(z, logdet, x_m, x_logs, z_mask) * 1.0
+                # l_length = commons.duration_loss(logw, logw_, x_lengths)
                 l_length = torch.sum(l_length.float())
 
                 loss_gs = [l_mle, l_length]

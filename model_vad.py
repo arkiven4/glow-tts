@@ -3,26 +3,65 @@ import modules
 from torch import nn
 from torch.nn import functional as F
 
-class VAE_Cartesian(nn.Module):
-    def __init__(self, input_dim=48, hidden_dim=512, latent_dim=1024):
-        super().__init__()
+class VAD_CartesianEncoder(nn.Module):
+    def __init__(self, feature_size=256, latent_size=1024, hidden_state=768):
+        super(VAD_CartesianEncoder, self).__init__()
+        self.feature_size = feature_size
+        self.latent_size = latent_size
+        self.hidden_state = hidden_state
 
-        self.fcembed_1 = modules.LinearNorm(1, 16)
-        self.fcembed_2 = modules.LinearNorm(1, 16)
-        self.fcembed_3 = modules.LinearNorm(1, 16)
+        self.fc1_a  = modules.LinearNorm(1, feature_size)
+        self.fc21_a = modules.LinearNorm(feature_size, hidden_state)
+        self.fc22_a = modules.LinearNorm(feature_size, hidden_state)
+
+        self.fc1_d  = modules.LinearNorm(1, feature_size)
+        self.fc21_d = modules.LinearNorm(feature_size, hidden_state)
+        self.fc22_d = modules.LinearNorm(feature_size, hidden_state)
+
+        self.fc1_v  = modules.LinearNorm(1, feature_size)
+        self.fc21_v = modules.LinearNorm(feature_size, hidden_state)
+        self.fc22_v = modules.LinearNorm(feature_size, hidden_state)
 
         # Encoder
-        self.encoder_fc1 = modules.LinearNorm(input_dim, hidden_dim)
-        self.encoder_fc21 = modules.LinearNorm(hidden_dim, latent_dim)
-        self.encoder_fc22 = modules.LinearNorm(hidden_dim, latent_dim)
+        self.encoder_fc1 = modules.LinearNorm(hidden_state * 3, 1536) # 768 Oke
+        self.encoder_fc21 = modules.LinearNorm(1536, latent_size)
+        self.encoder_fc22 = modules.LinearNorm(1536, latent_size)
 
-        # Decoder
-        self.decoder_fc1 = modules.LinearNorm(latent_dim, hidden_dim)
-        self.decoder_fc2 = modules.LinearNorm(hidden_dim, 3)
+        self.elu = nn.ELU()
 
-        # Cartesian
-        self.cartesian_fc = modules.LinearNorm(latent_dim, 3)
-
+    def encode_a(self, x): # Q(z|x, c)
+        '''
+        x: (bs, feature_size)
+        c: (bs, class_size)
+        '''
+        inputs = x.unsqueeze(1) # (bs, coordinate)
+        h1 = self.elu(self.fc1_a(inputs))
+        z_mu = self.fc21_a(h1)
+        z_var = self.fc22_a(h1)
+        return z_mu, z_var
+    
+    def encode_d(self, x): # Q(z|x, c)
+        '''
+        x: (bs, feature_size)
+        c: (bs, class_size)
+        '''
+        inputs = x.unsqueeze(1) # (bs, coordinate)
+        h1 = self.elu(self.fc1_d(inputs))
+        z_mu = self.fc21_d(h1)
+        z_var = self.fc22_d(h1)
+        return z_mu, z_var
+    
+    def encode_v(self, x): # Q(z|x, c)
+        '''
+        x: (bs, feature_size)
+        c: (bs, class_size)
+        '''
+        inputs = x.unsqueeze(1) # (bs, coordinate)
+        h1 = self.elu(self.fc1_v(inputs))
+        z_mu = self.fc21_v(h1)
+        z_var = self.fc22_v(h1)
+        return z_mu, z_var
+    
     def encode(self, x):
         x = F.relu(self.encoder_fc1(x))
         mu = self.encoder_fc21(x)
@@ -30,26 +69,22 @@ class VAE_Cartesian(nn.Module):
         return mu, logvar
 
     def reparameterize(self, mu, logvar):
-        std = torch.exp(0.5 * logvar)
+        std = torch.exp(0.5*logvar)
         eps = torch.randn_like(std)
-        return mu + eps * std
-
-    def decode(self, z):
-        z = F.relu(self.decoder_fc1(z))
-        x_hat = torch.sigmoid(self.decoder_fc2(z))
-        return x_hat
-    
-    def to_cartesian(self, z):
-        x_hat = torch.sigmoid(self.cartesian_fc(z))
-        return x_hat
+        return mu + eps*std
 
     def forward(self, x):
-        embeds_x = self.fcembed_1(x[:, 0].unsqueeze(1))
-        embeds_y = self.fcembed_2(x[:, 1].unsqueeze(1))
-        embeds_z = self.fcembed_3(x[:, 2].unsqueeze(1))
-        embeds = torch.cat([embeds_x, embeds_y, embeds_z], 1)
+        arousal_input = x[:,0] - 1 # -1 because when precessing accidentaly adding 1
+        valence_input = x[:,2] - 1
+        dominance_input = x[:,1] - 1
+
+        mu_a, logvar_a = self.encode_a(arousal_input) 
+        mu_d, logvar_d = self.encode_d(dominance_input)
+        mu_v, logvar_v = self.encode_v(valence_input)
+
+        embeds = torch.cat([self.reparameterize(mu_a, logvar_a), self.reparameterize(mu_d, logvar_d), self.reparameterize(mu_v, logvar_v)], 1)
 
         mu, logvar = self.encode(embeds)
         z = self.reparameterize(mu, logvar)
-        x_hat = self.decode(z)
-        return x_hat, mu, logvar
+
+        return z

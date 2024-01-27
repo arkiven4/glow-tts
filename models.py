@@ -8,118 +8,6 @@ import commons
 import attentions
 import monotonic_align
 
-class Styling_Emotion(nn.Module):
-    def __init__(self, feature_size, latent_size, hidden_state=96):
-        super(Styling_Emotion, self).__init__()
-        self.feature_size = feature_size
-        self.latent_size = latent_size
-        self.hidden_state = hidden_state
-
-        self.fc1_a  = modules.LinearNorm(feature_size, hidden_state)
-        self.fc21_a = modules.LinearNorm(hidden_state, latent_size)
-        self.fc22_a = modules.LinearNorm(hidden_state, latent_size)
-
-        self.fc1_d  = modules.LinearNorm(feature_size, hidden_state)
-        self.fc21_d = modules.LinearNorm(hidden_state, latent_size)
-        self.fc22_d = modules.LinearNorm(hidden_state, latent_size)
-
-        self.fc1_v  = modules.LinearNorm(feature_size, hidden_state)
-        self.fc21_v = modules.LinearNorm(hidden_state, latent_size)
-        self.fc22_v = modules.LinearNorm(hidden_state, latent_size)
-
-        self.fc1_ad  = modules.LinearNorm(feature_size, hidden_state)
-        self.fc21_ad = modules.LinearNorm(hidden_state, latent_size)
-        self.fc22_ad = modules.LinearNorm(hidden_state, latent_size)
-
-        self.fc1_vd  = modules.LinearNorm(feature_size, hidden_state)
-        self.fc21_vd = modules.LinearNorm(hidden_state, latent_size)
-        self.fc22_vd = modules.LinearNorm(hidden_state, latent_size)
-
-        self.elu = nn.ELU()
-
-    def encode_a(self, x): # Q(z|x, c)
-        '''
-        x: (bs, feature_size)
-        c: (bs, class_size)
-        '''
-        inputs = x.unsqueeze(1) # (bs, coordinate)
-        h1 = self.elu(self.fc1_a(inputs))
-        z_mu = self.fc21_a(h1)
-        z_var = self.fc22_a(h1)
-        return z_mu, z_var
-    
-    def encode_d(self, x): # Q(z|x, c)
-        '''
-        x: (bs, feature_size)
-        c: (bs, class_size)
-        '''
-        inputs = x.unsqueeze(1) # (bs, coordinate)
-        h1 = self.elu(self.fc1_d(inputs))
-        z_mu = self.fc21_d(h1)
-        z_var = self.fc22_d(h1)
-        return z_mu, z_var
-    
-    def encode_v(self, x): # Q(z|x, c)
-        '''
-        x: (bs, feature_size)
-        c: (bs, class_size)
-        '''
-        inputs = x.unsqueeze(1) # (bs, coordinate)
-        h1 = self.elu(self.fc1_v(inputs))
-        z_mu = self.fc21_v(h1)
-        z_var = self.fc22_v(h1)
-        return z_mu, z_var
-    
-    # def encode_ad(self, x): # Q(z|x, c)
-    #     '''
-    #     x: (bs, feature_size)
-    #     c: (bs, class_size)
-    #     '''
-    #     inputs = x.unsqueeze(1) # (bs, coordinate)
-    #     h1 = self.elu(self.fc1_ad(inputs))
-    #     z_mu = self.fc21_ad(h1)
-    #     z_var = self.fc22_ad(h1)
-    #     return z_mu, z_var
-    
-    # def encode_vd(self, x): # Q(z|x, c)
-    #     '''
-    #     x: (bs, feature_size)
-    #     c: (bs, class_size)
-    #     '''
-    #     inputs = x.unsqueeze(1) # (bs, coordinate)
-    #     h1 = self.elu(self.fc1_vd(inputs))
-    #     z_mu = self.fc21_vd(h1)
-    #     z_var = self.fc22_vd(h1)
-    #     return z_mu, z_var
-
-    # def reparameterize(self, mu, logvar):
-    #     std = torch.exp(0.5*logvar)
-    #     eps = torch.randn_like(std)
-    #     return mu + eps*std
-
-    def forward(self, x):
-        arousal_input = x[:,0] - 1
-        valence_input = x[:,2] - 1
-        dominance_input = x[:,1] - 1
-
-        # a_perd = arousal_input / dominance_input
-        # v_perd = valence_input / dominance_input
-
-        mu_a, logvar_a = self.encode_a(arousal_input) # -1 because when precessing accidentaly adding 1
-        mu_d, logvar_d = self.encode_d(dominance_input)
-        mu_v, logvar_v = self.encode_v(valence_input)
-
-        # mu_ad, logvar_ad = self.encode_ad(a_perd)
-        # mu_vd, logvar_vd = self.encode_vd(v_perd)
-
-        z_a = self.reparameterize(mu_a, logvar_a)
-        z_d = self.reparameterize(mu_d, logvar_d)
-        z_v = self.reparameterize(mu_v, logvar_v)
-        # z_ad = self.reparameterize(mu_ad, logvar_ad)
-        # z_vd = self.reparameterize(mu_vd, logvar_vd)
-
-        return z_a + z_d + z_v
-
 class StochasticDurationPredictor(nn.Module):
   def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, gin_channels=0, lin_channels=0, emoin_channels=0):
     super().__init__()
@@ -615,7 +503,7 @@ class FlowGenerator(nn.Module):
 
     if self.use_emo_embeds:
       print("Use Emotion Embedding")
-      self.emb_emo = Styling_Emotion(1, hidden_channels_enc, 96)
+      self.emb_emo = modules.LinearNorm(1024, hidden_channels_enc)
 
   def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None):
     if g is not None:
