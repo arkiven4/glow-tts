@@ -654,7 +654,7 @@ class FlowGenerator(nn.Module):
     if self.use_emo_embeds:
       print("Use Emotion Custom Module")
       self.style_encoder = MelStyleEncoder(80, hidden_channels, gin_channels, 5, 8, p_dropout)
-      self.emb_emo = VAD_CartesianEncoder(64, gin_channels, 128)
+      #self.emb_emo = VAD_CartesianEncoder(64, gin_channels, 128)
 
   def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None):
     if g is not None:
@@ -664,8 +664,8 @@ class FlowGenerator(nn.Module):
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h, 1]
       #g = torch.cat([g, l], 1)
 
-    if emo is not None:
-      emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
+    # if emo is not None:
+    #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
 
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l)
 
@@ -708,7 +708,7 @@ class FlowGenerator(nn.Module):
     z_m = torch.matmul(attn.squeeze(1).transpose(1, 2), x_m.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     z_logs = torch.matmul(attn.squeeze(1).transpose(1, 2), x_logs.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     
-    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length), (style_vector, emo_vad)
+    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length), (style_vector, None)
 
   def infer(self, x, x_lengths, y=None, g=None, emo=None, l=None, noise_scale=1., length_scale=1.):
     s = self.style_encoder(y.transpose(1,2), None).unsqueeze(-1)
@@ -720,8 +720,8 @@ class FlowGenerator(nn.Module):
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
       #g = torch.cat([g, l], 1)
 
-    if emo is not None:
-      emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
+    # if emo is not None:
+    #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
 
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
     g = g + s
