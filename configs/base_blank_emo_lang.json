@@ -9,11 +9,11 @@
     "eps": 1e-9,
     "warmup_steps": 4000,
     "scheduler": "noam",
-    "batch_size": 32,
+    "batch_size": 28,
     "ddi": true,
     "fp16_run": true,
     "warm_start": true,
-    "warm_start_checkpoint": "logs/base_blank_emo_lang_8c3fa52/G_160.pth",
+    "warm_start_checkpoint": "logs/base_blank_emo_lang_b43c923/G_164.pth",
     "ignored_layer": ["encoder.emb.weight"]
   },
   "data": {
@@ -56,7 +56,7 @@
     "hidden_channels_dec": 188,
     "window_size": 4,
     "gin_channels": 252,
-    "use_sdp": false,
+    "use_sdp": true,
     "use_spk_embeds": true,
     "use_lang_embeds": true,
     "use_emo_embeds": true,

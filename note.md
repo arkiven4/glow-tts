@@ -1,0 +1,1 @@
+b43c923 -> Speaker EMbed Udah kerja, dituker2 udah bisa, sayang emosinya kurang muncul

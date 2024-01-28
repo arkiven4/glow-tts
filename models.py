@@ -93,6 +93,71 @@ class VAD_CartesianEncoder(nn.Module):
         z = self.reparameterize(mu, logvar)
 
         return z
+    
+class MelStyleEncoder(nn.Module):
+    ''' MelStyleEncoder '''
+    def __init__(self, in_dim, style_hidden, style_vector_dim, style_kernel_size, style_head, dropout):
+        super(MelStyleEncoder, self).__init__()
+        self.in_dim = in_dim
+        self.hidden_dim = style_hidden
+        self.out_dim = style_vector_dim
+        self.kernel_size = style_kernel_size
+        self.n_head = style_head
+        self.dropout = dropout
+
+        self.spectral = nn.Sequential(
+            modules.LinearNorm(self.in_dim, self.hidden_dim),
+            modules.Mish(),
+            nn.Dropout(self.dropout),
+            modules.LinearNorm(self.hidden_dim, self.hidden_dim),
+            modules.Mish(),
+            nn.Dropout(self.dropout)
+        )
+
+        self.temporal = nn.Sequential(
+            modules.Conv1dGLU(self.hidden_dim, self.hidden_dim, self.kernel_size, self.dropout),
+            modules.Conv1dGLU(self.hidden_dim, self.hidden_dim, self.kernel_size, self.dropout),
+        )
+
+        self.slf_attn = modules.MultiHeadAttention(self.n_head, self.hidden_dim, 
+                                self.hidden_dim//self.n_head, self.hidden_dim//self.n_head, self.dropout) 
+        self.fc = modules.LinearNorm(self.hidden_dim, self.out_dim)
+
+    def temporal_avg_pool(self, x, mask=None):
+        if mask is None:
+            out = torch.mean(x, dim=1)
+        else:
+            len_ = (~mask).sum(dim=1).unsqueeze(1)
+            x = x.masked_fill(mask.unsqueeze(-1), 0)
+            x = x.sum(dim=1)
+            out = torch.div(x, len_)
+        return out
+
+    def forward(self, x, mask=None):
+        
+        max_len = x.shape[1]
+        if mask is not None:
+              mask = (mask.int()==0).squeeze(1)
+              slf_attn_mask = mask.unsqueeze(1).expand(-1, max_len, -1)
+        else:
+              slf_attn_mask = None
+        # spectral
+        x = self.spectral(x)
+        # temporal
+        x = x.transpose(1,2)
+        x = self.temporal(x)
+        x = x.transpose(1,2)
+        # self-attention
+        if mask is not None:
+            x = x.masked_fill(mask.unsqueeze(-1), 0)
+        x, _ = self.slf_attn(x, mask=slf_attn_mask)
+        # fc
+        x = self.fc(x)
+        # temoral average pooling
+        w = self.temporal_avg_pool(x, mask=mask)
+
+        return w
+
 class StochasticDurationPredictor(nn.Module):
   def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, gin_channels=0, lin_channels=0, emoin_channels=0):
     super().__init__()
@@ -134,10 +199,10 @@ class StochasticDurationPredictor(nn.Module):
     if lin_channels != 0 :
       self.cond_lang = nn.Conv1d(lin_channels, filter_channels, 1)
 
-    if emoin_channels != 0:
-      self.cond_emo = nn.Conv1d(emoin_channels, in_channels, 1)
+    # if emoin_channels != 0:
+    #   self.cond_emo = nn.Conv1d(emoin_channels, filter_channels, 1)
 
-  def forward(self, x, x_mask, dr=None, g=None, l=None, emo=None, reverse=False, noise_scale=1.0):
+  def forward(self, x, x_mask, dr=None, g=None, l=None, reverse=False, noise_scale=1.0):
     x = torch.detach(x)
     x = self.pre(x)
 
@@ -145,9 +210,9 @@ class StochasticDurationPredictor(nn.Module):
         g = torch.detach(g)
         x = x + self.cond(g)
 
-    if emo is not None:
-        emo = torch.detach(emo)
-        x = x + self.cond_emo(emo)
+    # if emo is not None:
+    #     emo = torch.detach(emo)
+    #     x = x + self.cond_emo(emo)
 
     if l is not None:
         l = torch.detach(l)
@@ -371,8 +436,8 @@ class TextEncoder(nn.Module):
   def forward(self, x, x_lengths, l=None, emo=None):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
-    if emo is not None:
-      x = x + emo.transpose(2, 1) # [b, 1, h]
+    # if emo is not None:
+    #   x = x + emo.transpose(2, 1) # [b, 1, h]
 
     if l is not None:
       x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
@@ -588,20 +653,25 @@ class FlowGenerator(nn.Module):
 
     if self.use_emo_embeds:
       print("Use Emotion Custom Module")
-      self.emb_emo = VAD_CartesianEncoder(64, hidden_channels_enc, 128)
+      self.style_encoder = MelStyleEncoder(80, hidden_channels, gin_channels, 5, 8, p_dropout)
+      self.emb_emo = VAD_CartesianEncoder(64, gin_channels, 128)
 
   def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None):
     if g is not None:
-      g = F.normalize(self.emb_g(g)).unsqueeze(-1) # [b, h]
+      g = F.normalize(self.emb_g(g)).unsqueeze(-1) # [b, h, 1]
 
     if l is not None:
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h, 1]
       #g = torch.cat([g, l], 1)
 
     if emo is not None:
-      emo = F.normalize(self.emb_emo(emo)).unsqueeze(-1) # [b, h, 1]
+      emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
 
-    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
+    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l)
+
+    y_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, y.size(2)), 1).to(y.dtype) 
+    style_vector = self.style_encoder(y.transpose(1,2), y_mask).unsqueeze(-1) # [b, h, 1]
+    g = g + style_vector # Style Sampai ke Decoder
 
     y_max_length = y.size(2)
     y, y_lengths, y_max_length = self.preprocess(y, y_lengths, y_max_length)
@@ -621,7 +691,7 @@ class FlowGenerator(nn.Module):
 
     w = attn.squeeze(1).sum(2).unsqueeze(1) # Attention Duration
     if self.use_sdp:
-      l_length = self.encoder.proj_w(x, x_mask, w, g=g, l=l, emo=emo)
+      l_length = self.encoder.proj_w(x, x_mask, w, g=g, l=l)
       l_length = l_length / torch.sum(x_mask)
     else:
       # if g is not None:
@@ -631,16 +701,18 @@ class FlowGenerator(nn.Module):
       #   x_dp = torch.detach(x)
 
       logw_ = torch.log(w + 1e-8) * x_mask
-      logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=emo)
+      logw = self.encoder.proj_w(x, x_mask, g=g, l=l)
       l_length = torch.sum((logw - logw_)**2, [1,2]) / torch.sum(x_mask) # for averaging 
 
     # expand prior
     z_m = torch.matmul(attn.squeeze(1).transpose(1, 2), x_m.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     z_logs = torch.matmul(attn.squeeze(1).transpose(1, 2), x_logs.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     
-    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length)
+    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length), (style_vector, emo_vad)
 
-  def infer(self, x, x_lengths, g=None, emo=None, l=None, noise_scale=1., length_scale=1.):
+  def infer(self, x, x_lengths, y=None, g=None, emo=None, l=None, noise_scale=1., length_scale=1.):
+    s = self.style_encoder(y.transpose(1,2), None).unsqueeze(-1)
+
     if g is not None:
       g = F.normalize(self.emb_g(g)).unsqueeze(-1) # [b, h]
 
@@ -649,12 +721,13 @@ class FlowGenerator(nn.Module):
       #g = torch.cat([g, l], 1)
 
     if emo is not None:
-      emo = F.normalize(self.emb_emo(emo)).unsqueeze(-1) # [b, h, 1]
+      emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
 
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
+    g = g + s
 
     if self.use_sdp:
-      logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=emo, reverse=True, noise_scale=noise_scale)
+      logw = self.encoder.proj_w(x, x_mask, g=g, l=l, reverse=True, noise_scale=noise_scale)
     else:
       # if g is not None:
       #   g_exp = g.expand(-1, -1, x.size(-1))
@@ -662,7 +735,7 @@ class FlowGenerator(nn.Module):
       # else:
       #   x_dp = torch.detach(x)
 
-      logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=emo)
+      logw = self.encoder.proj_w(x, x_mask, g=g, l=l)
 
     w = torch.exp(logw) * x_mask * length_scale
     w_ceil = torch.ceil(w)
