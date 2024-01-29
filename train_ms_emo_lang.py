@@ -270,9 +270,9 @@ def train(
                 # loss_kl = commons.kl_loss(z, z_logs, x_m, x_logs, z_mask) * 1.0
                 # l_length = commons.duration_loss(logw, logw_, x_lengths)
                 l_length = torch.sum(l_length.float())
-                l_style = F.mse_loss(emo_vad.float(), style_vector.float()) #* 1e+3
+                #l_style = F.mse_loss(emo_vad.float(), style_vector.float()) #* 1e+3
 
-                loss_gs = [l_mle, l_length, l_style]
+                loss_gs = [l_mle, l_length]
                 loss_g = sum(loss_gs)
 
         scheduler.step()
@@ -383,9 +383,9 @@ def evaluate(
                 # loss_kl = commons.kl_loss(z, logdet, x_m, x_logs, z_mask) * 1.0
                 # l_length = commons.duration_loss(logw, logw_, x_lengths)
                 l_length = torch.sum(l_length.float())
-                l_style = F.mse_loss(emo_vad.float(), style_vector.float()) #* 1e+3
+                #l_style = F.mse_loss(emo_vad.float(), style_vector.float()) #* 1e+3
 
-                loss_gs = [l_mle, l_length, l_style]
+                loss_gs = [l_mle, l_length]
                 loss_g = sum(loss_gs)
 
                 if batch_idx == 0:
