@@ -54,6 +54,10 @@ def kl_loss(z_p, logs_q, m_p, logs_p, z_mask):
   l = kl / torch.sum(z_mask)
   return l
 
+def sus_loss(z_q):
+  sus_loss = (torch.sqrt(torch.sum((z_q)**2)) - 1)**2
+  return sus_loss
+
 @torch.jit.script
 def fused_add_tanh_sigmoid_multiply(input_a, input_b, n_channels):
   n_channels_int = n_channels[0]

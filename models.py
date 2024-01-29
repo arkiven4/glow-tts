@@ -9,64 +9,42 @@ import attentions
 import monotonic_align
 
 class VAD_CartesianEncoder(nn.Module):
-    def __init__(self, feature_size=256, latent_size=1024, hidden_state=768):
+    def __init__(self, hidden_state=96, latent_size=256):
         super(VAD_CartesianEncoder, self).__init__()
-        self.feature_size = feature_size
         self.latent_size = latent_size
         self.hidden_state = hidden_state
 
-        self.fc1_a  = modules.LinearNorm(1, feature_size)
-        self.fc21_a = modules.LinearNorm(feature_size, hidden_state)
-        self.fc22_a = modules.LinearNorm(feature_size, hidden_state)
+        self.emb_a = modules.LinearNorm(1, hidden_state)
+        self.emb_v = modules.LinearNorm(1, hidden_state)
+        self.emb_d = modules.LinearNorm(1, hidden_state)
 
-        self.fc1_d  = modules.LinearNorm(1, feature_size)
-        self.fc21_d = modules.LinearNorm(feature_size, hidden_state)
-        self.fc22_d = modules.LinearNorm(feature_size, hidden_state)
+        self.emb_style = modules.LinearNorm(hidden_state * 3, latent_size)
+        self.emotion_linear = nn.Sequential(nn.Linear(latent_size, latent_size), nn.ReLU())
 
-        self.fc1_v  = modules.LinearNorm(1, feature_size)
-        self.fc21_v = modules.LinearNorm(feature_size, hidden_state)
-        self.fc22_v = modules.LinearNorm(feature_size, hidden_state)
+    def forward(self, x):
+        arousal_input = self.emb_a(x[:,0].unsqueeze(1) - 1) # -1 because when precessing accidentaly adding 1
+        valence_input = self.emb_v(x[:,2].unsqueeze(1) - 1)
+        dominance_input = self.emb_d(x[:,1].unsqueeze(1) - 1)
+
+        embeds_cat = torch.cat([arousal_input, valence_input, dominance_input], 1)
+        embeds_cat = self.emotion_linear(self.emb_style(embeds_cat))
+        return embeds_cat
+    
+class VAD_CartesianEncoderVAE(nn.Module):
+    def __init__(self, hidden_state=96, latent_size=256):
+        super(VAD_CartesianEncoderVAE, self).__init__()
+        self.latent_size = latent_size
+        self.hidden_state = hidden_state
+
+        self.emb_a = modules.LinearNorm(1, hidden_state)
+        self.emb_v = modules.LinearNorm(1, hidden_state)
+        self.emb_d = modules.LinearNorm(1, hidden_state)
 
         # Encoder
-        self.encoder_fc1 = modules.LinearNorm(hidden_state * 3, 256)
-        self.encoder_fc21 = modules.LinearNorm(256, latent_size)
-        self.encoder_fc22 = modules.LinearNorm(256, latent_size)
+        self.encoder_fc1 = modules.LinearNorm(hidden_state * 3, latent_size * 2)
+        self.encoder_fc21 = modules.LinearNorm(latent_size * 2, latent_size)
+        self.encoder_fc22 = modules.LinearNorm(latent_size * 2, latent_size)
 
-        self.elu = nn.ELU()
-
-    def encode_a(self, x): # Q(z|x, c)
-        '''
-        x: (bs, feature_size)
-        c: (bs, class_size)
-        '''
-        inputs = x.unsqueeze(1) # (bs, coordinate)
-        h1 = self.elu(self.fc1_a(inputs))
-        z_mu = self.fc21_a(h1)
-        z_var = self.fc22_a(h1)
-        return z_mu, z_var
-    
-    def encode_d(self, x): # Q(z|x, c)
-        '''
-        x: (bs, feature_size)
-        c: (bs, class_size)
-        '''
-        inputs = x.unsqueeze(1) # (bs, coordinate)
-        h1 = self.elu(self.fc1_d(inputs))
-        z_mu = self.fc21_d(h1)
-        z_var = self.fc22_d(h1)
-        return z_mu, z_var
-    
-    def encode_v(self, x): # Q(z|x, c)
-        '''
-        x: (bs, feature_size)
-        c: (bs, class_size)
-        '''
-        inputs = x.unsqueeze(1) # (bs, coordinate)
-        h1 = self.elu(self.fc1_v(inputs))
-        z_mu = self.fc21_v(h1)
-        z_var = self.fc22_v(h1)
-        return z_mu, z_var
-    
     def encode(self, x):
         x = F.relu(self.encoder_fc1(x))
         mu = self.encoder_fc21(x)
@@ -77,22 +55,16 @@ class VAD_CartesianEncoder(nn.Module):
         std = torch.exp(0.5*logvar)
         eps = torch.randn_like(std)
         return mu + eps*std
-
+    
     def forward(self, x):
-        arousal_input = x[:,0] - 1 # -1 because when precessing accidentaly adding 1
-        valence_input = x[:,2] - 1
-        dominance_input = x[:,1] - 1
+        arousal_input = self.emb_a(x[:,0].unsqueeze(1) - 1) # -1 because when precessing accidentaly adding 1
+        valence_input = self.emb_v(x[:,2].unsqueeze(1) - 1)
+        dominance_input = self.emb_d(x[:,1].unsqueeze(1) - 1)
 
-        mu_a, logvar_a = self.encode_a(arousal_input) 
-        mu_d, logvar_d = self.encode_d(dominance_input)
-        mu_v, logvar_v = self.encode_v(valence_input)
-
-        embeds = torch.cat([self.reparameterize(mu_a, logvar_a), self.reparameterize(mu_d, logvar_d), self.reparameterize(mu_v, logvar_v)], 1)
-
-        mu, logvar = self.encode(embeds)
+        embeds_cat = torch.cat([arousal_input, valence_input, dominance_input], 1)
+        mu, logvar = self.encode(embeds_cat)
         z = self.reparameterize(mu, logvar)
-
-        return z
+        return z, mu
     
 class MelStyleEncoder(nn.Module):
     ''' MelStyleEncoder '''
@@ -654,9 +626,12 @@ class FlowGenerator(nn.Module):
     if self.use_emo_embeds:
       print("Use Emotion Custom Module")
       self.style_encoder = MelStyleEncoder(80, hidden_channels, gin_channels, 5, 8, p_dropout)
-      #self.emb_emo = VAD_CartesianEncoder(64, gin_channels, 128)
+      self.emb_emo = VAD_CartesianEncoder(96, gin_channels)
+      self.emb_emoVAE = VAD_CartesianEncoderVAE(96, gin_channels)
 
   def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None):
+    mu_emovae = None
+
     if g is not None:
       g = F.normalize(self.emb_g(g)).unsqueeze(-1) # [b, h, 1]
 
@@ -664,8 +639,9 @@ class FlowGenerator(nn.Module):
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h, 1]
       #g = torch.cat([g, l], 1)
 
-    # if emo is not None:
-    #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
+    if emo is not None:
+      emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
+      #emo_vad, mu_emovae = self.emb_emoVAE(emo).unsqueeze(-1) # [b, h, 1]
 
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l)
 
@@ -708,7 +684,7 @@ class FlowGenerator(nn.Module):
     z_m = torch.matmul(attn.squeeze(1).transpose(1, 2), x_m.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     z_logs = torch.matmul(attn.squeeze(1).transpose(1, 2), x_logs.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     
-    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length), (style_vector, None)
+    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length), (style_vector, emo_vad, mu_emovae)
 
   def infer(self, x, x_lengths, y=None, g=None, emo=None, l=None, noise_scale=1., length_scale=1.):
     s = self.style_encoder(y.transpose(1,2), None).unsqueeze(-1)

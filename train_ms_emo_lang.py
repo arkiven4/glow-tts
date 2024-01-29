@@ -226,7 +226,7 @@ def train_and_eval(rank, n_gpus, hps):
 
         # scheduler.step()
 
-criterion_mse = nn.MSELoss()
+
 def train(
     rank,
     epoch,
@@ -240,10 +240,12 @@ def train(
     writer,
 ):
     train_loader.batch_sampler.set_epoch(epoch)
-    global global_step, criterion_mse
+    global global_step
 
     generator.train()
-    for batch_idx, (x, x_lengths, y, y_lengths, speakers, emos, lids) in enumerate(tqdm(train_loader)):
+    for batch_idx, (x, x_lengths, y, y_lengths, speakers, emos, lids) in enumerate(
+        tqdm(train_loader)
+    ):
         x, x_lengths = x.cuda(rank, non_blocking=True), x_lengths.cuda(
             rank, non_blocking=True
         )
@@ -260,7 +262,7 @@ def train(
                 (z, z_m, z_logs, logdet, z_mask),
                 (x_m, x_logs, x_mask),
                 (attn, l_length),
-                (style_vector, emo_vad)
+                (style_vector, emo_vad, mu_emovae),
             ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids)
 
             with autocast(enabled=False):
@@ -268,9 +270,9 @@ def train(
                 # loss_kl = commons.kl_loss(z, z_logs, x_m, x_logs, z_mask) * 1.0
                 # l_length = commons.duration_loss(logw, logw_, x_lengths)
                 l_length = torch.sum(l_length.float())
-                #l_style = criterion_mse(emo_vad, style_vector)
+                l_style = F.mse_loss(emo_vad.float(), style_vector.float()) #* 1e+3
 
-                loss_gs = [l_mle, l_length]
+                loss_gs = [l_mle, l_length, l_style]
                 loss_g = sum(loss_gs)
 
         scheduler.step()
@@ -348,7 +350,7 @@ def evaluate(
     writer_eval,
 ):
     if rank == 0:
-        global global_step, criterion_mse
+        global global_step
         generator.eval()
         losses_tot = []
         with torch.no_grad():
@@ -375,15 +377,15 @@ def evaluate(
                     (z, z_m, z_logs, logdet, z_mask),
                     (x_m, x_logs, x_mask),
                     (attn, l_length),
-                    (style_vector, emo_vad)
+                    (style_vector, emo_vad, mu_emovae),
                 ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids)
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 # loss_kl = commons.kl_loss(z, logdet, x_m, x_logs, z_mask) * 1.0
                 # l_length = commons.duration_loss(logw, logw_, x_lengths)
                 l_length = torch.sum(l_length.float())
-                #l_style = criterion_mse(emo_vad, style_vector)
+                l_style = F.mse_loss(emo_vad.float(), style_vector.float()) #* 1e+3
 
-                loss_gs = [l_mle, l_length]
+                loss_gs = [l_mle, l_length, l_style]
                 loss_g = sum(loss_gs)
 
                 if batch_idx == 0:

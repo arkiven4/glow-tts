@@ -9,10 +9,10 @@
     "eps": 1e-9,
     "warmup_steps": 4000,
     "scheduler": "noam",
-    "batch_size": 20,
+    "batch_size": 18,
     "ddi": true,
     "fp16_run": true,
-    "warm_start": true,
+    "warm_start": false,
     "warm_start_checkpoint": "logs/base_blank_emo_lang_b43c923/G_164.pth",
     "ignored_layer": ["encoder.emb.weight"]
   },
