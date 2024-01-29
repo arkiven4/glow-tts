@@ -627,7 +627,25 @@ class FlowGenerator(nn.Module):
       print("Use Emotion Custom Module")
       self.style_encoder = MelStyleEncoder(80, hidden_channels, gin_channels, 5, 8, p_dropout)
       self.emb_emo = VAD_CartesianEncoder(96, gin_channels)
-      self.emb_emoVAE = VAD_CartesianEncoderVAE(96, gin_channels)
+      #self.emb_emoVAE = VAD_CartesianEncoderVAE(96, gin_channels)
+
+    for param in self.decoder.parameters():
+        param.requires_grad = False
+
+    for param in self.encoder.proj_w.parameters():
+        param.requires_grad = False
+
+    for param in self.encoder.parameters():
+        param.requires_grad = False
+
+    for param in self.emb_g.parameters():
+        param.requires_grad = False
+
+    for param in self.emb_l.parameters():
+        param.requires_grad = False
+
+    for param in self.style_encoder.parameters():
+        param.requires_grad = False
 
   def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None):
     mu_emovae = None
