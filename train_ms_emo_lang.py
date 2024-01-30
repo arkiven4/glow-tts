@@ -262,15 +262,26 @@ def train(
                 (z, z_m, z_logs, logdet, z_mask),
                 (x_m, x_logs, x_mask),
                 (attn, l_length),
-                (style_vector, emo_vad, mu_emovae),
+                (style_vector, emo_vad, mu_emovae)
             ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids)
 
             with autocast(enabled=False):
+                #max_target_len = max([x[1].size(1) for x in batch])
+                # y_slice, slice_ids = commons.rand_segments(y, y_lengths, 128, let_short_samples=True, pad_short=True)
+                # y_gen_slice = commons.segment(y_gen.float(), slice_ids, 128, pad_short=True)
+
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 # loss_kl = commons.kl_loss(z, z_logs, x_m, x_logs, z_mask) * 1.0
                 # l_length = commons.duration_loss(logw, logw_, x_lengths)
                 l_length = torch.sum(l_length.float())
                 #l_style = F.mse_loss(emo_vad.float(), style_vector.float()) #* 1e+3
+
+                # halflen_mel = min(
+                #     y.size(2),
+                #     y_gen.size(2),
+                # )
+                
+                # l_mel = F.l1_loss(y_gen[:,:,:halflen_mel], y[:,:,:halflen_mel])
 
                 loss_gs = [l_mle, l_length]
                 loss_g = sum(loss_gs)
@@ -280,7 +291,7 @@ def train(
         optimizer_g.zero_grad()
         scaler.scale(loss_g).backward()
         scaler.unscale_(optimizer_g)
-        grad_norm = commons.clip_grad_value_(generator.parameters(), 5)
+        grad_norm = commons.clip_grad_value_(generator.parameters(), None)
         scaler.step(optimizer_g)
         scaler.update()
 
@@ -300,12 +311,12 @@ def train(
                 #   loss_g.item()))
                 # logger.info([x.item() for x in loss_gs] + [global_step, optimizer_g.param_groups[0]['lr']])
                 halflen_mel = min(
-                    y_gen[0].data.cpu().numpy().shape[1] // 2,
-                    y[0].data.cpu().numpy().shape[1] // 2,
+                    y_gen[0].data.cpu().numpy().shape[1] // 4,
+                    y[0].data.cpu().numpy().shape[1] // 4,
                 )
-                loss_mel = (
-                    F.l1_loss(y[0][:, 0:halflen_mel], y_gen[0][:, 0:halflen_mel]) * 45
-                )
+                # loss_mel = (
+                #     F.l1_loss(y[0][:, 0:halflen_mel], y_gen[0][:, 0:halflen_mel]) * 45
+                # )
 
                 scalar_dict = {
                     "loss/g/total": loss_g,
@@ -315,19 +326,25 @@ def train(
                 scalar_dict.update(
                     {"loss/g/{}".format(i): v for i, v in enumerate(loss_gs)}
                 )
-                scalar_dict.update({"loss/g/mel": loss_mel})
+                #scalar_dict.update({"loss/g/mel": loss_mel})
 
                 utils.summarize(
                     writer=writer,
                     global_step=global_step,
                     images={
-                        "y_org": utils.plot_spectrogram_to_numpy(
+                        "1_y_org": utils.plot_spectrogram_to_numpy(
                             y[0].data.cpu().numpy()[:, 0:halflen_mel]
                         ),
-                        "y_gen": utils.plot_spectrogram_to_numpy(
+                        "1_y_gen": utils.plot_spectrogram_to_numpy(
                             y_gen[0].data.cpu().numpy()[:, 0:halflen_mel]
                         ),
-                        "attn": utils.plot_alignment_to_numpy(
+                        # "2_y_org_slice": utils.plot_spectrogram_to_numpy(
+                        #     y_slice[0].data.cpu().numpy()[:, 0:halflen_mel]
+                        # ),
+                        # "2_y_gen_slice": utils.plot_spectrogram_to_numpy(
+                        #     y_gen_slice[0].data.cpu().numpy()[:, 0:halflen_mel]
+                        # ),
+                        "0_attn": utils.plot_alignment_to_numpy(
                             attn[0, 0].data.cpu().numpy()
                         ),
                     },
@@ -377,13 +394,22 @@ def evaluate(
                     (z, z_m, z_logs, logdet, z_mask),
                     (x_m, x_logs, x_mask),
                     (attn, l_length),
-                    (style_vector, emo_vad, mu_emovae),
+                    (style_vector, emo_vad, mu_emovae)
                 ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids)
+                # y_slice, slice_ids = commons.rand_segments(y, y_lengths, 128, let_short_samples=True, pad_short=True)
+                # y_gen_slice = commons.segment(y_gen.float(), slice_ids, 128, pad_short=True)
+
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 # loss_kl = commons.kl_loss(z, logdet, x_m, x_logs, z_mask) * 1.0
                 # l_length = commons.duration_loss(logw, logw_, x_lengths)
                 l_length = torch.sum(l_length.float())
                 #l_style = F.mse_loss(emo_vad.float(), style_vector.float()) #* 1e+3
+                # halflen_mel = min(
+                #     y.size(2),
+                #     y_gen.size(2),
+                # )
+                
+                # l_mel = F.l1_loss(y_gen[:,:,:halflen_mel], y[:,:,:halflen_mel])
 
                 loss_gs = [l_mle, l_length]
                 loss_g = sum(loss_gs)

@@ -143,6 +143,67 @@ def generate_path(duration, mask):
   return path
 
 
+def segment(x: torch.tensor, segment_indices: torch.tensor, segment_size=4, pad_short=False):
+    """Segment each sample in a batch based on the provided segment indices
+
+    Args:
+        x (torch.tensor): Input tensor.
+        segment_indices (torch.tensor): Segment indices.
+        segment_size (int): Expected output segment size.
+        pad_short (bool): Pad the end of input tensor with zeros if shorter than the segment size.
+    """
+    # pad the input tensor if it is shorter than the segment size
+    if pad_short and x.shape[-1] < segment_size:
+        x = torch.nn.functional.pad(x, (0, segment_size - x.size(2)))
+
+    segments = torch.zeros_like(x[:, :, :segment_size])
+
+    for i in range(x.size(0)):
+        index_start = segment_indices[i]
+        index_end = index_start + segment_size
+        x_i = x[i]
+        if pad_short and index_end >= x.size(2):
+            # pad the sample if it is shorter than the segment size
+            x_i = torch.nn.functional.pad(x_i, (0, (index_end + 1) - x.size(2)))
+        segments[i] = x_i[:, index_start:index_end]
+    return segments
+
+def rand_segments(
+    x: torch.tensor, x_lengths: torch.tensor = None, segment_size=4, let_short_samples=False, pad_short=False
+):
+    """Create random segments based on the input lengths.
+
+    Args:
+        x (torch.tensor): Input tensor.
+        x_lengths (torch.tensor): Input lengths.
+        segment_size (int): Expected output segment size.
+        let_short_samples (bool): Allow shorter samples than the segment size.
+        pad_short (bool): Pad the end of input tensor with zeros if shorter than the segment size.
+
+    Shapes:
+        - x: :math:`[B, C, T]`
+        - x_lengths: :math:`[B]`
+    """
+    _x_lenghts = x_lengths.clone()
+    B, _, T = x.size()
+    if pad_short:
+        if T < segment_size:
+            x = torch.nn.functional.pad(x, (0, segment_size - T))
+            T = segment_size
+    if _x_lenghts is None:
+        _x_lenghts = T
+    len_diff = _x_lenghts - segment_size
+    if let_short_samples:
+        _x_lenghts[len_diff < 0] = segment_size
+        len_diff = _x_lenghts - segment_size
+    else:
+        assert all(
+            len_diff > 0
+        ), f" [!] At least one sample is shorter than the segment size ({segment_size}). \n {_x_lenghts}"
+    segment_indices = (torch.rand([B]).type_as(x) * (len_diff + 1)).long()
+    ret = segment(x, segment_indices, segment_size, pad_short=pad_short)
+    return ret, segment_indices
+
 class Adam():
   def __init__(self, params, scheduler, dim_model, warmup_steps=4000, lr=1e0, betas=(0.9, 0.98), eps=1e-9):
     self.params = params
@@ -234,14 +295,16 @@ def clip_grad_value_(parameters, clip_value, norm_type=2):
     parameters = [parameters]
   parameters = list(filter(lambda p: p.grad is not None, parameters))
   norm_type = float(norm_type)
-  clip_value = float(clip_value)
+  if clip_value is not None:
+    clip_value = float(clip_value)
 
   total_norm = 0
   for p in parameters:
     param_norm = p.grad.data.norm(norm_type)
     total_norm += param_norm.item() ** norm_type
 
-    p.grad.data.clamp_(min=-clip_value, max=clip_value)
+    if clip_value is not None:
+      p.grad.data.clamp_(min=-clip_value, max=clip_value)
   total_norm = total_norm ** (1. / norm_type)
   return total_norm
 
