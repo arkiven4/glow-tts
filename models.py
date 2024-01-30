@@ -411,7 +411,7 @@ class TextEncoder(nn.Module):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
     if emo is not None:
-      x = x + self.emo_proj(emo).unqueeze(1) # [b, 1, h]
+      x = x + self.emo_proj(emo.squeeze(-1)).unsqueeze(1) # [b, 1, h]
 
     if l is not None:
       x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
@@ -664,10 +664,10 @@ class FlowGenerator(nn.Module):
     #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
       #emo_vad, mu_emovae = self.emb_emoVAE(emo).unsqueeze(-1) # [b, h, 1]
 
-    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=style_vector)
-
     y_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, y.size(2)), 1).to(y.dtype) 
     style_vector = self.style_encoder(y.transpose(1,2), y_mask).unsqueeze(-1) # [b, h, 1]
+
+    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=style_vector)
 
     y_max_length = y.size(2)
     y, y_lengths, y_max_length = self.preprocess(y, y_lengths, y_max_length)
@@ -719,7 +719,7 @@ class FlowGenerator(nn.Module):
     # if emo is not None:
     #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
 
-    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
+    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=style_vector)
 
     if self.use_sdp:
       logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=style_vector, reverse=True, noise_scale=noise_scale)
