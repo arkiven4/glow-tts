@@ -71,7 +71,7 @@ class CouplingBlock(nn.Module):
     self.end = end
 
     self.wn = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, p_dropout)
-    self.wn_emo = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, p_dropout)
+    #self.wn_emo = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, p_dropout)
 
   def forward(self, x, x_mask=None, reverse=False, g=None, emo=None, **kwargs):
     b, c, t = x.size()
@@ -81,7 +81,7 @@ class CouplingBlock(nn.Module):
 
     x = self.start(x_0) * x_mask
     x = self.wn(x, x_mask, g)
-    x = self.wn_emo(x, x_mask, emo)
+    #x = self.wn_emo(x, x_mask, emo)
     out = self.end(x)
 
     z_0 = x_0

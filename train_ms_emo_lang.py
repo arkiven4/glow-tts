@@ -291,7 +291,7 @@ def train(
         optimizer_g.zero_grad()
         scaler.scale(loss_g).backward()
         scaler.unscale_(optimizer_g)
-        grad_norm = commons.clip_grad_value_(generator.parameters(), None)
+        grad_norm = commons.clip_grad_value_(generator.parameters(), 5)
         scaler.step(optimizer_g)
         scaler.update()
 

@@ -372,7 +372,7 @@ class TextEncoder(nn.Module):
     self.emb = nn.Embedding(n_vocab, hidden_channels)
     nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
 
-    #self.emo_proj = modules.LinearNorm(gin_channels, hidden_channels)
+    self.emo_proj = modules.LinearNorm(gin_channels, hidden_channels)
 
     if lin_channels > 0:
         hidden_channels += lin_channels
@@ -410,8 +410,8 @@ class TextEncoder(nn.Module):
   def forward(self, x, x_lengths, l=None, emo=None):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
-    # if emo is not None:
-    #   x = x + self.emo_proj(emo.squeeze(-1)).unsqueeze(1) # [b, 1, h]
+    if emo is not None:
+      x = x + self.emo_proj(emo.squeeze(-1)).unsqueeze(1) # [b, 1, h]
 
     if l is not None:
       x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
@@ -667,14 +667,14 @@ class FlowGenerator(nn.Module):
     y_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, y.size(2)), 1).to(y.dtype) 
     style_vector = self.style_encoder(y.transpose(1,2), y_mask).unsqueeze(-1) # [b, h, 1]
 
-    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=None)
+    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=style_vector)
 
     y_max_length = y.size(2)
     y, y_lengths, y_max_length = self.preprocess(y, y_lengths, y_max_length)
     z_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, y_max_length), 1).to(x_mask.dtype)
     attn_mask = torch.unsqueeze(x_mask, -1) * torch.unsqueeze(z_mask, 2)
 
-    z, logdet = self.decoder(y, z_mask, g=g, emo=style_vector, reverse=False)
+    z, logdet = self.decoder(y, z_mask, g=g, emo=None, reverse=False)
     with torch.no_grad():
       x_s_sq_r = torch.exp(-2 * x_logs)
       logp1 = torch.sum(-0.5 * math.log(2 * math.pi) - x_logs, [1]).unsqueeze(-1) # [b, t, 1]
@@ -749,7 +749,7 @@ class FlowGenerator(nn.Module):
     logw_ = torch.log(1e-8 + torch.sum(attn, -1)) * x_mask
 
     z = (z_m + torch.exp(z_logs) * torch.randn_like(z_m) * noise_scale) * z_mask
-    y, logdet = self.decoder(z, z_mask, g=g, emo=style_vector, reverse=True)
+    y, logdet = self.decoder(z, z_mask, g=g, emo=None, reverse=True)
     return (y, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, logw, logw_)
 
   def voice_conversion(self, y, y_lengths, spk_embed_src, spk_embed_tgt, l=None):
