@@ -348,7 +348,8 @@ class TextEncoder(nn.Module):
       prenet=False,
       use_sdp=False, 
       gin_channels=0,
-      lin_channels=0):
+      lin_channels=0,
+      emoin_channels=0):
 
     super().__init__()
 
@@ -368,21 +369,22 @@ class TextEncoder(nn.Module):
     self.use_sdp = use_sdp
     self.gin_channels = gin_channels
     self.lin_channels = lin_channels
+    self.emoin_channels = emoin_channels
 
     self.emb = nn.Embedding(n_vocab, hidden_channels)
     nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
 
-    self.emo_proj = modules.LinearNorm(gin_channels, hidden_channels)
+    self.emo_proj = modules.LinearNorm(emoin_channels, hidden_channels)
 
     if lin_channels > 0:
         hidden_channels += lin_channels
 
     if use_sdp:
       print("Use StochasticDurationPredictor")
-      self.proj_w = StochasticDurationPredictor(hidden_channels, 192, 3, 0.5, 4, gin_channels=gin_channels, lin_channels=lin_channels, emoin_channels=gin_channels)
+      self.proj_w = StochasticDurationPredictor(hidden_channels, 192, 3, 0.5, 4, gin_channels=gin_channels, lin_channels=lin_channels, emoin_channels=emoin_channels)
     else:
       print("Use DurationPredictor")
-      self.proj_w = DurationPredictor(hidden_channels, filter_channels_dp, kernel_size, p_dropout, gin_channels=gin_channels, lin_channels=lin_channels, emoin_channels=gin_channels)
+      self.proj_w = DurationPredictor(hidden_channels, filter_channels_dp, kernel_size, p_dropout, gin_channels=gin_channels, lin_channels=lin_channels, emoin_channels=emoin_channels)
 
     #self.emo_proj = modules.LinearNorm(1024, hidden_channels) #Follow emoin_channels
     # self.emo_proj_a = modules.LinearNorm(1, hidden_channels)
@@ -454,7 +456,8 @@ class FlowSpecDecoder(nn.Module):
       n_split=4,
       n_sqz=2,
       sigmoid_scale=False,
-      gin_channels=0):
+      gin_channels=0,
+      emoin_channels=0):
     super().__init__()
 
     self.in_channels = in_channels
@@ -468,6 +471,7 @@ class FlowSpecDecoder(nn.Module):
     self.n_sqz = n_sqz
     self.sigmoid_scale = sigmoid_scale
     self.gin_channels = gin_channels
+    self.emoin_channels = emoin_channels
 
     self.flows = nn.ModuleList()
     for b in range(n_blocks):
@@ -481,6 +485,7 @@ class FlowSpecDecoder(nn.Module):
           dilation_rate=dilation_rate,
           n_layers=n_layers,
           gin_channels=gin_channels,
+          emoin_channels=emoin_channels,
           p_dropout=p_dropout,
           sigmoid_scale=sigmoid_scale))
 
@@ -595,7 +600,8 @@ class FlowGenerator(nn.Module):
         prenet=prenet,
         use_sdp=use_sdp,
         gin_channels=gin_channels,
-        lin_channels=lin_channels) # Multi Lang
+        lin_channels=lin_channels, # Multi Lang
+        emoin_channels=emoin_channels) # Multi Lang
 
     self.decoder = FlowSpecDecoder(
         out_channels, 
@@ -608,7 +614,8 @@ class FlowGenerator(nn.Module):
         n_split=n_split,
         n_sqz=n_sqz,
         sigmoid_scale=sigmoid_scale,
-        gin_channels=gin_channels) # Multi Lang
+        gin_channels=gin_channels,
+        emoin_channels=emoin_channels) # Multi Lang
 
     if self.use_spk_embeds:
       print("Use Speaker Embed Linear Norm")
@@ -627,7 +634,8 @@ class FlowGenerator(nn.Module):
 
     if self.use_emo_embeds:
       print("Use Emotion Custom Module")
-      self.style_encoder = MelStyleEncoder(80, hidden_channels, gin_channels, 5, 8, p_dropout)
+      self.emo_proj = modules.LinearNorm(1024, emoin_channels)
+      #self.style_encoder = MelStyleEncoder(80, hidden_channels, gin_channels, 5, 8, p_dropout)
       #self.emb_emo = VAD_CartesianEncoder(96, gin_channels)
       #self.emb_emoVAE = VAD_CartesianEncoderVAE(96, gin_channels)
 
@@ -660,21 +668,22 @@ class FlowGenerator(nn.Module):
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h, 1]
       #g = torch.cat([g, l], 1)
 
-    # if emo is not None:
+    if emo is not None:
+       emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
     #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
       #emo_vad, mu_emovae = self.emb_emoVAE(emo).unsqueeze(-1) # [b, h, 1]
 
-    y_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, y.size(2)), 1).to(y.dtype) 
-    style_vector = self.style_encoder(y.transpose(1,2), y_mask).unsqueeze(-1) # [b, h, 1]
+    #y_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, y.size(2)), 1).to(y.dtype) 
+    #style_vector = self.style_encoder(y.transpose(1,2), y_mask).unsqueeze(-1) # [b, h, 1]
 
-    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=style_vector)
+    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
 
     y_max_length = y.size(2)
     y, y_lengths, y_max_length = self.preprocess(y, y_lengths, y_max_length)
     z_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, y_max_length), 1).to(x_mask.dtype)
     attn_mask = torch.unsqueeze(x_mask, -1) * torch.unsqueeze(z_mask, 2)
 
-    z, logdet = self.decoder(y, z_mask, g=g, emo=None, reverse=False)
+    z, logdet = self.decoder(y, z_mask, g=g, emo=emo, reverse=False)
     with torch.no_grad():
       x_s_sq_r = torch.exp(-2 * x_logs)
       logp1 = torch.sum(-0.5 * math.log(2 * math.pi) - x_logs, [1]).unsqueeze(-1) # [b, t, 1]
@@ -687,7 +696,7 @@ class FlowGenerator(nn.Module):
 
     w = attn.squeeze(1).sum(2).unsqueeze(1) # Attention Duration
     if self.use_sdp:
-      l_length = self.encoder.proj_w(x, x_mask, w, g=g, l=l, emo=style_vector)
+      l_length = self.encoder.proj_w(x, x_mask, w, g=g, l=l, emo=emo)
       l_length = l_length / torch.sum(x_mask)
     else:
       # if g is not None:
@@ -697,7 +706,7 @@ class FlowGenerator(nn.Module):
       #   x_dp = torch.detach(x)
 
       logw_ = torch.log(w + 1e-8) * x_mask
-      logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=style_vector)
+      logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=emo)
       l_length = torch.sum((logw - logw_)**2, [1,2]) / torch.sum(x_mask) # for averaging 
 
     # expand prior
@@ -706,10 +715,10 @@ class FlowGenerator(nn.Module):
     
     #z_gen = (z_m + torch.exp(z_logs) * torch.randn_like(z_m) * 1.) * z_mask
     #y_gen, _ = self.decoder(z_gen, z_mask, g=g, emo=style_vector, reverse=True)
-    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length), (style_vector, emo_vad, mu_emovae)
+    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length), (None, emo_vad, mu_emovae)
 
   def infer(self, x, x_lengths, y=None, g=None, emo=None, l=None, noise_scale=1., length_scale=1.):
-    style_vector = self.style_encoder(y.transpose(1,2), None).unsqueeze(-1)
+    #style_vector = self.style_encoder(y.transpose(1,2), None).unsqueeze(-1)
 
     if g is not None:
       g = F.normalize(self.emb_g(g)).unsqueeze(-1) # [b, h]
@@ -718,13 +727,15 @@ class FlowGenerator(nn.Module):
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
       #g = torch.cat([g, l], 1)
 
+    if emo is not None:
+       emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
     # if emo is not None:
     #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
 
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=None)
 
     if self.use_sdp:
-      logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=style_vector, reverse=True, noise_scale=noise_scale)
+      logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=emo, reverse=True, noise_scale=noise_scale)
     else:
       # if g is not None:
       #   g_exp = g.expand(-1, -1, x.size(-1))
@@ -732,7 +743,7 @@ class FlowGenerator(nn.Module):
       # else:
       #   x_dp = torch.detach(x)
 
-      logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=style_vector)
+      logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=emo)
 
     w = torch.exp(logw) * x_mask * length_scale
     w_ceil = torch.ceil(w)
@@ -749,7 +760,7 @@ class FlowGenerator(nn.Module):
     logw_ = torch.log(1e-8 + torch.sum(attn, -1)) * x_mask
 
     z = (z_m + torch.exp(z_logs) * torch.randn_like(z_m) * noise_scale) * z_mask
-    y, logdet = self.decoder(z, z_mask, g=g, emo=None, reverse=True)
+    y, logdet = self.decoder(z, z_mask, g=g, emo=emo, reverse=True)
     return (y, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, logw, logw_)
 
   def voice_conversion(self, y, y_lengths, spk_embed_src, spk_embed_tgt, l=None):

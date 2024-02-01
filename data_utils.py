@@ -435,8 +435,8 @@ class TextMelMyOwnCollate():
         #sid = torch.LongTensor(len(batch))
 
         spk_embeds = torch.FloatTensor(len(batch), 512)
-        #emo_embeds = torch.FloatTensor(len(batch), 1024)
-        emo_coord = torch.FloatTensor(len(batch), 3)
+        emo_embeds = torch.FloatTensor(len(batch), 1024)
+        #emo_coord = torch.FloatTensor(len(batch), 3)
         lid = torch.LongTensor(len(batch))
         
         for i in range(len(ids_sorted_decreasing)):
@@ -445,10 +445,11 @@ class TextMelMyOwnCollate():
             output_lengths[i] = mel.size(1)
 
             spk_embeds[i, :] = batch[ids_sorted_decreasing[i]][2]
-            emo_coord[i, :] = batch[ids_sorted_decreasing[i]][3]
+            #emo_coord[i, :] = batch[ids_sorted_decreasing[i]][3]
+            emo_embeds[i, :] = batch[ids_sorted_decreasing[i]][3]
             lid[i] = batch[ids_sorted_decreasing[i]][4]
 
-        return text_padded, input_lengths, mel_padded, output_lengths, spk_embeds, emo_coord, lid
+        return text_padded, input_lengths, mel_padded, output_lengths, spk_embeds, emo_embeds, lid
     
 
 class DistributedBucketSampler(torch.utils.data.distributed.DistributedSampler):

@@ -49,7 +49,7 @@ class Encoder(nn.Module):
 
 
 class CouplingBlock(nn.Module):
-  def __init__(self, in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels=0, p_dropout=0, sigmoid_scale=False):
+  def __init__(self, in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels=0, emoin_channels=0, p_dropout=0, sigmoid_scale=False):
     super().__init__()
     self.in_channels = in_channels
     self.hidden_channels = hidden_channels
@@ -57,6 +57,7 @@ class CouplingBlock(nn.Module):
     self.dilation_rate = dilation_rate
     self.n_layers = n_layers
     self.gin_channels = gin_channels
+    self.emoin_channels = emoin_channels
     self.p_dropout = p_dropout
     self.sigmoid_scale = sigmoid_scale
 
@@ -71,7 +72,7 @@ class CouplingBlock(nn.Module):
     self.end = end
 
     self.wn = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, p_dropout)
-    #self.wn_emo = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, p_dropout)
+    self.wn_emo = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, emoin_channels, p_dropout)
 
   def forward(self, x, x_mask=None, reverse=False, g=None, emo=None, **kwargs):
     b, c, t = x.size()
@@ -81,7 +82,7 @@ class CouplingBlock(nn.Module):
 
     x = self.start(x_0) * x_mask
     x = self.wn(x, x_mask, g)
-    #x = self.wn_emo(x, x_mask, emo)
+    x = self.wn_emo(x, x_mask, emo)
     out = self.end(x)
 
     z_0 = x_0
