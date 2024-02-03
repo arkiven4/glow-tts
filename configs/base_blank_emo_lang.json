@@ -12,8 +12,8 @@
     "batch_size": 16,
     "ddi": true,
     "fp16_run": true,
-    "warm_start": false,
-    "warm_start_checkpoint": "logs/base_blank_emo_lang_b43c923/G_165.pth",
+    "warm_start": true,
+    "warm_start_checkpoint": "logs/base_blank_emo_lang_47f77be/G_108.pth",
     "ignored_layer": ["encoder.emb.weight"]
   },
   "data": {
@@ -61,6 +61,11 @@
     "use_lang_embeds": true,
     "use_emo_embeds": true,
     "lin_channels": 4,
-    "emoin_channels": 188
+    "emoin_channels": 256,
+    "ref_enc_filters": [32, 32, 64, 64, 128, 128],
+    "ref_enc_gru_size":128,
+    "token_embedding_size":256,
+    "token_num":10,
+    "num_heads":8
   }
 }

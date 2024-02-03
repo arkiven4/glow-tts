@@ -4,6 +4,7 @@ from torch import nn
 from torch.nn import functional as F
 
 import modules
+import modules_gst
 import commons
 import attentions
 import monotonic_align
@@ -129,6 +130,18 @@ import monotonic_align
 #         w = self.temporal_avg_pool(x, mask=mask)
 
 #         return w
+
+class GST(nn.Module):
+    def __init__(self, token_num, token_embedding_size, num_heads, ref_enc_filters, n_mel_channels, ref_enc_gru_size):
+        super().__init__()
+        self.encoder = modules_gst.ReferenceEncoder(ref_enc_filters, n_mel_channels, ref_enc_gru_size)
+        self.stl = modules_gst.STL(token_num, token_embedding_size, num_heads, ref_enc_gru_size)
+
+    def forward(self, inputs, input_lengths=None):
+        enc_out = self.encoder(inputs, input_lengths=input_lengths)
+        style_embed = self.stl(enc_out)
+
+        return style_embed.transpose(1,2)
 
 class StochasticDurationPredictor(nn.Module):
   def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, gin_channels=0, lin_channels=0, emoin_channels=0):
@@ -374,6 +387,8 @@ class TextEncoder(nn.Module):
     self.emb = nn.Embedding(n_vocab, hidden_channels)
     nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
 
+    self.emo_proj = nn.Linear(emoin_channels, hidden_channels)
+
     if lin_channels > 0:
         hidden_channels += lin_channels
 
@@ -411,7 +426,7 @@ class TextEncoder(nn.Module):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
     if emo is not None:
-      x = x + emo.squeeze(-1).unsqueeze(1) # [b, 1, h]
+      x = x + self.emo_proj(emo.squeeze(-1)).unsqueeze(1) # [b, 1, h]
 
     if l is not None:
       x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
@@ -546,8 +561,13 @@ class FlowGenerator(nn.Module):
       use_lang_embeds=False,
       use_emo_embeds=False,
       use_sdp=True,
+      ref_enc_filters=[32, 32, 64, 64, 128, 128],
+      ref_enc_gru_size=128,
+      token_embedding_size=256,
+      token_num=10,
+      num_heads=8,
       **kwargs):
-
+    
     super().__init__()
     self.n_vocab = n_vocab
     self.hidden_channels = hidden_channels
@@ -632,7 +652,8 @@ class FlowGenerator(nn.Module):
 
     if self.use_emo_embeds:
       print("Use Emotion Custom Module")
-      self.emo_proj = modules.LinearNorm(1024, emoin_channels)
+      self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size)
+      #self.emo_proj = modules.LinearNorm(1024, emoin_channels)
       #self.style_encoder = MelStyleEncoder(80, hidden_channels, gin_channels, 5, 8, p_dropout)
       #self.emb_emo = VAD_CartesianEncoder(96, gin_channels)
       #self.emb_emoVAE = VAD_CartesianEncoderVAE(96, gin_channels)
@@ -666,8 +687,9 @@ class FlowGenerator(nn.Module):
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h, 1]
       #g = torch.cat([g, l], 1)
 
-    if emo is not None:
-       emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
+    emo = self.gst_proj(y, y_lengths)
+    # if emo is not None:
+    #    emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
     #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
       #emo_vad, mu_emovae = self.emb_emoVAE(emo).unsqueeze(-1) # [b, h, 1]
 
@@ -711,11 +733,11 @@ class FlowGenerator(nn.Module):
     z_m = torch.matmul(attn.squeeze(1).transpose(1, 2), x_m.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     z_logs = torch.matmul(attn.squeeze(1).transpose(1, 2), x_logs.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     
-    z_gen = (z_m + torch.exp(z_logs) * torch.randn_like(z_m) * 1.) * z_mask
-    z_slice, ids_slice = commons.rand_segments(z_gen, y_lengths, 32, let_short_samples=True, pad_short=True)
-    z_mask_gen = commons.segment(z_mask, ids_slice, 32, pad_short=True)
-    y_gen, _ = self.decoder(z_slice, z_mask_gen, g=g, emo=emo, reverse=True)
-    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length), (None, emo_vad, mu_emovae), (y_gen, ids_slice)
+    # z_gen = (z_m + torch.exp(z_logs) * torch.randn_like(z_m) * 1.) * z_mask
+    # z_slice, ids_slice = commons.rand_segments(z_gen, y_lengths, 32, let_short_samples=True, pad_short=True)
+    # z_mask_gen = commons.segment(z_mask, ids_slice, 32, pad_short=True)
+    # y_gen, _ = self.decoder(z_slice, z_mask_gen, g=g, emo=emo, reverse=True)
+    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length), (None, emo_vad, mu_emovae), (None, None)
 
   def infer(self, x, x_lengths, y=None, g=None, emo=None, l=None, noise_scale=1., length_scale=1.):
     #style_vector = self.style_encoder(y.transpose(1,2), None).unsqueeze(-1)
@@ -727,8 +749,9 @@ class FlowGenerator(nn.Module):
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
       #g = torch.cat([g, l], 1)
 
-    if emo is not None:
-       emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
+    emo = self.gst_proj(y, None)
+    # if emo is not None:
+    #    emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
     # if emo is not None:
     #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
 

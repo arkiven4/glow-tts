@@ -255,7 +255,7 @@ def train(
             rank, non_blocking=True
         )
         speakers = speakers.cuda(rank, non_blocking=True)
-        emos = emos.cuda(rank, non_blocking=True)
+        #emos = emos.cuda(rank, non_blocking=True)
         lids = lids.cuda(rank, non_blocking=True)
 
         # Train Generator
@@ -307,7 +307,7 @@ def train(
                     x_lengths[:1],
                     y=y[:1],
                     g=speakers[:1],
-                    emo=emos[:1],
+                    emo=None,
                     l=lids[:1],
                 )
                 # logger.info('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
@@ -392,7 +392,7 @@ def evaluate(
                     rank, non_blocking=True
                 )
                 speakers = speakers.cuda(rank, non_blocking=True)
-                emos = emos.cuda(rank, non_blocking=True)
+                #emos = emos.cuda(rank, non_blocking=True)
                 lids = lids.cuda(rank, non_blocking=True)
 
                 (
