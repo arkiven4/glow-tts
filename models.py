@@ -8,127 +8,127 @@ import commons
 import attentions
 import monotonic_align
 
-class VAD_CartesianEncoder(nn.Module):
-    def __init__(self, hidden_state=96, latent_size=256):
-        super(VAD_CartesianEncoder, self).__init__()
-        self.latent_size = latent_size
-        self.hidden_state = hidden_state
+# class VAD_CartesianEncoder(nn.Module):
+#     def __init__(self, hidden_state=96, latent_size=256):
+#         super(VAD_CartesianEncoder, self).__init__()
+#         self.latent_size = latent_size
+#         self.hidden_state = hidden_state
 
-        self.emb_a = modules.LinearNorm(1, hidden_state)
-        self.emb_v = modules.LinearNorm(1, hidden_state)
-        self.emb_d = modules.LinearNorm(1, hidden_state)
+#         self.emb_a = modules.LinearNorm(1, hidden_state)
+#         self.emb_v = modules.LinearNorm(1, hidden_state)
+#         self.emb_d = modules.LinearNorm(1, hidden_state)
 
-        self.emb_style = modules.LinearNorm(hidden_state * 3, latent_size)
-        self.emotion_linear = nn.Sequential(nn.Linear(latent_size, latent_size), nn.ReLU())
+#         self.emb_style = modules.LinearNorm(hidden_state * 3, latent_size)
+#         self.emotion_linear = nn.Sequential(nn.Linear(latent_size, latent_size), nn.ReLU())
 
-    def forward(self, x):
-        arousal_input = self.emb_a(x[:,0].unsqueeze(1) - 1) # -1 because when precessing accidentaly adding 1
-        valence_input = self.emb_v(x[:,2].unsqueeze(1) - 1)
-        dominance_input = self.emb_d(x[:,1].unsqueeze(1) - 1)
+#     def forward(self, x):
+#         arousal_input = self.emb_a(x[:,0].unsqueeze(1) - 1) # -1 because when precessing accidentaly adding 1
+#         valence_input = self.emb_v(x[:,2].unsqueeze(1) - 1)
+#         dominance_input = self.emb_d(x[:,1].unsqueeze(1) - 1)
 
-        embeds_cat = torch.cat([arousal_input, valence_input, dominance_input], 1)
-        embeds_cat = self.emotion_linear(self.emb_style(embeds_cat))
-        return embeds_cat
+#         embeds_cat = torch.cat([arousal_input, valence_input, dominance_input], 1)
+#         embeds_cat = self.emotion_linear(self.emb_style(embeds_cat))
+#         return embeds_cat
     
-class VAD_CartesianEncoderVAE(nn.Module):
-    def __init__(self, hidden_state=96, latent_size=256):
-        super(VAD_CartesianEncoderVAE, self).__init__()
-        self.latent_size = latent_size
-        self.hidden_state = hidden_state
+# class VAD_CartesianEncoderVAE(nn.Module):
+#     def __init__(self, hidden_state=96, latent_size=256):
+#         super(VAD_CartesianEncoderVAE, self).__init__()
+#         self.latent_size = latent_size
+#         self.hidden_state = hidden_state
 
-        self.emb_a = modules.LinearNorm(1, hidden_state)
-        self.emb_v = modules.LinearNorm(1, hidden_state)
-        self.emb_d = modules.LinearNorm(1, hidden_state)
+#         self.emb_a = modules.LinearNorm(1, hidden_state)
+#         self.emb_v = modules.LinearNorm(1, hidden_state)
+#         self.emb_d = modules.LinearNorm(1, hidden_state)
 
-        # Encoder
-        self.encoder_fc1 = modules.LinearNorm(hidden_state * 3, latent_size * 2)
-        self.encoder_fc21 = modules.LinearNorm(latent_size * 2, latent_size)
-        self.encoder_fc22 = modules.LinearNorm(latent_size * 2, latent_size)
+#         # Encoder
+#         self.encoder_fc1 = modules.LinearNorm(hidden_state * 3, latent_size * 2)
+#         self.encoder_fc21 = modules.LinearNorm(latent_size * 2, latent_size)
+#         self.encoder_fc22 = modules.LinearNorm(latent_size * 2, latent_size)
 
-    def encode(self, x):
-        x = F.relu(self.encoder_fc1(x))
-        mu = self.encoder_fc21(x)
-        logvar = self.encoder_fc22(x)
-        return mu, logvar
+#     def encode(self, x):
+#         x = F.relu(self.encoder_fc1(x))
+#         mu = self.encoder_fc21(x)
+#         logvar = self.encoder_fc22(x)
+#         return mu, logvar
 
-    def reparameterize(self, mu, logvar):
-        std = torch.exp(0.5*logvar)
-        eps = torch.randn_like(std)
-        return mu + eps*std
+#     def reparameterize(self, mu, logvar):
+#         std = torch.exp(0.5*logvar)
+#         eps = torch.randn_like(std)
+#         return mu + eps*std
     
-    def forward(self, x):
-        arousal_input = self.emb_a(x[:,0].unsqueeze(1) - 1) # -1 because when precessing accidentaly adding 1
-        valence_input = self.emb_v(x[:,2].unsqueeze(1) - 1)
-        dominance_input = self.emb_d(x[:,1].unsqueeze(1) - 1)
+#     def forward(self, x):
+#         arousal_input = self.emb_a(x[:,0].unsqueeze(1) - 1) # -1 because when precessing accidentaly adding 1
+#         valence_input = self.emb_v(x[:,2].unsqueeze(1) - 1)
+#         dominance_input = self.emb_d(x[:,1].unsqueeze(1) - 1)
 
-        embeds_cat = torch.cat([arousal_input, valence_input, dominance_input], 1)
-        mu, logvar = self.encode(embeds_cat)
-        z = self.reparameterize(mu, logvar)
-        return z, mu
+#         embeds_cat = torch.cat([arousal_input, valence_input, dominance_input], 1)
+#         mu, logvar = self.encode(embeds_cat)
+#         z = self.reparameterize(mu, logvar)
+#         return z, mu
     
-class MelStyleEncoder(nn.Module):
-    ''' MelStyleEncoder '''
-    def __init__(self, in_dim, style_hidden, style_vector_dim, style_kernel_size, style_head, dropout):
-        super(MelStyleEncoder, self).__init__()
-        self.in_dim = in_dim
-        self.hidden_dim = style_hidden
-        self.out_dim = style_vector_dim
-        self.kernel_size = style_kernel_size
-        self.n_head = style_head
-        self.dropout = dropout
+# class MelStyleEncoder(nn.Module):
+#     ''' MelStyleEncoder '''
+#     def __init__(self, in_dim, style_hidden, style_vector_dim, style_kernel_size, style_head, dropout):
+#         super(MelStyleEncoder, self).__init__()
+#         self.in_dim = in_dim
+#         self.hidden_dim = style_hidden
+#         self.out_dim = style_vector_dim
+#         self.kernel_size = style_kernel_size
+#         self.n_head = style_head
+#         self.dropout = dropout
 
-        self.spectral = nn.Sequential(
-            modules.LinearNorm(self.in_dim, self.hidden_dim),
-            modules.Mish(),
-            nn.Dropout(self.dropout),
-            modules.LinearNorm(self.hidden_dim, self.hidden_dim),
-            modules.Mish(),
-            nn.Dropout(self.dropout)
-        )
+#         self.spectral = nn.Sequential(
+#             modules.LinearNorm(self.in_dim, self.hidden_dim),
+#             modules.Mish(),
+#             nn.Dropout(self.dropout),
+#             modules.LinearNorm(self.hidden_dim, self.hidden_dim),
+#             modules.Mish(),
+#             nn.Dropout(self.dropout)
+#         )
 
-        self.temporal = nn.Sequential(
-            modules.Conv1dGLU(self.hidden_dim, self.hidden_dim, self.kernel_size, self.dropout),
-            modules.Conv1dGLU(self.hidden_dim, self.hidden_dim, self.kernel_size, self.dropout),
-        )
+#         self.temporal = nn.Sequential(
+#             modules.Conv1dGLU(self.hidden_dim, self.hidden_dim, self.kernel_size, self.dropout),
+#             modules.Conv1dGLU(self.hidden_dim, self.hidden_dim, self.kernel_size, self.dropout),
+#         )
 
-        self.slf_attn = modules.MultiHeadAttention(self.n_head, self.hidden_dim, 
-                                self.hidden_dim//self.n_head, self.hidden_dim//self.n_head, self.dropout) 
-        self.fc = modules.LinearNorm(self.hidden_dim, self.out_dim)
+#         self.slf_attn = modules.MultiHeadAttention(self.n_head, self.hidden_dim, 
+#                                 self.hidden_dim//self.n_head, self.hidden_dim//self.n_head, self.dropout) 
+#         self.fc = modules.LinearNorm(self.hidden_dim, self.out_dim)
 
-    def temporal_avg_pool(self, x, mask=None):
-        if mask is None:
-            out = torch.mean(x, dim=1)
-        else:
-            len_ = (~mask).sum(dim=1).unsqueeze(1)
-            x = x.masked_fill(mask.unsqueeze(-1), 0)
-            x = x.sum(dim=1)
-            out = torch.div(x, len_)
-        return out
+#     def temporal_avg_pool(self, x, mask=None):
+#         if mask is None:
+#             out = torch.mean(x, dim=1)
+#         else:
+#             len_ = (~mask).sum(dim=1).unsqueeze(1)
+#             x = x.masked_fill(mask.unsqueeze(-1), 0)
+#             x = x.sum(dim=1)
+#             out = torch.div(x, len_)
+#         return out
 
-    def forward(self, x, mask=None):
+#     def forward(self, x, mask=None):
         
-        max_len = x.shape[1]
-        if mask is not None:
-              mask = (mask.int()==0).squeeze(1)
-              slf_attn_mask = mask.unsqueeze(1).expand(-1, max_len, -1)
-        else:
-              slf_attn_mask = None
-        # spectral
-        x = self.spectral(x)
-        # temporal
-        x = x.transpose(1,2)
-        x = self.temporal(x)
-        x = x.transpose(1,2)
-        # self-attention
-        if mask is not None:
-            x = x.masked_fill(mask.unsqueeze(-1), 0)
-        x, _ = self.slf_attn(x, mask=slf_attn_mask)
-        # fc
-        x = self.fc(x)
-        # temoral average pooling
-        w = self.temporal_avg_pool(x, mask=mask)
+#         max_len = x.shape[1]
+#         if mask is not None:
+#               mask = (mask.int()==0).squeeze(1)
+#               slf_attn_mask = mask.unsqueeze(1).expand(-1, max_len, -1)
+#         else:
+#               slf_attn_mask = None
+#         # spectral
+#         x = self.spectral(x)
+#         # temporal
+#         x = x.transpose(1,2)
+#         x = self.temporal(x)
+#         x = x.transpose(1,2)
+#         # self-attention
+#         if mask is not None:
+#             x = x.masked_fill(mask.unsqueeze(-1), 0)
+#         x, _ = self.slf_attn(x, mask=slf_attn_mask)
+#         # fc
+#         x = self.fc(x)
+#         # temoral average pooling
+#         w = self.temporal_avg_pool(x, mask=mask)
 
-        return w
+#         return w
 
 class StochasticDurationPredictor(nn.Module):
   def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, gin_channels=0, lin_channels=0, emoin_channels=0):
@@ -374,8 +374,6 @@ class TextEncoder(nn.Module):
     self.emb = nn.Embedding(n_vocab, hidden_channels)
     nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
 
-    self.emo_proj = modules.LinearNorm(emoin_channels, hidden_channels)
-
     if lin_channels > 0:
         hidden_channels += lin_channels
 
@@ -413,7 +411,7 @@ class TextEncoder(nn.Module):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
     if emo is not None:
-      x = x + self.emo_proj(emo.squeeze(-1)).unsqueeze(1) # [b, 1, h]
+      x = x + emo.squeeze(-1).unsqueeze(1) # [b, 1, h]
 
     if l is not None:
       x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
@@ -713,9 +711,11 @@ class FlowGenerator(nn.Module):
     z_m = torch.matmul(attn.squeeze(1).transpose(1, 2), x_m.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     z_logs = torch.matmul(attn.squeeze(1).transpose(1, 2), x_logs.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     
-    #z_gen = (z_m + torch.exp(z_logs) * torch.randn_like(z_m) * 1.) * z_mask
-    #y_gen, _ = self.decoder(z_gen, z_mask, g=g, emo=style_vector, reverse=True)
-    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length), (None, emo_vad, mu_emovae)
+    z_gen = (z_m + torch.exp(z_logs) * torch.randn_like(z_m) * 1.) * z_mask
+    z_slice, ids_slice = commons.rand_segments(z_gen, y_lengths, 32, let_short_samples=True, pad_short=True)
+    z_mask_gen = commons.segment(z_mask, ids_slice, 32, pad_short=True)
+    y_gen, _ = self.decoder(z_slice, z_mask_gen, g=g, emo=emo, reverse=True)
+    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length), (None, emo_vad, mu_emovae), (y_gen, ids_slice)
 
   def infer(self, x, x_lengths, y=None, g=None, emo=None, l=None, noise_scale=1., length_scale=1.):
     #style_vector = self.style_encoder(y.transpose(1,2), None).unsqueeze(-1)

@@ -16,6 +16,8 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.cuda.amp import autocast, GradScaler
 from torch.utils.data.sampler import WeightedRandomSampler
 
+import bitsandbytes as bnb
+
 # from apex.parallel import DistributedDataParallel as DDP
 # from apex import amp
 
@@ -140,7 +142,7 @@ def train_and_eval(rank, n_gpus, hps):
         **hps.model
     ).cuda(rank)
 
-    optimizer_g = torch.optim.AdamW(
+    optimizer_g = bnb.optim.AdamW(
         generator.parameters(),
         hps.train.learning_rate,
         betas=hps.train.betas,
@@ -260,15 +262,16 @@ def train(
         with autocast(enabled=hps.train.fp16_run):
             (
                 (z, z_m, z_logs, logdet, z_mask),
-                (x_m, x_logs, x_mask),
+                (_, _, _),
                 (attn, l_length),
-                (style_vector, emo_vad, mu_emovae)
+                (_, _, _),
+                (_, _)
             ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids)
 
             with autocast(enabled=False):
                 #max_target_len = max([x[1].size(1) for x in batch])
                 # y_slice, slice_ids = commons.rand_segments(y, y_lengths, 128, let_short_samples=True, pad_short=True)
-                # y_gen_slice = commons.segment(y_gen.float(), slice_ids, 128, pad_short=True)
+                #
 
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 # loss_kl = commons.kl_loss(z, z_logs, x_m, x_logs, z_mask) * 1.0
@@ -282,6 +285,8 @@ def train(
                 # )
                 
                 # l_mel = F.l1_loss(y_gen[:,:,:halflen_mel], y[:,:,:halflen_mel])
+                #y_target_slice = commons.segment(y_gen.float(), ids_slice, 32, pad_short=True)
+                #l_mel = nn.MSELoss()(y_gen.float(), y_target_slice.float())
 
                 loss_gs = [l_mle, l_length]
                 loss_g = sum(loss_gs)
@@ -392,12 +397,14 @@ def evaluate(
 
                 (
                     (z, z_m, z_logs, logdet, z_mask),
-                    (x_m, x_logs, x_mask),
-                    (attn, l_length),
-                    (style_vector, emo_vad, mu_emovae)
+                    (_, _, _),
+                    (_, l_length),
+                    (_, _, _),
+                    (_, _)
                 ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, l=lids)
                 # y_slice, slice_ids = commons.rand_segments(y, y_lengths, 128, let_short_samples=True, pad_short=True)
                 # y_gen_slice = commons.segment(y_gen.float(), slice_ids, 128, pad_short=True)
+                
 
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 # loss_kl = commons.kl_loss(z, logdet, x_m, x_logs, z_mask) * 1.0
@@ -410,6 +417,8 @@ def evaluate(
                 # )
                 
                 # l_mel = F.l1_loss(y_gen[:,:,:halflen_mel], y[:,:,:halflen_mel])
+                #y_target_slice = commons.segment(y_gen.float(), ids_slice, 32, pad_short=True)
+                #l_mel = nn.MSELoss()(y_gen.float(), y_target_slice.float())
 
                 loss_gs = [l_mle, l_length]
                 loss_g = sum(loss_gs)
