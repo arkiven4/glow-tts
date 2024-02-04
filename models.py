@@ -387,7 +387,7 @@ class TextEncoder(nn.Module):
     self.emb = nn.Embedding(n_vocab, hidden_channels)
     nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
 
-    self.emo_proj = nn.Linear(emoin_channels, hidden_channels)
+    #self.emo_proj = nn.Linear(emoin_channels, hidden_channels)
 
     if lin_channels > 0:
         hidden_channels += lin_channels
@@ -425,8 +425,8 @@ class TextEncoder(nn.Module):
   def forward(self, x, x_lengths, l=None, emo=None):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
-    if emo is not None:
-      x = x + self.emo_proj(emo.squeeze(-1)).unsqueeze(1) # [b, 1, h]
+    # if emo is not None:
+    #   x = x + self.emo_proj(emo.squeeze(-1)).unsqueeze(1) # [b, 1, h]
 
     if l is not None:
       x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
@@ -696,7 +696,7 @@ class FlowGenerator(nn.Module):
     #y_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, y.size(2)), 1).to(y.dtype) 
     #style_vector = self.style_encoder(y.transpose(1,2), y_mask).unsqueeze(-1) # [b, h, 1]
 
-    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
+    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=None)
 
     y_max_length = y.size(2)
     y, y_lengths, y_max_length = self.preprocess(y, y_lengths, y_max_length)
