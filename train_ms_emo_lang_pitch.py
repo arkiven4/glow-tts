@@ -291,7 +291,7 @@ def train(
                     x[:1],
                     x_lengths[:1],
                     y=y[:1],
-                    g=speakers[:1],
+                    g=speakers[:1],  
                     l=lids[:1],
                 )
                 
@@ -318,6 +318,9 @@ def train(
                         ),
                         "1_y_gen": utils.plot_spectrogram_to_numpy(
                             y_gen[0].data.cpu().numpy()[:, 0:halflen_mel]
+                        ),
+                        "1_y_diff": utils.plot_spectrogram_to_numpy(
+                            y_gen[0].data.cpu().numpy()[:, 0:halflen_mel] - y[0].data.cpu().numpy()[:, 0:halflen_mel]
                         ),
                         # "2_y_org_slice": utils.plot_spectrogram_to_numpy(
                         #     y_slice[0].data.cpu().numpy()[:, 0:halflen_mel]

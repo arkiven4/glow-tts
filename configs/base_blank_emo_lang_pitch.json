@@ -12,8 +12,8 @@
     "batch_size": 8,
     "ddi": true,
     "fp16_run": true,
-    "warm_start": false,
-    "warm_start_checkpoint": "logs/base_blank_emo_lang_6561577/G_50.pth",
+    "warm_start": true,
+    "warm_start_checkpoint": "logs/base_blank_emo_lang_pitch_1adfa9b/G_22.pth",
     "ignored_layer": ["encoder.emb.weight"]
   },
   "data": {

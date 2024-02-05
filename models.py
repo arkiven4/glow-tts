@@ -132,16 +132,23 @@ import monotonic_align
 #         return w
 
 class GST(nn.Module):
-    def __init__(self, token_num, token_embedding_size, num_heads, ref_enc_filters, n_mel_channels, ref_enc_gru_size):
+    def __init__(self, token_num, token_embedding_size, num_heads, ref_enc_filters, n_mel_channels, ref_enc_gru_size, gin_channels=0):
         super().__init__()
         self.encoder = modules_gst.ReferenceEncoder(ref_enc_filters, n_mel_channels, ref_enc_gru_size)
         self.stl = modules_gst.STL(token_num, token_embedding_size, num_heads, ref_enc_gru_size)
 
-    def forward(self, inputs, input_lengths=None):
-        enc_out = self.encoder(inputs, input_lengths=input_lengths)
-        style_embed = self.stl(enc_out)
+        if gin_channels != 0:
+          self.cond = nn.Conv1d(gin_channels, ref_enc_gru_size, 1)
 
-        return style_embed.transpose(1,2)
+    def forward(self, inputs, input_lengths=None, g=None):
+        enc_out = self.encoder(inputs, input_lengths=input_lengths)
+        
+        if g is not None:
+          g = torch.detach(g)
+          enc_out = enc_out + self.cond(g).squeeze(-1)
+
+        style_embed = self.stl(enc_out).transpose(1,2)
+        return style_embed
 
 class StochasticDurationPredictor(nn.Module):
   def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, gin_channels=0, lin_channels=0, emoin_channels=0):
@@ -688,7 +695,7 @@ class FlowGenerator(nn.Module):
 
     if self.use_emo_embeds:
       print("Use Emotion Custom Module")
-      self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size)
+      self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size, gin_channels=gin_channels)
       #self.emo_proj = modules.LinearNorm(1024, emoin_channels)
 
     if use_spp:
@@ -724,7 +731,7 @@ class FlowGenerator(nn.Module):
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h, 1]
       #g = torch.cat([g, l], 1)
 
-    emo = self.gst_proj(y, y_lengths)
+    emo = self.gst_proj(y, y_lengths, g=g)
     # if emo is not None:
     #    emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
     #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
@@ -791,7 +798,7 @@ class FlowGenerator(nn.Module):
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
       #g = torch.cat([g, l], 1)
 
-    emo = self.gst_proj(y, None)
+    emo = self.gst_proj(y, None, g=g)
     # if emo is not None:
     #    emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
     # if emo is not None:
@@ -820,7 +827,7 @@ class FlowGenerator(nn.Module):
 
     z = (z_m + torch.exp(z_logs) * torch.randn_like(z_m) * noise_scale) * z_mask
     
-    if self.use_spp and pitch is not None:
+    if self.use_spp:
       x_pitch = torch.matmul(x, attn.squeeze(1))
       pitch = self.proj_pitch(x_pitch, z_mask, g=g, noise_scale=noise_scale, reverse=True)
       pitch = pitch.squeeze(1)
