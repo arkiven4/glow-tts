@@ -1,0 +1,140 @@
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02225.wav|4|석사 전공을 우리 회사에서 어떻게 적용할 수 있을지 말씀해보세요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02269.wav|4|메뉴는 이쪽에 있습니다. 상단에 있는 메뉴가 저희 식당추천 메뉴입니다.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/kih00061.wav|4|네. 살아가려면 그래야 하죠. 어떤 직업이든지요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0016/Angry/0016_000669.wav|0|How could I dig burrows with short toe nails?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0080.wav|2|rumahku di tepi jalan raya utama kota ini.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs017/jvs017_013.wav|3|そこへ、オーナーが新しいシェフとして、腕利きのヒョヌクを招く。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0015/Angry/0015_000365.wav|0|Poor Tom now is dead!
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0061.wav|2|tulisan surat itu tidak terbaca dengan jelas.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0012/Surprise/0012_001521.wav|0|Finn and the fairy shoemaker.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0012/Happy/0012_001027.wav|0|It's part of my secret.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02032.wav|4|네, 할부로 하시겠습니까? 일시불로 하시겠습니까?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Sedih/vibid_mdpa_539.wav|2|berikanlah dia kebebasan.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02266.wav|4|마음에 안 드시면 영수증 있으니까 바꾸셔도 돼요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs008/jvs008_091.wav|3|同母姉に、スウェーデン王妃、ジョゼフィーヌがいる。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0473.wav|2|aku membelikan hadiah ulang tahun untuk ayahku.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0016/Sad/0016_001096.wav|0|They'd never know I'd regular ran away.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0435.wav|2|warga desa berkumpul di balai desa hari ini.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs034/jvs034_017.wav|3|ただし、ギャンブル依存症の入院治療を行っている病院は、わずかである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs006/jvs006_030.wav|3|防氷ブーツは、表面に張られた、ゴム製の薄い膜でできている。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02192.wav|4|저도 당신을 좋아하지만 우린 이뤄질 수가 없네요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs094/jvs094_099.wav|3|デビューウェイトは、スーパーバンタム級ではなく、フェザー級だった。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0434.wav|2|sudah lama dia merantau ke kota padat penduduk itu.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/kih00083.wav|4|한 해 동안 고생 많으셨습니다.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Marah/vibid_mdpa_373.wav|2|baca pesanku dengan baik.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Surprise/0020_001638.wav|0|Today isn't any other day.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02137.wav|4|이 아파트로 결정하실 건가요?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02130.wav|4|조깅 안 힘든가요? 언제 한번 같이 뛰어요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_067.wav|3|デッドキーは、タイプライターや、コンピュータのキーボードにおける、特殊な装飾キーである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs067/jvs067_016.wav|3|この、ニューサウスウェールズ代表チームが、ワラビーズの中核となって行く。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs004/jvs004_006.wav|3|ツュレンハルト領は、ヴュルテンベルク領に編入された。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/neb00101.wav|4|오랫동안 짝사랑해왔던 네가 지금 내 곁에 있다는 게 꼭 꿈만 같아.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Sedih/vibid_fyat_560.wav|2|bersabarlah.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs008/jvs008_053.wav|3|当時、あやしいワールドに常駐していた擬古猫が、空白にて発表。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0011/Happy/0011_001020.wav|0|Goat Billy asked the old chinese guy.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Angry/0020_000502.wav|0|Guilty for what do you rule?
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Sad/0020_001090.wav|0|In which fox loses a tail and its elder sister finds one.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0416.wav|2|daerah itu cocok untuk perkebunan kelapa sawit.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs021/jvs021_082.wav|3|カーミラ星と呼ばれている惑星から、宇宙船に乗って、地球に侵入した宇宙人。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0016/Happy/0016_000947.wav|0|She and i are running a neck and neck race.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs077/jvs077_055.wav|3|ウォリアーズミックスマーシャルアーツアカデミー所属。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02131.wav|4|그 숫자는 이백이십팔입니다. 더 알고 싶은 내용 있으세요?
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0015/Angry/0015_000692.wav|0|Why should I purchase my own?
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs037/jvs037_014.wav|3|クィーンズアベニューアルファに所属している。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Sad/0020_001269.wav|0|But the tune isn't his own invention.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0006.wav|2|besok saya pergi ke toko baju bersama ibu.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs029/jvs029_099.wav|3|デビューウェイトは、スーパーバンタム級ではなく、フェザー級だった。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Bahagia/vibid_fyat_605.wav|2|jangan lupa kalau ada perayaan hari raya waisak di bulan mei ini.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0554.wav|2|bengkuang yang baru saja dipetik itu sangat segar rasanya.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0015/Angry/0015_000542.wav|0|I have had to grow old.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs066/jvs066_012.wav|3|構造は、鋼製の単一アーチで、橋脚は、石積みである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/kih00031.wav|4|그럼, 제가 사가도록 할게요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0011/Surprise/0011_001408.wav|0|That was his chief thought.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_1525.wav|2|dua orang warga sipil tewas terhantam papan reklame yang tumbang akibat angin kencang.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy01009.wav|4|이천구년, 이천십년 시즌 모두 아웃되며 팀 전력에서 차질이 생겼어요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/nek00001.wav|4|심폐소생술 자격증 취득을 원하시면 인터넷으로 신청해주세요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/nee00303.wav|4|라디오 소리 좀 줄여달라는데 그게 그렇게 어렵습니까?
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs068/jvs068_030.wav|3|防氷ブーツは、表面に張られた、ゴム製の薄い膜でできている。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs058/jvs058_031.wav|3|後者の代表が、ウェッジウッドの、ジャスパーウェアである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs053/jvs053_016.wav|3|この、ニューサウスウェールズ代表チームが、ワラビーズの中核となって行く。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/emf00204.wav|4|오닉스 스톤과 호텔이 혼합된 개념에서 영감을 얻어 이름을 지었다.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0018/Neutral/0018_000215.wav|0|He likes dragons very much.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs076/jvs076_016.wav|3|この、ニューサウスウェールズ代表チームが、ワラビーズの中核となって行く。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02262.wav|4|전 재미있어서 한참 웃었어요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0011/Angry/0011_000472.wav|0|Am I an absolute pauper?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0008.wav|2|ibu menyirami bunga di halaman setiap sore.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/nen00105.wav|4|드디어 내일이 한 달 동안 기다리던 월급날이라서 그런지 기분 최고야.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Marah/vibid_fyat_624.wav|2|cepat pulang ini sudah bulan mei.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0014/Sad/0014_001149.wav|0|I've hit the wrong nose.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0011/Sad/0011_001372.wav|0|A special pot too.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0015/Surprise/0015_001600.wav|0|That cloth does not look worth much!
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/nel00104.wav|4|난 이렇게 널 바라보고 있는 것만으로도 행복해.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs026/jvs026_004.wav|3|サービスマネージャー導入駅のため、大井町駅から、遠隔管理している。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_1439.wav|2|berapakah jumlah instrumen optik yang ada di laboratorium fotonika?
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0019/Sad/0019_001360.wav|0|Why it is just like the round egg which sounds thin.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Angry/0020_000593.wav|0|And has you slain him?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_1376.wav|2|kapankah seorang kepala departemen membiarkan bawahannya mandiri?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/nen00004.wav|4|현재 본 사건과 관련하여 내부 감사를 진행하고 있습니다.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0130.wav|2|berdoalah sebelum memulai aktivitasmu hari ini.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0300.wav|2|ibu memasak sarapan pagi sebelum berangkat kerja.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs015/jvs015_013.wav|3|そこへ、オーナーが新しいシェフとして、腕利きのヒョヌクを招く。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/kih00117.wav|4|고맙지만 사양할게요, 저는 반대입니다.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0011/Angry/0011_000567.wav|0|You cruelty shall cost your life !
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs045/jvs045_021.wav|3|痛みは、点滴より鎮痛薬を、静脈投与することで、鎮痛を行う。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs026/jvs026_049.wav|3|プレイヤーキャラクターは、宮殿を占拠した、邪悪なクリーチャーに遭遇する。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0016/Surprise/0016_001665.wav|0|I've just shot a stag.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Marah/vibid_mdpa_283.wav|2|naufal jangan menyela percakapan orang dewasa.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Bahagia/vibid_mdpa_115.wav|2|barislah yang teratur jangan berdesak desakan.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0236.wav|2|kebutuhan air minum merupakan faktor utama bagi manusia.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02223.wav|4|후회하실 필요 없어요. 이젠 다 잘 될 겁니다.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs016/jvs016_030.wav|3|防氷ブーツは、表面に張られた、ゴム製の薄い膜でできている。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02234.wav|4|아는 분이세요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/nem00105.wav|4|드디어 내일이 한 달 동안 기다리던 월급날이라서 그런지 기분 최고야.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/kih00064.wav|4|미세먼지가 너무 심해요! 마스크 챙기세요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs088/jvs088_012.wav|3|構造は、鋼製の単一アーチで、橋脚は、石積みである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/neo00102.wav|4|경치 좋고, 음식도 맛있고, 이번 여행은 대만족이야.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02204.wav|4|그건 저도 잘 모르겠어요! 한번 그 질문을 검색해볼게요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0013/Surprise/0013_001570.wav|0|But if you hadn't done them.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Marah/vibid_mdpa_630.wav|2|jangan kau bunuh tupai tak berdosa itu zivon.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Angry/0020_000529.wav|0|Daisy creams with pink edges.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0018/Happy/0018_000876.wav|0|She just smiled calmly, mother knows that is the best smile.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0254.wav|2|menunggu orang lain tanpa kepastian itu sungguh membosankan.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/neo00001.wav|4|심폐소생술 자격증 취득을 원하시면 인터넷으로 신청해주세요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs071/jvs071_042.wav|3|祭神は、ヴィシュヌ派の聖人、スワーミーナーラーヤン。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0018/Surprise/0018_001470.wav|0|Tom now let our arrows fly!
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0012/Happy/0012_000965.wav|0|I've just shot a stag.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_1370.wav|2|kapan para ahli biologi melakukan penelitian mikroorganisme?
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0019/Happy/0019_000950.wav|0|Her kind and firm glance.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02093.wav|4|엄청 좋아해요. 당신도 책 읽는 거 좋아하세요?
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs095/jvs095_004.wav|3|サービスマネージャー導入駅のため、大井町駅から、遠隔管理している。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0964.wav|2|membiasakan diri untuk tidak keluar malam hari adalah baik untuk kesehatan tubuh.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_1121.wav|2|mengapa sangnat sulit menanamkan sikap optimis kepada generasi penerus bangsa?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/kih00021.wav|4|저 만나는 사람 있는데, 죄송하네요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs003/jvs003_010.wav|3|スマートフォンから、フィーチャーフォンまで、マルチデバイスに対応。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0016/Sad/0016_001354.wav|0|How do you like you dirty bird!
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Bahagia/vibid_fyat_141.wav|2|tendanglah bola itu ke gawang lawan.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs060/jvs060_033.wav|3|芸能プロダクション、アミューズのグループ企業。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0016/Angry/0016_000384.wav|0|A divine wrath made her blue eyes awful.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs050/jvs050_088.wav|3|そこには、百ドル札と、アメリカに来いという、短いメッセージだけだった。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs015/jvs015_033.wav|3|芸能プロダクション、アミューズのグループ企業。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0989.wav|2|konsep yang akan dikembangkan dalam program kreativitas mahasiswa gagasan tertulis kali ini adalah mendesain sebuah sistem.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy01043.wav|4|이 밖에 전투원 형태의 여미들도 만들어내는데, 찌꺼기 여미는 진화하지 않았어요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs083/jvs083_026.wav|3|現在、ニュージャージー州、ムーアズタウンに住んでいる。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs044/jvs044_088.wav|3|そこには、百ドル札と、アメリカに来いという、短いメッセージだけだった。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_1372.wav|2|siapa yang berani mengajak kakak pergi ke gunung semeru?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/nen00201.wav|4|너한테 그 말을 들으니까 정말 마음이 아프다.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_1324.wav|2|apakah forum ini dapat dikatakan memiliki nilai edukasi?
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02081.wav|4|드디어 결혼하시는군요. 축하드립니다.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0180.wav|2|suara penyiar radio itu enak di dengar.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0216.wav|2|pemerintah merencanakan akan menambah jumlah kereta api saat hari liburan.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0017/Angry/0017_000573.wav|0|Pick, pick, pick!
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0017/Angry/0017_000563.wav|0|Let it give us a chance, my precious.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/kih00076.wav|4|저런! 상심이 크시겠어요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/neb00204.wav|4|어머니가 장례식에 다녀온 후로 계속 기운이 없으셔서 걱정된다.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_1174.wav|2|tidakkah orang-orang itu menyadari bahwa harta di dunia yang kita miliki hanyalah titipan?
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs042/jvs042_049.wav|3|プレイヤーキャラクターは、宮殿を占拠した、邪悪なクリーチャーに遭遇する。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs014/jvs014_010.wav|3|スマートフォンから、フィーチャーフォンまで、マルチデバイスに対応。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0016/Angry/0016_000435.wav|0|Suppose I take grandmother a fresh vegetable.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0926.wav|2|kamar tidur yang biasa ditempati oleh eyang sekarang dijadikan gudang barang bekas dan usang.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs026/jvs026_013.wav|3|そこへ、オーナーが新しいシェフとして、腕利きのヒョヌクを招く。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0018/Neutral/0018_000278.wav|0|I know you .

@@ -49,7 +49,7 @@ class Encoder(nn.Module):
 
 
 class CouplingBlock(nn.Module):
-  def __init__(self, in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels=0, emoin_channels=0, p_dropout=0, sigmoid_scale=False):
+  def __init__(self, in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels=0, emoin_channels=0, p_dropout=0, sigmoid_scale=False, n_sqz=2):
     super().__init__()
     self.in_channels = in_channels
     self.hidden_channels = hidden_channels
@@ -72,16 +72,22 @@ class CouplingBlock(nn.Module):
     self.end = end
 
     self.wn = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, p_dropout)
+    self.wn_pitch = modules.WNP(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, n_sqz)
     self.wn_emo = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, emoin_channels, p_dropout)
 
-  def forward(self, x, x_mask=None, reverse=False, g=None, emo=None, **kwargs):
+  def forward(self, x, x_mask=None, reverse=False, g=None, emo=None, pitch=None, **kwargs):
     b, c, t = x.size()
     if x_mask is None:
       x_mask = 1
+
+    if pitch is not None and len(pitch.shape) == 2:
+      pitch = pitch.unsqueeze(1) # B, T -> B,C,T
+
     x_0, x_1 = x[:,:self.in_channels//2], x[:,self.in_channels//2:]
 
     x = self.start(x_0) * x_mask
-    x = self.wn(x, x_mask, g)
+    x = self.wn(x, x_mask, g) # Coba Order nya WN ini diubah2
+    x = self.wn_pitch(x, x_mask, pitch)
     x = self.wn_emo(x, x_mask, emo)
     out = self.end(x)
 
@@ -103,6 +109,7 @@ class CouplingBlock(nn.Module):
 
   def store_inverse(self):
     self.wn.remove_weight_norm()
+    self.wn_emo.remove_weight_norm()
 
 
 class MultiHeadAttention(nn.Module):

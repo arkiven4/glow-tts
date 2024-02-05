@@ -324,6 +324,7 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
 
         self.spk_embeds_path = hparams.spk_embeds_path
         self.emo_embeds_path = hparams.emo_embeds_path
+        self.f0_embeds_path = hparams.f0_embeds_path
         self._filter_text_len()
         random.seed(1234)
         random.shuffle(self.audiopaths_lid_text)
@@ -351,9 +352,12 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
         text = self.get_text(text)
         mel = self.get_mel(audiopath)
         spk_emb = torch.Tensor(np.load(f"{self.spk_embeds_path.replace('dataset_name', database_name)}/{filename}.npy"))
-        emo_emb = torch.Tensor(np.load(f"{self.emo_embeds_path.replace('dataset_name', database_name)}/{filename}.npy"))
+        #emo_emb = torch.Tensor(np.load(f"{self.emo_embeds_path.replace('dataset_name', database_name)}/{filename}.npy"))
+        f0 = np.load(f"{self.f0_embeds_path.replace('dataset_name', database_name)}/{filename}.npy")
+        f0 = torch.from_numpy(f0)[None]
+        f0 = f0[:, :mel.size(1)]
         lid = self.get_lid(lid)
-        return (text, mel, spk_emb, emo_emb, lid)
+        return (text, mel, spk_emb, f0, lid) # f0 or emo
 
     def get_mel(self, filename):
         if not self.load_mel_from_disk:
@@ -438,6 +442,9 @@ class TextMelMyOwnCollate():
         #emo_embeds = torch.FloatTensor(len(batch), 1024)
         #emo_coord = torch.FloatTensor(len(batch), 3)
         lid = torch.LongTensor(len(batch))
+
+        f0_padded = torch.FloatTensor(len(batch), 1, max_target_len)
+        f0_padded.zero_()
         
         for i in range(len(ids_sorted_decreasing)):
             mel = batch[ids_sorted_decreasing[i]][1]
@@ -449,7 +456,10 @@ class TextMelMyOwnCollate():
             #emo_embeds[i, :] = batch[ids_sorted_decreasing[i]][3]
             lid[i] = batch[ids_sorted_decreasing[i]][4]
 
-        return text_padded, input_lengths, mel_padded, output_lengths, spk_embeds, None, lid
+            f0 = batch[ids_sorted_decreasing[i]][3]
+            f0_padded[i, :, :f0.size(1)] = f0
+
+        return text_padded, input_lengths, mel_padded, output_lengths, spk_embeds, f0_padded, lid
     
 
 class DistributedBucketSampler(torch.utils.data.distributed.DistributedSampler):

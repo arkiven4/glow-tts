@@ -1,0 +1,80 @@
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/emb00004.wav|4|오닉스 스톤과 호텔이 혼합된 개념에서 영감을 얻어 이름을 지었다.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs009/jvs009_049.wav|3|プレイヤーキャラクターは、宮殿を占拠した、邪悪なクリーチャーに遭遇する。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs010/jvs010_006.wav|3|ツュレンハルト領は、ヴュルテンベルク領に編入された。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs076/jvs076_033.wav|3|芸能プロダクション、アミューズのグループ企業。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0814.wav|2|kekuatan moral menekankan bahwa sebagai mahasiswa kita harus memiliki moral yang mulia.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/kih00038.wav|4|당신을 닮은 딸이예요. 너무 예쁘죠? 너무 기분이 좋습니다.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02222.wav|4|잠깐만요. 저쪽 그늘이 더 좋겠어요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs020/jvs020_095.wav|3|ジャガーとは対照的に、ボディービルダーを髣髴とさせる、マッチョな体育会系の外見が特徴。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/neo00002.wav|4|주연 배우 캐스팅이 마무리되는 대로 촬영을 시작할 거래.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Neutral/0020_000196.wav|0|Clear are your eyes and bright your breath!
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0012/Sad/0012_001321.wav|0|I say I will be emperor.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0803.wav|2|dalam kehidupan di kampus terdapat nilai-nilai penting yang nantinya akan menjadi suatu pedoman.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Angry/0020_000535.wav|0|The new born baby is stolen as we go.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_1278.wav|2|mengapa bapak tua itu tidak mau mengakuinya sebagai anak?
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Sad/0020_001240.wav|0|And they were sandy yellow brownish all over.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/kih00052.wav|4|저도 오늘은 중식이 먹고 싶어요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0428.wav|2|banjir bandang kemarin memakan banyak korban.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/kih00018.wav|4|이제 충고는 그만해주세요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/nek00304.wav|4|제가 결제 취소는 안 된다고 누누이 말씀드렸을 텐데요?
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0014/Sad/0014_001207.wav|0|Blackbird, and Jay.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0019/Surprise/0019_001736.wav|0|Over them swooped the eagles.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs029/jvs029_051.wav|3|デビュー後の数年間は、ベビーフェイスとして、本名で活動。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/neo00303.wav|4|라디오 소리 좀 줄여달라는데 그게 그렇게 어렵습니까?
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs061/jvs061_031.wav|3|後者の代表が、ウェッジウッドの、ジャスパーウェアである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/nea00101.wav|4|오랫동안 짝사랑해왔던 니가 지금 내 곁에 있다는 게 꼭 꿈만 같아.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_1255.wav|2|mengapa adik tidak diiznkan untuk mengikuti perlombaan itu?
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Neutral/0020_000033.wav|0|This used to be Jerry's occupation.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02176.wav|4|무척 고민되시겠지만 이미 지나간 일이잖아요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Marah/vibid_mdpa_629.wav|2|jangan suka mengintip jawaban ujian siswa lain.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0017/Neutral/0017_000295.wav|0|I know how to obey orders.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs059/jvs059_090.wav|3|戦闘服は、両腕を露出し、両脚が、アンダースーツで覆われている。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Sedih/vibid_mdpa_436.wav|2|jangan berangkat hari ini.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0018/Neutral/0018_000077.wav|0|But I saw you walking.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Happy/0020_001035.wav|0|But things haven't change yet.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0014/Surprise/0014_001639.wav|0|This is the way that snakes always talk.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs021/jvs021_046.wav|3|フォーミュラカーは、通常、オープンホイールで、シングルシーターである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Happy/0020_000815.wav|0|He might call it, for example.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0929.wav|2|patuhi apa yang telah diatur oleh ayah karena tidak akan merugikan untuk anaknya.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_1145.wav|2|berapa biaya rumah sakit yang diperlukan untuk pengobatan anak kecil penderita tumor ganas?
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs087/jvs087_030.wav|3|防氷ブーツは、表面に張られた、ゴム製の薄い膜でできている。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02105.wav|4|다음엔 저도 같이 가요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0018/Surprise/0018_001703.wav|0|I am loath to see him go.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/nel00303.wav|4|라디오 소리 좀 줄여달라는데 그게 그렇게 어렵습니까?
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0013/Sad/0013_001189.wav|0|Cuckoos is downheaded and crying.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0447.wav|2|dia sudah dua kali pindah sekolah ke luar kota.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/nea00302.wav|4|시험이 코앞인데 공부는 안 하고 놀기만 할 거니?
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs006/jvs006_014.wav|3|クィーンズアベニューアルファに所属している。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02172.wav|4|그런 게 가능하다니 놀라워요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs020/jvs020_034.wav|3|長母音を省略して、エリュシオンとも表記される。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/nel00004.wav|4|현재 본 사건과 관련하여 내부 감사를 진행하고 있습니다.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/ned00101.wav|4|오랫동안 짝사랑해왔던 네가 지금 내 곁에 있다는 게 꼭 꿈만 같아.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Surprise/0020_001447.wav|0|please excuse me.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0011/Neutral/0011_000200.wav|0|That cloth does not look worth much!
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Bahagia/vibid_mdpa_206.wav|2|bukan main hebatnya ruben memainkan biola itu.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs062/jvs062_046.wav|3|フォーミュラカーは、通常、オープンホイールで、シングルシーターである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs074/jvs074_090.wav|3|戦闘服は、両腕を露出し、両脚が、アンダースーツで覆われている。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs086/jvs086_025.wav|3|その飄々とした人柄が、老若男女に慕われている。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02121.wav|4|한 해 동안 고생 많으셨습니다.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs035/jvs035_091.wav|3|同母姉に、スウェーデン王妃、ジョゼフィーヌがいる。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs086/jvs086_049.wav|3|プレイヤーキャラクターは、宮殿を占拠した、邪悪なクリーチャーに遭遇する。
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0019/Angry/0019_000365.wav|0|Poor Tom now is dead!
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02146.wav|4|김민수 고객님 맞습니까? 그 성함으론 예약되어 있지 않은데요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs072/jvs072_040.wav|3|ギレスピーは、マッギーを通じて、イネスと知り合った。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0403.wav|2|aku menanam bunga mawar di depan rumah.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0016/Neutral/0016_000168.wav|0|I said you looked like an egg, sir.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0755.wav|2|guru besar telah menghasilkan banyak karya yang sungguh mengagumkan dan membuat kami terkesima.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Happy/0020_000762.wav|0|Tom, went on eeyore gloomily.
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0020/Happy/0020_000871.wav|0|I say neither yea nor nay.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02196.wav|4|오창휴게소에서 남이분기점으로 차량이 증가하고 있습니다.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0250.wav|2|dia sudah lama mendiami tempat yang seram ini.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0868.wav|2|timbulnya ego merupakan bukan masalah kecil yang dapat dikesampingkan begitu saja.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0805.wav|2|dalam pembuatannya membutuhkan proses, pemikiran, waktu, tenaga, dan biaya yang sangat menguras.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs079/jvs079_015.wav|3|一方で、漁業と商業で、リャネス港は繁栄していた。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Marah/vibid_fyat_253.wav|2|jangan menyulut amarah orang lain.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_1127.wav|2|baikkah jika seorang janda bertamu sendirian ke rumah seorang duda beranak satu?
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_009.wav|3|また禰寝氏は、中山王の治める、琉球王国との交易にも参加した。
+/run/media/viblab/Markov2/Pras/Thesis/Database/VOICEDB_kr/wavs/lmy02236.wav|4|지갑 예쁘네요. 세일기간이니 구입하세요.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0243.wav|2|para mahasiswa sedang mempersiapkan diri untuk menghadapi ujian tengah semester.
+/run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_fena_0341.wav|2|singkong harus difermentasi agar menjadi tape.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs058/jvs058_006.wav|3|ツュレンハルト領は、ヴュルテンベルク領に編入された。
