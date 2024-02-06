@@ -132,20 +132,27 @@ import monotonic_align
 #         return w
 
 class GST(nn.Module):
-    def __init__(self, token_num, token_embedding_size, num_heads, ref_enc_filters, n_mel_channels, ref_enc_gru_size, gin_channels=0):
+    def __init__(self, token_num, token_embedding_size, num_heads, ref_enc_filters, n_mel_channels, ref_enc_gru_size, gin_channels=0, lin_channels=0):
         super().__init__()
         self.encoder = modules_gst.ReferenceEncoder(ref_enc_filters, n_mel_channels, ref_enc_gru_size)
         self.stl = modules_gst.STL(token_num, token_embedding_size, num_heads, ref_enc_gru_size)
 
         if gin_channels != 0:
           self.cond = nn.Conv1d(gin_channels, ref_enc_gru_size, 1)
+          
+        if lin_channels != 0:
+          self.cond_l = nn.Conv1d(lin_channels, ref_enc_gru_size, 1)
 
-    def forward(self, inputs, input_lengths=None, g=None):
+    def forward(self, inputs, input_lengths=None, g=None, l=None):
         enc_out = self.encoder(inputs, input_lengths=input_lengths)
         
         if g is not None:
           g = torch.detach(g)
           enc_out = enc_out + self.cond(g).squeeze(-1)
+
+        if l is not None:
+          l = torch.detach(l)
+          enc_out = enc_out + self.cond_l(l).squeeze(-1)
 
         style_embed = self.stl(enc_out).transpose(1,2)
         return style_embed
@@ -439,7 +446,7 @@ class TextEncoder(nn.Module):
     self.emb = nn.Embedding(n_vocab, hidden_channels)
     nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
 
-    #self.emo_proj = nn.Linear(emoin_channels, hidden_channels)
+    #self.emo_proj = nn.Conv1d(emoin_channels, hidden_channels, 1)
 
     if lin_channels > 0:
         hidden_channels += lin_channels
@@ -541,7 +548,7 @@ class FlowSpecDecoder(nn.Module):
           sigmoid_scale=sigmoid_scale,
           n_sqz=n_sqz))
 
-  def forward(self, x, x_mask, g=None, emo=None, pitch=None, reverse=False):
+  def forward(self, x, x_mask, g=None, emo=None, pitch=None, energy=None, reverse=False):
     if not reverse:
       flows = self.flows
       logdet_tot = 0
@@ -554,10 +561,10 @@ class FlowSpecDecoder(nn.Module):
 
     for f in flows:
       if not reverse:
-        x, logdet = f(x, x_mask, g=g, emo=emo, pitch=pitch, reverse=reverse)
+        x, logdet = f(x, x_mask, g=g, emo=emo, pitch=pitch, energy=energy, reverse=reverse)
         logdet_tot += logdet
       else:
-        x, logdet = f(x, x_mask, g=g, emo=emo, pitch=pitch, reverse=reverse)
+        x, logdet = f(x, x_mask, g=g, emo=emo, pitch=pitch, energy=energy, reverse=reverse)
 
     if self.n_sqz > 1:
       x, x_mask = commons.unsqueeze(x, x_mask, self.n_sqz)
@@ -603,6 +610,7 @@ class FlowGenerator(nn.Module):
       use_emo_embeds=False,
       use_sdp=True,
       use_spp=False,
+      use_sep=False,
       ref_enc_filters=[32, 32, 64, 64, 128, 128],
       ref_enc_gru_size=128,
       token_embedding_size=256,
@@ -644,8 +652,8 @@ class FlowGenerator(nn.Module):
     self.use_emo_embeds = use_emo_embeds
     self.use_sdp = use_sdp
     self.use_spp = use_spp
+    self.use_sep = use_sep
     
-
     self.encoder = TextEncoder(
         n_vocab, 
         out_channels, 
@@ -695,13 +703,17 @@ class FlowGenerator(nn.Module):
 
     if self.use_emo_embeds:
       print("Use Emotion Custom Module")
-      self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size, gin_channels=gin_channels)
+      self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size, gin_channels=gin_channels, lin_channels=lin_channels)
+      #print("Use Emotion Embeddings Module")
       #self.emo_proj = modules.LinearNorm(1024, emoin_channels)
 
     if use_spp:
       print("Use StochasticPitchPredictor")
       self.proj_pitch = StochasticPitchPredictor(hidden_channels_enc + lin_channels, 256, 3, 0.1, 4, gin_channels=gin_channels, emoin_channels=emoin_channels)
 
+    if use_sep:
+      print("Use StochasticEnergyPredictor") 
+      self.proj_energy = StochasticPitchPredictor(hidden_channels_enc + lin_channels, 256, 3, 0.1, 4, gin_channels=gin_channels, emoin_channels=emoin_channels)
     # for param in self.decoder.parameters():
     #     param.requires_grad = False
 
@@ -720,7 +732,7 @@ class FlowGenerator(nn.Module):
     # for param in self.style_encoder.parameters():
     #     param.requires_grad = False
 
-  def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None, pitch=None):
+  def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, pitch=None, energy=None, l=None):
     mu_emovae = None
     emo_vad = None
 
@@ -731,13 +743,12 @@ class FlowGenerator(nn.Module):
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h, 1]
       #g = torch.cat([g, l], 1)
 
-    emo = self.gst_proj(y, y_lengths, g=g)
+    emo = self.gst_proj(y, y_lengths, g=g, l=l)
     # if emo is not None:
     #    emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
     #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
       #emo_vad, mu_emovae = self.emb_emoVAE(emo).unsqueeze(-1) # [b, h, 1]
 
-    #
     #style_vector = self.style_encoder(y.transpose(1,2), y_mask).unsqueeze(-1) # [b, h, 1]
 
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=None)
@@ -756,7 +767,15 @@ class FlowGenerator(nn.Module):
       pitch_norm = pitch_norm.unsqueeze(1)
       #pitch = pitch_norm # [b, 1, t]
 
-    z, logdet = self.decoder(y, z_mask, g=g, emo=emo, pitch=pitch_norm, reverse=False)
+    if self.use_sep and energy is not None:
+      energy = energy.squeeze(1)
+      energy = energy[:, :y_max_length]
+      energy_mask = (energy == 0.0)
+      energy_norm = torch.log(torch.clamp(energy, min=torch.finfo(energy.dtype).tiny))
+      energy_norm[energy_mask] = 0.0
+      energy_norm = energy_norm.unsqueeze(1)
+
+    z, logdet = self.decoder(y, z_mask, g=g, emo=emo, pitch=pitch_norm, energy=energy_norm, reverse=False)
     with torch.no_grad():
       x_s_sq_r = torch.exp(-2 * x_logs)
       logp1 = torch.sum(-0.5 * math.log(2 * math.pi) - x_logs, [1]).unsqueeze(-1) # [b, t, 1]
@@ -776,19 +795,25 @@ class FlowGenerator(nn.Module):
       logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=emo)
       l_length = torch.sum((logw - logw_)**2, [1,2]) / torch.sum(x_mask) # for averaging 
 
+    x_feature = torch.matmul(x, attn.squeeze(1))
     if self.use_spp and pitch is not None:
-      x_pitch = torch.matmul(x, attn.squeeze(1))
       pitch_norm = pitch_norm.squeeze(1)
-      l_pitch = self.proj_pitch(x_pitch, z_mask, pitch_norm.unsqueeze(1), g=g, emo=emo)
+      l_pitch = self.proj_pitch(x_feature, z_mask, pitch_norm.unsqueeze(1), g=g, emo=emo)
       l_pitch = l_pitch / torch.sum(z_mask)
       l_pitch = torch.sum(l_pitch)
+
+    if self.use_sep and energy_norm is not None:
+      energy_norm = energy_norm.squeeze(1)
+      l_energy = self.proj_energy(x_feature, z_mask, energy_norm.unsqueeze(1), g=g, emo=emo)
+      l_energy = l_energy / torch.sum(z_mask)
+      l_energy = torch.sum(l_energy)
 
     # expand prior
     z_m = torch.matmul(attn.squeeze(1).transpose(1, 2), x_m.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     z_logs = torch.matmul(attn.squeeze(1).transpose(1, 2), x_logs.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
-    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length, l_pitch), (None, emo_vad, mu_emovae), (None, None)
+    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length, l_pitch, l_energy), (None, emo_vad, mu_emovae), (None, None)
 
-  def infer(self, x, x_lengths, y=None, g=None, emo=None, l=None, noise_scale=1., length_scale=1., pitch_scale=0.0):
+  def infer(self, x, x_lengths, y=None, g=None, emo=None, l=None, noise_scale=1., length_scale=1., pitch_scale=0.0, energy_scale=0.0):
     #style_vector = self.style_encoder(y.transpose(1,2), None).unsqueeze(-1)
 
     if g is not None:
@@ -798,7 +823,7 @@ class FlowGenerator(nn.Module):
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
       #g = torch.cat([g, l], 1)
 
-    emo = self.gst_proj(y, None, g=g)
+    emo = self.gst_proj(y, None, g=g, l=l)
     # if emo is not None:
     #    emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
     # if emo is not None:
@@ -827,21 +852,32 @@ class FlowGenerator(nn.Module):
 
     z = (z_m + torch.exp(z_logs) * torch.randn_like(z_m) * noise_scale) * z_mask
     
+    x_feature = torch.matmul(x, attn.squeeze(1))
     if self.use_spp:
-      x_pitch = torch.matmul(x, attn.squeeze(1))
-      pitch = self.proj_pitch(x_pitch, z_mask, g=g, noise_scale=noise_scale, reverse=True)
+      pitch = self.proj_pitch(x_feature, z_mask, g=g, noise_scale=noise_scale, reverse=True)
       pitch = pitch.squeeze(1)
       pitch = torch.clamp_min(pitch, 0)
       if pitch.shape[-1] != z.shape[-1]:
         # need to expand predicted pitch to match no of tokens
         durs_predicted = torch.sum(attn, -1) * x_mask.squeeze()
         pitch, _ = commons.regulate_len(durs_predicted, pitch.unsqueeze(-1))
-        pitch = pitch.squeeze(-1)
-            
+        pitch = pitch.squeeze(-1) 
       pitch = pitch + pitch_scale
       pitch = pitch.squeeze(1)
+
+    if self.use_sep:
+      energy = self.proj_energy(x_feature, z_mask, g=g, noise_scale=noise_scale, reverse=True)
+      energy = energy.squeeze(1)
+      energy = torch.clamp_min(energy, 0)
+      if energy.shape[-1] != z.shape[-1]:
+        # need to expand predicted energy to match no of tokens
+        durs_predicted = torch.sum(attn, -1) * x_mask.squeeze()
+        energy, _ = commons.regulate_len(durs_predicted, energy.unsqueeze(-1))
+        energy = energy.squeeze(-1)    
+      energy = energy + energy_scale
+      energy = energy.squeeze(1)
     
-    y, logdet = self.decoder(z, z_mask, g=g, emo=emo, pitch=pitch, reverse=True)
+    y, logdet = self.decoder(z, z_mask, g=g, emo=emo, pitch=pitch, energy=energy, reverse=True)
     return (y, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, logw, logw_)
 
   def voice_conversion(self, y, y_lengths, spk_embed_src, spk_embed_tgt, l=None):

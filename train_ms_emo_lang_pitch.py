@@ -243,9 +243,8 @@ def train(
 ):
     train_loader.batch_sampler.set_epoch(epoch)
     global global_step
-
     generator.train()
-    for batch_idx, (x, x_lengths, y, y_lengths, speakers, pitch, lids) in enumerate(
+    for batch_idx, (x, x_lengths, y, y_lengths, speakers, emos, pitchs, energys, lids) in enumerate(
         tqdm(train_loader)
     ):
         x, x_lengths = x.cuda(rank, non_blocking=True), x_lengths.cuda(
@@ -255,7 +254,9 @@ def train(
             rank, non_blocking=True
         )
         speakers = speakers.cuda(rank, non_blocking=True)
-        pitch = pitch.cuda(rank, non_blocking=True)
+        emos = emos.cuda(rank, non_blocking=True)
+        pitchs = pitchs.cuda(rank, non_blocking=True)
+        energys = energys.cuda(rank, non_blocking=True)
         lids = lids.cuda(rank, non_blocking=True)
 
         # Train Generator
@@ -263,17 +264,18 @@ def train(
             (
                 (z, z_m, z_logs, logdet, z_mask),
                 (_, _, _),
-                (attn, l_length, l_pitch),
+                (attn, l_length, l_pitch, l_energy),
                 (_, _, _),
                 (_, _)
-            ) = generator(x, x_lengths, y, y_lengths, g=speakers, pitch=pitch, l=lids)
+            ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, pitch=pitchs, energy=energys, l=lids)
 
             with autocast(enabled=False):
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 l_length = torch.sum(l_length.float())
                 l_pitch = 0.5 * l_pitch
+                l_energy = 0.5  * l_energy
 
-                loss_gs = [l_mle, l_length, l_pitch]
+                loss_gs = [l_mle, l_length, l_pitch, l_energy]
                 loss_g = sum(loss_gs)
 
         scheduler.step()
@@ -292,6 +294,7 @@ def train(
                     x_lengths[:1],
                     y=y[:1],
                     g=speakers[:1],  
+                    emo=emos[:1],  
                     l=lids[:1],
                 )
                 
@@ -360,9 +363,7 @@ def evaluate(
                 x_lengths,
                 y,
                 y_lengths,
-                speakers,
-                pitch,
-                lids,
+                speakers, emos, pitchs, energys, lids
             ) in enumerate(val_loader):
                 x, x_lengths = x.cuda(rank, non_blocking=True), x_lengths.cuda(
                     rank, non_blocking=True
@@ -371,21 +372,24 @@ def evaluate(
                     rank, non_blocking=True
                 )
                 speakers = speakers.cuda(rank, non_blocking=True)
-                pitch = pitch.cuda(rank, non_blocking=True)
+                emos = emos.cuda(rank, non_blocking=True)
+                pitchs = pitchs.cuda(rank, non_blocking=True)
+                energys = energys.cuda(rank, non_blocking=True)
                 lids = lids.cuda(rank, non_blocking=True)
 
                 (
                     (z, z_m, z_logs, logdet, z_mask),
                     (_, _, _),
-                    (_, l_length, l_pitch),
+                    (_, l_length, l_pitch, l_energy),
                     (_, _, _),
                     (_, _)
-                ) = generator(x, x_lengths, y, y_lengths, g=speakers, pitch=pitch, l=lids)
+                ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, pitch=pitchs, energy=energys, l=lids)
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 l_length = torch.sum(l_length.float())
                 l_pitch = 0.5  * l_pitch
+                l_energy = 0.5  * l_energy
 
-                loss_gs = [l_mle, l_length, l_pitch]
+                loss_gs = [l_mle, l_length, l_pitch, l_energy]
                 loss_g = sum(loss_gs)
 
                 if batch_idx == 0:
