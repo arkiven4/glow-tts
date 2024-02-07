@@ -272,8 +272,12 @@ def train(
             with autocast(enabled=False):
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 l_length = torch.sum(l_length.float())
-                l_pitch = 0.5 * l_pitch
-                l_energy = 0.5  * l_energy
+
+                # l_pitch = F.mse_loss(pitch_norm, pitch_pred, reduction='none')
+                # l_pitch = (l_pitch * z_mask).sum() / z_mask.sum()
+
+                # l_energy = F.mse_loss(energy_norm, energy_pred, reduction='none')
+                # l_energy = (l_energy * z_mask).sum() / z_mask.sum()
 
                 loss_gs = [l_mle, l_length, l_pitch, l_energy]
                 loss_g = sum(loss_gs)
@@ -386,8 +390,9 @@ def evaluate(
                 ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, pitch=pitchs, energy=energys, l=lids)
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 l_length = torch.sum(l_length.float())
-                l_pitch = 0.5  * l_pitch
-                l_energy = 0.5  * l_energy
+
+                # l_energy = F.mse_loss(energy_norm, energy_pred, reduction='none')
+                # l_energy = (l_energy * z_mask).sum() / z_mask.sum()
 
                 loss_gs = [l_mle, l_length, l_pitch, l_energy]
                 loss_g = sum(loss_gs)

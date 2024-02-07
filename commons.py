@@ -371,3 +371,12 @@ def regulate_len(durations, enc_out, pace=1.0, mel_max_len=None):
         dec_lens = torch.clamp_max(dec_lens, mel_max_len)
 
     return enc_rep, dec_lens
+
+from typing import Optional
+
+def mask_from_lens(lens, max_len: Optional[int] = None):
+    if max_len is None:
+        max_len = lens.max()
+    ids = torch.arange(0, max_len, device=lens.device, dtype=lens.dtype)
+    mask = torch.lt(ids, lens.unsqueeze(1))
+    return mask

@@ -348,6 +348,44 @@ class StochasticPitchPredictor(nn.Module):
     z0, _ = torch.split(z, [1, 1], 1)
     logw = z0
     return logw
+  
+class TemporalPredictor(nn.Module):
+    """Predicts a single float per each temporal location"""
+
+    def __init__(self, input_size, filter_size, kernel_size, dropout,
+                 n_layers=2, n_predictions=1, gin_channels=0, emoin_channels=0):
+        super(TemporalPredictor, self).__init__()
+
+        self.gin_channels = gin_channels
+        self.layers = nn.Sequential(*[
+            modules.ConvReLUNormFP(input_size if i == 0 else filter_size, filter_size,
+                         kernel_size=kernel_size, dropout=dropout)
+            for i in range(n_layers)]
+        )
+        self.n_predictions = n_predictions
+        self.fc = nn.Linear(filter_size, self.n_predictions, bias=True)
+
+        if gin_channels != 0:
+            self.cond = nn.Conv1d(gin_channels, input_size, 1)
+
+        if emoin_channels != 0:
+            self.cond_emo = nn.Conv1d(emoin_channels, input_size, 1)
+
+    def forward(self, enc_out, enc_out_mask, g=None, emo=None):
+        enc_out = torch.detach(enc_out)
+        if g is not None:
+            g = torch.detach(g)
+            enc_out = enc_out + self.cond(g)
+
+        if emo is not None:
+            emo = torch.detach(emo)
+            enc_out = enc_out + self.cond_emo(emo)
+
+        out = enc_out * enc_out_mask
+        out = self.layers(out).transpose(1, 2)
+        out = self.fc(out) 
+        out = out * enc_out_mask.transpose(1, 2)
+        return out.squeeze(-1)
     
 class DurationPredictor(nn.Module):
   def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, gin_channels=0, lin_channels=0, emoin_channels=0):
@@ -480,7 +518,7 @@ class TextEncoder(nn.Module):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
     # if emo is not None:
-    #   x = x + self.emo_proj(emo.squeeze(-1)).unsqueeze(1) # [b, 1, h]
+    #   x = x + self.emo_proj(emo).transpose(2, 1) # [b, 1, h]
 
     if l is not None:
       x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
@@ -702,17 +740,35 @@ class FlowGenerator(nn.Module):
       torch.nn.init.xavier_uniform_(self.emb_l.weight)
 
     if self.use_emo_embeds:
-      print("Use Emotion Custom Module")
-      self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size, gin_channels=gin_channels, lin_channels=lin_channels)
-      #print("Use Emotion Embeddings Module")
-      #self.emo_proj = modules.LinearNorm(1024, emoin_channels)
+      #print("Use Emotion Custom Module")
+      #self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size, gin_channels=gin_channels, lin_channels=lin_channels)
+      print("Use Emotion Embeddings Module")
+      self.emo_proj = modules.LinearNorm(1024, emoin_channels)
 
     if use_spp:
       print("Use StochasticPitchPredictor")
+      # self.proj_pitch = TemporalPredictor(
+      #       hidden_channels_enc + lin_channels,
+      #       filter_size=256,
+      #       kernel_size=3,
+      #       dropout=0.1, 
+      #       n_layers=2,
+      #       n_predictions=1,
+      #       gin_channels=gin_channels, emoin_channels=emoin_channels
+      # )
       self.proj_pitch = StochasticPitchPredictor(hidden_channels_enc + lin_channels, 256, 3, 0.1, 4, gin_channels=gin_channels, emoin_channels=emoin_channels)
 
     if use_sep:
       print("Use StochasticEnergyPredictor") 
+      # self.proj_energy = TemporalPredictor(
+      #           hidden_channels_enc + lin_channels,
+      #           filter_size=256,
+      #           kernel_size=3,
+      #           dropout=0.1,
+      #           n_layers=2,
+      #           n_predictions=1,
+      #           gin_channels=gin_channels, emoin_channels=emoin_channels
+      # )
       self.proj_energy = StochasticPitchPredictor(hidden_channels_enc + lin_channels, 256, 3, 0.1, 4, gin_channels=gin_channels, emoin_channels=emoin_channels)
     # for param in self.decoder.parameters():
     #     param.requires_grad = False
@@ -743,15 +799,15 @@ class FlowGenerator(nn.Module):
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h, 1]
       #g = torch.cat([g, l], 1)
 
-    emo = self.gst_proj(y, y_lengths, g=g, l=l)
-    # if emo is not None:
-    #    emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
+    #emo = self.gst_proj(y, y_lengths, g=g, l=l)
+    if emo is not None:
+       emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
     #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
       #emo_vad, mu_emovae = self.emb_emoVAE(emo).unsqueeze(-1) # [b, h, 1]
 
     #style_vector = self.style_encoder(y.transpose(1,2), y_mask).unsqueeze(-1) # [b, h, 1]
 
-    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=None)
+    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
 
     y_max_length = y.size(2)
     y, y_lengths, y_max_length = self.preprocess(y, y_lengths, y_max_length)
@@ -798,6 +854,7 @@ class FlowGenerator(nn.Module):
     x_feature = torch.matmul(x, attn.squeeze(1))
     if self.use_spp and pitch is not None:
       pitch_norm = pitch_norm.squeeze(1)
+      #pitch_pred = self.proj_pitch(x_feature, z_mask, g=g, emo=emo)
       l_pitch = self.proj_pitch(x_feature, z_mask, pitch_norm.unsqueeze(1), g=g, emo=emo)
       l_pitch = l_pitch / torch.sum(z_mask)
       l_pitch = torch.sum(l_pitch)
@@ -807,6 +864,9 @@ class FlowGenerator(nn.Module):
       l_energy = self.proj_energy(x_feature, z_mask, energy_norm.unsqueeze(1), g=g, emo=emo)
       l_energy = l_energy / torch.sum(z_mask)
       l_energy = torch.sum(l_energy)
+      
+    #pitch_pred = self.proj_pitch(x_feature, z_mask, g=g, emo=emo)
+    #energy_pred = self.proj_energy(x_feature, z_mask, g=g, emo=emo)
 
     # expand prior
     z_m = torch.matmul(attn.squeeze(1).transpose(1, 2), x_m.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
@@ -823,9 +883,9 @@ class FlowGenerator(nn.Module):
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
       #g = torch.cat([g, l], 1)
 
-    emo = self.gst_proj(y, None, g=g, l=l)
-    # if emo is not None:
-    #    emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
+    #emo = self.gst_proj(y, None, g=g, l=l)
+    if emo is not None:
+       emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
     # if emo is not None:
     #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
 
@@ -854,7 +914,8 @@ class FlowGenerator(nn.Module):
     
     x_feature = torch.matmul(x, attn.squeeze(1))
     if self.use_spp:
-      pitch = self.proj_pitch(x_feature, z_mask, g=g, noise_scale=noise_scale, reverse=True)
+      pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo, noise_scale=noise_scale, reverse=True)
+      #pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo)
       pitch = pitch.squeeze(1)
       pitch = torch.clamp_min(pitch, 0)
       if pitch.shape[-1] != z.shape[-1]:
@@ -867,6 +928,7 @@ class FlowGenerator(nn.Module):
 
     if self.use_sep:
       energy = self.proj_energy(x_feature, z_mask, g=g, noise_scale=noise_scale, reverse=True)
+      #energy = self.proj_energy(x_feature, z_mask, g=g, emo=emo)
       energy = energy.squeeze(1)
       energy = torch.clamp_min(energy, 0)
       if energy.shape[-1] != z.shape[-1]:
@@ -904,3 +966,23 @@ class FlowGenerator(nn.Module):
 
   def store_inverse(self):
     self.decoder.store_inverse()
+
+def average_pitch(pitch, durs):
+    durs_cums_ends = torch.cumsum(durs, dim=1).long()
+    durs_cums_starts = F.pad(durs_cums_ends[:, :-1], (1, 0))
+    pitch_nonzero_cums = F.pad(torch.cumsum(pitch != 0.0, dim=2), (1, 0))
+    pitch_cums = F.pad(torch.cumsum(pitch, dim=2), (1, 0))
+
+    bs, l = durs_cums_ends.size()
+    n_formants = pitch.size(1)
+    dcs = durs_cums_starts[:, None, :].expand(bs, n_formants, l)
+    dce = durs_cums_ends[:, None, :].expand(bs, n_formants, l)
+
+    pitch_sums = (torch.gather(pitch_cums, 2, dce)
+                  - torch.gather(pitch_cums, 2, dcs)).float()
+    pitch_nelems = (torch.gather(pitch_nonzero_cums, 2, dce)
+                    - torch.gather(pitch_nonzero_cums, 2, dcs)).float()
+
+    pitch_avg = torch.where(pitch_nelems == 0.0, pitch_nelems,
+                            pitch_sums / pitch_nelems)
+    return pitch_avg

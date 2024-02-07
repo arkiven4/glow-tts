@@ -8,6 +8,7 @@ import subprocess
 import numpy as np
 from scipy.io.wavfile import read
 import torch
+import gc
 
 MATPLOTLIB_FLAG = False
 
@@ -22,6 +23,8 @@ def warm_start_model(checkpoint_path, model, ignore_layers):
 
     random_weight_layer = []
     mismatched_layers = []
+    unfound_layers = []
+    
     for key, value in model_dict.items(): # model_dict warmstart weight
         if hasattr(model, 'module'): # model is current model
             if key in model.module.state_dict() and value.size() != model.module.state_dict()[key].size():
@@ -43,7 +46,15 @@ def warm_start_model(checkpoint_path, model, ignore_layers):
                       random_weight_layer.append(key)
                 except:
                     mismatched_layers.append(key)
-            
+    
+    # for key, value in model_dict.items():
+    #   if hasattr(model, 'module'):
+    #     if key not in model.module.state_dict():
+    #       unfound_layers.append(key)
+    #   else:
+    #     if key not in model.state_dict():
+    #       unfound_layers.append(key)
+        
     print("Mismatched")
     print(mismatched_layers)
 
@@ -66,6 +77,10 @@ def warm_start_model(checkpoint_path, model, ignore_layers):
       model.module.load_state_dict(model_dict, strict=False)
     else:
       model.load_state_dict(model_dict, strict=False)
+    
+    #del checkpoint_dict, model_dict, dummy_dict
+    #gc.collect()
+    #torch.cuda.empty_cache()
     return model
 
 def load_checkpoint(checkpoint_path, model, optimizer=None, scheduler=None):
@@ -98,6 +113,7 @@ def load_checkpoint(checkpoint_path, model, optimizer=None, scheduler=None):
     model.load_state_dict(new_state_dict)
   logger.info("Loaded checkpoint '{}' (iteration {})" .format(
     checkpoint_path, iteration))
+
   return model, optimizer, scheduler, learning_rate, iteration
 
 
