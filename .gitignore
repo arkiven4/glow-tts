@@ -16,3 +16,6 @@ temp
 inference_hifigan.ipynb
 sample_sound
 FromJarvis
+Database
+*.pth
+*.tar.gz
