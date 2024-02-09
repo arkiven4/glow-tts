@@ -9,11 +9,11 @@
     "eps": 1e-9,
     "warmup_steps": 4000,
     "scheduler": "noam",
-    "batch_size": 4,
+    "batch_size": 70,
     "ddi": true,
     "fp16_run": true,
     "warm_start": true,
-    "warm_start_checkpoint": "logs/base_blank_emo_lang_8c3fa52/G_414.pth",
+    "warm_start_checkpoint": "logs/base_blank_emo_lang_pitch/G_12.pth",
     "ignored_layer": ["encoder.emb.weight"]
   },
   "data": {
@@ -33,9 +33,9 @@
     "add_blank": true,
     "n_speakers": 109,
     "n_lang": 10,
-    "spk_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/spk_embeds/",
-    "emo_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/emo_embeds/",
-    "f0_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/f0/"
+    "spk_embeds_path": "/home/glow-tts/Database/dataset_name/spk_embeds/",
+    "emo_embeds_path": "/home/glow-tts/Database/dataset_name/emo_embeds/",
+    "f0_embeds_path": "/home/glow-tts/Database/dataset_name/f0/"
   },
   "model": {
     "hidden_channels": 188,

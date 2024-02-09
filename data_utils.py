@@ -347,7 +347,7 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
         # separate filename, speaker_id and text
         audiopath, lid, text = audiopath_lid_text[0], audiopath_lid_text[1], audiopath_lid_text[2]
         filename = audiopath.split("/")[-1].split(".")[0]
-        database_name = audiopath.split("/")[8]
+        database_name = audiopath.split("/")[4]
 
         text = self.get_text(text)
         mel, energy = self.get_mel(audiopath)

@@ -15,3 +15,6 @@ pretrained_blank.pth
 temp
 inference_hifigan.ipynb
 sample_sound
+Database
+*.pth
+*.tar.gz

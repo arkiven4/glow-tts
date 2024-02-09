@@ -349,6 +349,72 @@ class StochasticPitchPredictor(nn.Module):
     logw = z0
     return logw
   
+class StochasticEnergyPredictor(nn.Module):
+  def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, emoin_channels=0):
+    super().__init__()
+    
+    filter_channels = in_channels # it needs to be removed from future version.
+    self.in_channels = in_channels
+    self.filter_channels = filter_channels
+    self.kernel_size = kernel_size
+    self.p_dropout = p_dropout
+    self.n_flows = n_flows
+    self.emoin_channels = emoin_channels
+
+    # condition encoder text
+    self.pre = nn.Conv1d(in_channels, filter_channels, 1)
+    self.convs = modules.DilatedDepthSeparableConv(filter_channels, kernel_size, num_layers=3, dropout_p=p_dropout)
+    self.proj = nn.Conv1d(filter_channels, filter_channels, 1)
+
+    # posterior encoder
+    self.flows = nn.ModuleList()
+    self.flows.append(modules.ElementwiseAffine(2))
+    self.flows += [modules.ConvFlow(2, filter_channels, kernel_size, num_layers=3) for _ in range(n_flows)]
+
+    if emoin_channels != 0:
+      self.cond_emo = nn.Conv1d(emoin_channels, filter_channels, 1)
+
+  def forward(self, x, x_mask, dr=None, g=None, emo=None, reverse=False, noise_scale=1.0):
+    x = torch.detach(x)
+    x = self.pre(x)
+
+    if emo is not None:
+        emo = torch.detach(emo)
+        x = x + self.cond_emo(emo)
+
+    x = self.convs(x, x_mask)
+    x = self.proj(x) * x_mask
+
+    if not reverse:
+        flows = self.flows
+        assert dr is not None
+
+        noise = torch.randn(dr.size()).to(device=x.device, dtype=x.dtype) * x_mask
+        z = torch.cat([dr, noise], 1)
+
+        logdet_tot = 0
+        # flow layers
+        for idx, flow in enumerate(flows):
+            z, logdet = flow(z, x_mask, g=x, reverse=reverse)
+            logdet_tot = logdet_tot + logdet
+            if idx > 0:
+                z = torch.flip(z, [1])
+
+        # flow layers - neg log likelihood
+        nll_flow_layers = torch.sum(0.5 * (math.log(2 * math.pi) + (z**2)) * x_mask, [1, 2]) - logdet_tot
+        return nll_flow_layers
+
+    flows = list(reversed(self.flows))
+    flows = flows[:-2] + [flows[-1]]  # remove a useless vflow
+    z = torch.randn(x.size(0), 2, x.size(2)).to(device=x.device, dtype=x.dtype) * noise_scale
+    for flow in flows:
+        z = torch.flip(z, [1])
+        z = flow(z, x_mask, g=x, reverse=reverse)
+
+    z0, _ = torch.split(z, [1, 1], 1)
+    logw = z0
+    return logw
+
 class TemporalPredictor(nn.Module):
     """Predicts a single float per each temporal location"""
 
@@ -759,7 +825,7 @@ class FlowGenerator(nn.Module):
       self.proj_pitch = StochasticPitchPredictor(hidden_channels_enc + lin_channels, 256, 3, 0.1, 4, gin_channels=gin_channels, emoin_channels=emoin_channels)
 
     if use_sep:
-      print("Use StochasticEnergyPredictor") 
+      print("Use StochasticEnergyPredictor Updated") 
       # self.proj_energy = TemporalPredictor(
       #           hidden_channels_enc + lin_channels,
       #           filter_size=256,
@@ -769,7 +835,7 @@ class FlowGenerator(nn.Module):
       #           n_predictions=1,
       #           gin_channels=gin_channels, emoin_channels=emoin_channels
       # )
-      self.proj_energy = StochasticPitchPredictor(hidden_channels_enc + lin_channels, 256, 3, 0.1, 4, gin_channels=gin_channels, emoin_channels=emoin_channels)
+      self.proj_energy = StochasticEnergyPredictor(hidden_channels_enc + lin_channels, 256, 3, 0.1, 4, emoin_channels=emoin_channels)
     # for param in self.decoder.parameters():
     #     param.requires_grad = False
 
@@ -827,11 +893,10 @@ class FlowGenerator(nn.Module):
       energy = energy.squeeze(1)
       energy = energy[:, :y_max_length]
       energy_mask = (energy == 0.0)
-      energy_norm = torch.log(torch.clamp(energy, min=torch.finfo(energy.dtype).tiny))
-      energy_norm[energy_mask] = 0.0
-      energy_norm = energy_norm.unsqueeze(1)
+      energy[energy_mask] = 0.0
+      energy = energy.unsqueeze(1)
 
-    z, logdet = self.decoder(y, z_mask, g=g, emo=emo, pitch=pitch_norm, energy=energy_norm, reverse=False)
+    z, logdet = self.decoder(y, z_mask, g=g, emo=emo, pitch=pitch_norm, energy=energy, reverse=False)
     with torch.no_grad():
       x_s_sq_r = torch.exp(-2 * x_logs)
       logp1 = torch.sum(-0.5 * math.log(2 * math.pi) - x_logs, [1]).unsqueeze(-1) # [b, t, 1]
@@ -859,9 +924,9 @@ class FlowGenerator(nn.Module):
       l_pitch = l_pitch / torch.sum(z_mask)
       l_pitch = torch.sum(l_pitch)
 
-    if self.use_sep and energy_norm is not None:
-      energy_norm = energy_norm.squeeze(1)
-      l_energy = self.proj_energy(x_feature, z_mask, energy_norm.unsqueeze(1), g=g, emo=emo)
+    if self.use_sep and energy is not None:
+      energy = energy.squeeze(1)
+      l_energy = self.proj_energy(x_feature, z_mask, energy.unsqueeze(1), emo=emo)
       l_energy = l_energy / torch.sum(z_mask)
       l_energy = torch.sum(l_energy)
       
@@ -927,7 +992,7 @@ class FlowGenerator(nn.Module):
       pitch = pitch.squeeze(1)
 
     if self.use_sep:
-      energy = self.proj_energy(x_feature, z_mask, g=g, noise_scale=noise_scale, reverse=True)
+      energy = self.proj_energy(x_feature, z_mask, emo=emo, noise_scale=noise_scale, reverse=True)
       #energy = self.proj_energy(x_feature, z_mask, g=g, emo=emo)
       energy = energy.squeeze(1)
       energy = torch.clamp_min(energy, 0)

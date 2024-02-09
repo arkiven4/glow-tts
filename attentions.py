@@ -90,10 +90,10 @@ class CouplingBlock(nn.Module):
     x_0, x_1 = x[:,:self.in_channels//2], x[:,self.in_channels//2:]
 
     x = self.start(x_0) * x_mask
+    x = self.wn_emo(x, x_mask, emo)
     x = self.wn(x, x_mask, g) # Coba Order nya WN ini diubah2
-    x = self.wn_emo(x, x_mask, emo) 
-    x = self.wn_pitch(x, x_mask, pitch)
     x = self.wn_energy(x, x_mask, energy)
+    x = self.wn_pitch(x, x_mask, pitch)
     out = self.end(x)
 
     z_0 = x_0
