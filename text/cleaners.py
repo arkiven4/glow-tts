@@ -15,7 +15,8 @@ hyperparameter. Some cleaners are English-specific. You'll typically want to use
 import re
 from unidecode import unidecode
 from .numbers import normalize_numbers
-
+from .japanese import japanese_to_romaji_with_accent, japanese_to_ipa, japanese_to_ipa2, japanese_to_ipa3
+from .korean import latin_to_hangul, number_to_hangul, divide_hangul
 
 # Regular expression matching whitespace:
 _whitespace_re = re.compile(r'\s+')
@@ -95,3 +96,19 @@ def english_cleaners(text):
   text = expand_abbreviations(text)
   text = collapse_whitespace(text)
   return text
+
+def japanese_cleaners(text):
+    text = japanese_to_romaji_with_accent(text)
+    if re.match('[A-Za-z]', text[-1]):
+        text += '.'
+    text = text.replace('ts', 'ʦ').replace('...', '…')
+    return text
+
+def korean_cleaners(text):
+    '''Pipeline for Korean text'''
+    text = latin_to_hangul(text)
+    text = number_to_hangul(text)
+    text = divide_hangul(text)
+    if re.match('[\u3131-\u3163]', text[-1]):
+        text += '.'
+    return text

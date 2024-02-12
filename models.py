@@ -826,16 +826,8 @@ class FlowGenerator(nn.Module):
 
     if use_sep:
       print("Use StochasticEnergyPredictor Updated") 
-      # self.proj_energy = TemporalPredictor(
-      #           hidden_channels_enc + lin_channels,
-      #           filter_size=256,
-      #           kernel_size=3,
-      #           dropout=0.1,
-      #           n_layers=2,
-      #           n_predictions=1,
-      #           gin_channels=gin_channels, emoin_channels=emoin_channels
-      # )
       self.proj_energy = StochasticEnergyPredictor(hidden_channels_enc + lin_channels, 256, 3, 0.1, 4, emoin_channels=emoin_channels)
+
     # for param in self.decoder.parameters():
     #     param.requires_grad = False
 
@@ -867,13 +859,13 @@ class FlowGenerator(nn.Module):
 
     #emo = self.gst_proj(y, y_lengths, g=g, l=l)
     if emo is not None:
-       emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
+      emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
     #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
       #emo_vad, mu_emovae = self.emb_emoVAE(emo).unsqueeze(-1) # [b, h, 1]
 
     #style_vector = self.style_encoder(y.transpose(1,2), y_mask).unsqueeze(-1) # [b, h, 1]
 
-    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=emo)
+    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=None)
 
     y_max_length = y.size(2)
     y, y_lengths, y_max_length = self.preprocess(y, y_lengths, y_max_length)
@@ -950,7 +942,7 @@ class FlowGenerator(nn.Module):
 
     #emo = self.gst_proj(y, None, g=g, l=l)
     if emo is not None:
-       emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
+      emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
     # if emo is not None:
     #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
 

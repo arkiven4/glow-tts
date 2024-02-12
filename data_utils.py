@@ -325,6 +325,7 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
         self.spk_embeds_path = hparams.spk_embeds_path
         self.emo_embeds_path = hparams.emo_embeds_path
         self.f0_embeds_path = hparams.f0_embeds_path
+        self.database_name_index = hparams.database_name_index
         self._filter_text_len()
         random.seed(1234)
         random.shuffle(self.audiopaths_lid_text)
@@ -347,7 +348,7 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
         # separate filename, speaker_id and text
         audiopath, lid, text = audiopath_lid_text[0], audiopath_lid_text[1], audiopath_lid_text[2]
         filename = audiopath.split("/")[-1].split(".")[0]
-        database_name = audiopath.split("/")[4]
+        database_name = audiopath.split("/")[self.database_name_index]
 
         text = self.get_text(text)
         mel, energy = self.get_mel(audiopath)

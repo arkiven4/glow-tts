@@ -6,6 +6,8 @@ b43c923 -> Speaker EMbed Udah kerja, dituker2 udah bisa, sayang emosinya kurang 
 5198a3b -> Emotion dari GST dan Tidak ada di Text Encoder -> Belum Selesai Trainingnya karena mau coba pake emotion embed
 <!-- Current -> Emotion Tidak ada di Deocder, Dan Amotion Add setelah Embeddding Phoneme -> Masih Training -->
 
+Jaarvi -> F0 karena predictornya jelek, model ngg bisa bagus, energy mungkin karena loss nya kecil, belum bisa maximal, Speaker Embed 70% bekerja, apa karena wn_g nya belakangan?
+
 TODO
 - Emotion gausah dimasukin ke Text Encoder
 - Add Mel Loss Coba

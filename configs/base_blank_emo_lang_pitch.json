@@ -35,7 +35,8 @@
     "n_lang": 10,
     "spk_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/spk_embeds/",
     "emo_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/emo_embeds/",
-    "f0_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/f0/"
+    "f0_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/f0/",
+    "database_name_index": 8
   },
   "model": {
     "hidden_channels": 188,
