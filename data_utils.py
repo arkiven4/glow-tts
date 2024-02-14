@@ -6,7 +6,7 @@ import torch.utils.data
 
 import commons 
 from utils import load_wav_to_torch, load_filepaths_and_text
-from text import text_to_sequence, cmudict
+from text import text_to_sequence, cleaned_text_to_sequence, cmudict
 from text.symbols import symbols
 
 
@@ -317,6 +317,7 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
         self.max_text_len = getattr(hparams, "max_text_len", 190)
         if getattr(hparams, "cmudict_path", None) is not None:
           self.cmudict = cmudict.CMUDict(hparams.cmudict_path)
+        self.cleaned_text = getattr(hparams, "cleaned_text", False)
         self.stft = commons.TacotronSTFT(
             hparams.filter_length, hparams.hop_length, hparams.win_length,
             hparams.n_mel_channels, hparams.sampling_rate, hparams.mel_fmin,
@@ -385,7 +386,11 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
         return melspec, energy
 
     def get_text(self, text):
-        text_norm = text_to_sequence(text, self.text_cleaners, getattr(self, "cmudict", None))
+        if self.cleaned_text:
+            text_norm = cleaned_text_to_sequence(text)
+        else:
+            text_norm = text_to_sequence(text, self.text_cleaners)
+            
         if self.add_blank:
             text_norm = commons.intersperse(text_norm, len(symbols)) # add a blank token, whose id number is len(symbols)
         text_norm = torch.IntTensor(text_norm)

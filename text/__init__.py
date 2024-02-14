@@ -18,6 +18,16 @@ def get_arpabet(word, dictionary):
     return "{" + word_arpabet[0] + "}"
   else:
     return word
+  
+def cleaned_text_to_sequence(cleaned_text):
+  '''Converts a string of text to a sequence of IDs corresponding to the symbols in the text.
+    Args:
+      text: string to convert to a sequence
+    Returns:
+      List of integers corresponding to the symbols in the text
+  '''
+  sequence = [_symbol_to_id[symbol] for symbol in cleaned_text]
+  return sequence
 
 
 def text_to_sequence(text, cleaner_names, dictionary=None):

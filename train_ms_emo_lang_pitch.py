@@ -210,8 +210,7 @@ def train_and_eval(rank, n_gpus, hps):
                 scheduler,
                 hps.train.learning_rate,
                 epoch,
-                os.path.join(hps.model_dir, "G_13.pth"),
-            )
+                os.path.join(hps.model_dir, "G_{}.pth".format(epoch)))
         else:
             train(
                 rank,
@@ -279,7 +278,7 @@ def train(
                 # l_energy = F.mse_loss(energy_norm, energy_pred, reduction='none')
                 # l_energy = (l_energy * z_mask).sum() / z_mask.sum()
 
-                loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.01]
+                loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.05]
                 loss_g = sum(loss_gs)
 
         scheduler.step()
@@ -394,7 +393,7 @@ def evaluate(
                 # l_energy = F.mse_loss(energy_norm, energy_pred, reduction='none')
                 # l_energy = (l_energy * z_mask).sum() / z_mask.sum()
 
-                loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.01]
+                loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.05]
                 loss_g = sum(loss_gs)
 
                 if batch_idx == 0:

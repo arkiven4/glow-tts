@@ -13,13 +13,13 @@
     "ddi": true,
     "fp16_run": true,
     "warm_start": true,
-    "warm_start_checkpoint": "logs/base_blank_emo_lang_8c3fa52/G_414.pth",
+    "warm_start_checkpoint": "FromJarvis/G_13.pth",
     "ignored_layer": ["encoder.emb.weight"]
   },
   "data": {
     "load_mel_from_disk": false,
-    "training_files":"filelists/newcombine_train_filelist.txt",
-    "validation_files":"filelists/newcombine_val_filelist.txt",
+    "training_files":"filelists/newcombine_train_filelist.txt.cleaned",
+    "validation_files":"filelists/newcombine_val_filelist.txt.cleaned",
     "text_cleaners":["universal_cleaners"],
     "max_wav_value": 32768.0,
     "sampling_rate": 22050,
@@ -31,11 +31,12 @@
     "mel_fmax": 8000.0,
     "add_noise": true,
     "add_blank": true,
+    "cleaned_text": true,
     "n_speakers": 109,
     "n_lang": 10,
     "spk_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/spk_embeds/",
     "emo_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/emo_embeds/",
-    "f0_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/f0/",
+    "f0_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/f0_straight/",
     "database_name_index": 8
   },
   "model": {
