@@ -4,21 +4,23 @@ apt install software-properties-common screen -y
 add-apt-repository ppa:deadsnakes/ppa -y
 screen
 
+git clone https://github.com/arkiven4/glow-tts
+cd glow-tts
+pip install gdown
+gdown https://drive.google.com/uc?id=12TliOfjr9zWiuYiYGVuDxQQiEWL0Azs7
+tar -xvzf ToJarvis.tar.gz
+
+screen
+cd ..
 apt-cache policy python3.8
 apt install python3.8 python3.8-distutils python3.8-dev -y
 
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python3.8 get-pip.py
 
-git clone https://github.com/arkiven4/glow-tts
 cd glow-tts
 python3.8 -m pip install -r requirements.txt
 cd monotonic_align; mkdir monotonic_align; python3.8 setup.py build_ext --inplace
-cd ..
-
-pip install gdown
-gdown https://drive.google.com/uc?id=12TliOfjr9zWiuYiYGVuDxQQiEWL0Azs7
-tar -xvzf ToJarvis.tar.gz
 
 # Configure all Setting Like DB, Dkk
 sed -i -- 's,/run/media/viblab/Markov2/Pras/Thesis,/home/glow-tts,g' filelists/*.txt
