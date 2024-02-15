@@ -8,10 +8,9 @@ from torch.nn import functional as F
 import commons
 import modules
 from modules import LayerNorm
-   
 
 class Encoder(nn.Module):
-  def __init__(self, hidden_channels, filter_channels, n_heads, n_layers, kernel_size=1, p_dropout=0., window_size=None, block_length=None, **kwargs):
+  def __init__(self, hidden_channels, filter_channels, n_heads, n_layers, kernel_size=1, p_dropout=0., window_size=None, block_length=None, gin_channels=0, emoin_channels=0,**kwargs):
     super().__init__()
     self.hidden_channels = hidden_channels
     self.filter_channels = filter_channels
@@ -21,6 +20,8 @@ class Encoder(nn.Module):
     self.p_dropout = p_dropout
     self.window_size = window_size
     self.block_length = block_length
+    self.gin_channels = gin_channels
+    self.emoin_channels = emoin_channels
 
     self.drop = nn.Dropout(p_dropout)
     self.attn_layers = nn.ModuleList()
@@ -33,10 +34,38 @@ class Encoder(nn.Module):
       self.ffn_layers.append(FFN(hidden_channels, hidden_channels, filter_channels, kernel_size, p_dropout=p_dropout))
       self.norm_layers_2.append(LayerNorm(hidden_channels))
 
-  def forward(self, x, x_mask):
+    if gin_channels != 0:
+        cond_layer_g = torch.nn.Conv1d(gin_channels, 2*hidden_channels*n_layers, 1)
+        self.cond_layer_g = torch.nn.utils.weight_norm(cond_layer_g, name='weight')
+        self.cond_pre_g = torch.nn.Conv1d(hidden_channels, 2*hidden_channels, 1)
+
+    if emoin_channels != 0:
+        cond_layer_emo = torch.nn.Conv1d(emoin_channels, 2*hidden_channels*n_layers, 1)
+        self.cond_layer_emo = torch.nn.utils.weight_norm(cond_layer_emo, name='weight')
+        self.cond_pre_emo = torch.nn.Conv1d(hidden_channels, 2*hidden_channels, 1)
+
+  def forward(self, x, x_mask, g=None, emo=None):
+    if g is not None:
+      g = self.cond_layer_g(g)
+
+    if emo is not None:
+      emo = self.cond_layer_emo(emo)
+  
     attn_mask = x_mask.unsqueeze(2) * x_mask.unsqueeze(-1)
+    x = x * x_mask
     for i in range(self.n_layers):
-      x = x * x_mask
+      if g is not None:
+        x = self.cond_pre_g(x)
+        cond_offset = i * 2 * self.hidden_channels
+        g_l = g[:,cond_offset:cond_offset+2*self.hidden_channels,:]
+        x = commons.fused_add_tanh_sigmoid_multiply(x, g_l, torch.IntTensor([self.hidden_channels]))
+
+      if emo is not None:
+        x = self.cond_pre_emo(x)
+        cond_offset = i * 2 * self.hidden_channels
+        emo_l = emo[:,cond_offset:cond_offset+2*self.hidden_channels,:]
+        x = commons.fused_add_tanh_sigmoid_multiply(x, emo_l, torch.IntTensor([self.hidden_channels]))
+
       y = self.attn_layers[i](x, x, attn_mask)
       y = self.drop(y)
       x = self.norm_layers_1[i](x + y)
@@ -90,8 +119,8 @@ class CouplingBlock(nn.Module):
     x_0, x_1 = x[:,:self.in_channels//2], x[:,self.in_channels//2:]
 
     x = self.start(x_0) * x_mask
-    x = self.wn_emo(x, x_mask, emo)
     x = self.wn(x, x_mask, g) # Coba Order nya WN ini diubah2
+    x = self.wn_emo(x, x_mask, emo)
     x = self.wn_energy(x, x_mask, energy)
     x = self.wn_pitch(x, x_mask, pitch)
     out = self.end(x)

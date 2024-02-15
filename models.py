@@ -574,13 +574,15 @@ class TextEncoder(nn.Module):
       p_dropout,
       window_size=window_size,
       block_length=block_length,
+      gin_channels=gin_channels, 
+      emoin_channels=emoin_channels
     )
 
     self.proj_m = nn.Conv1d(hidden_channels, out_channels, 1)
     if not mean_only:
       self.proj_s = nn.Conv1d(hidden_channels, out_channels, 1)
 
-  def forward(self, x, x_lengths, l=None, emo=None):
+  def forward(self, x, x_lengths, l=None, g=None, emo=None):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
     # if emo is not None:
@@ -594,7 +596,7 @@ class TextEncoder(nn.Module):
 
     if self.prenet:
       x = self.pre(x, x_mask)
-    x = self.encoder(x, x_mask)
+    x = self.encoder(x, x_mask, g=g, emo=emo)
 
     x_m = self.proj_m(x) * x_mask # Stats
     if not self.mean_only:
@@ -865,7 +867,7 @@ class FlowGenerator(nn.Module):
 
     #style_vector = self.style_encoder(y.transpose(1,2), y_mask).unsqueeze(-1) # [b, h, 1]
 
-    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, emo=None)
+    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g, emo=emo)
 
     y_max_length = y.size(2)
     y, y_lengths, y_max_length = self.preprocess(y, y_lengths, y_max_length)
