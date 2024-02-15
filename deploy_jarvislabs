@@ -7,7 +7,7 @@ screen
 git clone https://github.com/arkiven4/glow-tts
 cd glow-tts
 pip install gdown
-gdown https://drive.google.com/uc?id=12TliOfjr9zWiuYiYGVuDxQQiEWL0Azs7
+gdown https://drive.google.com/uc?id=1opCiNQCi3-baKbyw4DacYNWkr2FtFteA
 tar -xvzf ToJarvis.tar.gz
 
 screen
