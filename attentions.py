@@ -65,6 +65,9 @@ class Encoder(nn.Module):
       if i == 4 - 1 and emo is not None:
         x = x + self.cond_emo(emo.transpose(2, 1)).transpose(2, 1)
 
+      if i == 5 - 1 and l is not None:
+        x = x + l.transpose(2, 1)
+
       x = x * x_mask
       # if g is not None:
       #   x = self.cond_pre_g(x)
@@ -112,10 +115,11 @@ class CouplingBlock(nn.Module):
     end.bias.data.zero_()
     self.end = end
 
-    self.wn = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, p_dropout)
+    #self.wn = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, p_dropout)
+    self.wn = modules.WN_Combine(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, emoin_channels, p_dropout)
     self.wn_pitch = modules.WNP(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, n_sqz)
     self.wn_energy = modules.WNP(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, n_sqz)
-    self.wn_emo = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, emoin_channels, p_dropout)
+    #self.wn_emo = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, emoin_channels, p_dropout)
 
     self.pre_transformer = Encoder(
                 in_channels//2,
@@ -146,8 +150,7 @@ class CouplingBlock(nn.Module):
         x_0_ = x_0_ + x_0  # residual connection
 
     x = self.start(x_0_) * x_mask
-    x = self.wn_emo(x, x_mask, emo)
-    x = self.wn(x, x_mask, g) # Coba Order nya WN ini diubah2
+    x = self.wn(x, x_mask, g, emo)
     x = self.wn_energy(x, x_mask, energy)
     x = self.wn_pitch(x, x_mask, pitch)
     out = self.end(x)
@@ -170,7 +173,8 @@ class CouplingBlock(nn.Module):
 
   def store_inverse(self):
     self.wn.remove_weight_norm()
-    self.wn_emo.remove_weight_norm()
+    self.wn_energy.remove_weight_norm()
+    self.wn_pitch.remove_weight_norm()
 
 
 class MultiHeadAttention(nn.Module):

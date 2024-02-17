@@ -418,14 +418,12 @@ class StochasticEnergyPredictor(nn.Module):
 class TemporalPredictor(nn.Module):
     """Predicts a single float per each temporal location"""
 
-    def __init__(self, input_size, filter_size, kernel_size, dropout,
-                 n_layers=2, n_predictions=1, gin_channels=0, emoin_channels=0):
+    def __init__(self, input_size, filter_size, kernel_size, dropout, n_layers=2, n_predictions=1, gin_channels=0, emoin_channels=0):
         super(TemporalPredictor, self).__init__()
 
         self.gin_channels = gin_channels
         self.layers = nn.Sequential(*[
-            modules.ConvReLUNormFP(input_size if i == 0 else filter_size, filter_size,
-                         kernel_size=kernel_size, dropout=dropout)
+            modules.ConvReLUNormFP(input_size if i == 0 else filter_size, filter_size, kernel_size=kernel_size, dropout=dropout)
             for i in range(n_layers)]
         )
         self.n_predictions = n_predictions
@@ -550,10 +548,8 @@ class TextEncoder(nn.Module):
     self.emb = nn.Embedding(n_vocab, hidden_channels)
     nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
 
-    #self.emo_proj = nn.Conv1d(emoin_channels, hidden_channels, 1)
-
-    if lin_channels > 0:
-        hidden_channels += lin_channels
+    # if lin_channels > 0:
+    #     hidden_channels += lin_channels
 
     if use_sdp:
       print("Use StochasticDurationPredictor")
@@ -588,15 +584,15 @@ class TextEncoder(nn.Module):
     # if emo is not None:
     #   x = x + self.emo_proj(emo).transpose(2, 1) # [b, 1, h]
 
-    if l is not None:
-      x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
+    # if l is not None:
+    #   x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
 
     x = torch.transpose(x, 1, -1) # [b, h, t]
     x_mask = torch.unsqueeze(commons.sequence_mask(x_lengths, x.size(2)), 1).to(x.dtype)
 
     if self.prenet:
       x = self.pre(x, x_mask)
-    x = self.encoder(x, x_mask, g=g, emo=emo)
+    x = self.encoder(x, x_mask, g=g, l=l, emo=emo)
 
     x_m = self.proj_m(x) * x_mask # Stats
     if not self.mean_only:
@@ -795,7 +791,7 @@ class FlowGenerator(nn.Module):
 
     if self.use_spk_embeds:
       print("Use Speaker Embed Linear Norm")
-      self.emb_g = modules.LinearNorm(512, gin_channels)
+      #self.emb_g = modules.LinearNorm(512, gin_channels)
     else:
       if n_speakers > 1:
         print("Use Speaker Cathegorical")
@@ -853,7 +849,7 @@ class FlowGenerator(nn.Module):
     emo_vad = None
 
     if g is not None:
-      g = F.normalize(self.emb_g(g)).unsqueeze(-1) # [b, h, 1]
+      g = F.normalize(g).unsqueeze(-1) # [b, h, 1]
 
     if l is not None:
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h, 1]
