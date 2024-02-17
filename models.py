@@ -849,7 +849,7 @@ class FlowGenerator(nn.Module):
     emo_vad = None
 
     if g is not None:
-      g = F.normalize(g).unsqueeze(-1) # [b, h, 1]
+      g = g.unsqueeze(-1) # [b, h, 1]
 
     if l is not None:
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h, 1]
@@ -857,7 +857,7 @@ class FlowGenerator(nn.Module):
 
     #emo = self.gst_proj(y, y_lengths, g=g, l=l)
     if emo is not None:
-      emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
+      emo = self.emo_proj(emo).unsqueeze(-1)
     #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
       #emo_vad, mu_emovae = self.emb_emoVAE(emo).unsqueeze(-1) # [b, h, 1]
 
@@ -932,7 +932,7 @@ class FlowGenerator(nn.Module):
     #style_vector = self.style_encoder(y.transpose(1,2), None).unsqueeze(-1)
 
     if g is not None:
-      g = F.normalize(self.emb_g(g)).unsqueeze(-1) # [b, h]
+      g = g.unsqueeze(-1) # [b, h]
 
     if l is not None:
       l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
@@ -940,7 +940,7 @@ class FlowGenerator(nn.Module):
 
     #emo = self.gst_proj(y, None, g=g, l=l)
     if emo is not None:
-      emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
+      emo = self.emo_proj(emo).unsqueeze(-1)
     # if emo is not None:
     #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
 
