@@ -820,11 +820,11 @@ class FlowGenerator(nn.Module):
       #       n_predictions=1,
       #       gin_channels=gin_channels, emoin_channels=emoin_channels
       # )
-      self.proj_pitch = StochasticPitchPredictor(hidden_channels_enc + lin_channels, 256, 3, 0.1, 4, gin_channels=gin_channels, emoin_channels=emoin_channels)
+      self.proj_pitch = StochasticPitchPredictor(hidden_channels_enc, 256, 3, 0.1, 4, gin_channels=gin_channels, emoin_channels=emoin_channels)
 
     if use_sep:
       print("Use StochasticEnergyPredictor Updated") 
-      self.proj_energy = StochasticEnergyPredictor(hidden_channels_enc + lin_channels, 256, 3, 0.1, 4, emoin_channels=emoin_channels)
+      self.proj_energy = StochasticEnergyPredictor(hidden_channels_enc, 256, 3, 0.1, 4, emoin_channels=emoin_channels)
 
     # for param in self.decoder.parameters():
     #     param.requires_grad = False
