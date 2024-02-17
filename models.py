@@ -131,31 +131,31 @@ import monotonic_align
 
 #         return w
 
-class GST(nn.Module):
-    def __init__(self, token_num, token_embedding_size, num_heads, ref_enc_filters, n_mel_channels, ref_enc_gru_size, gin_channels=0, lin_channels=0):
-        super().__init__()
-        self.encoder = modules_gst.ReferenceEncoder(ref_enc_filters, n_mel_channels, ref_enc_gru_size)
-        self.stl = modules_gst.STL(token_num, token_embedding_size, num_heads, ref_enc_gru_size)
+# class GST(nn.Module):
+#     def __init__(self, token_num, token_embedding_size, num_heads, ref_enc_filters, n_mel_channels, ref_enc_gru_size, gin_channels=0, lin_channels=0):
+#         super().__init__()
+#         self.encoder = modules_gst.ReferenceEncoder(ref_enc_filters, n_mel_channels, ref_enc_gru_size)
+#         self.stl = modules_gst.STL(token_num, token_embedding_size, num_heads, ref_enc_gru_size)
 
-        if gin_channels != 0:
-          self.cond = nn.Conv1d(gin_channels, ref_enc_gru_size, 1)
+#         if gin_channels != 0:
+#           self.cond = nn.Conv1d(gin_channels, ref_enc_gru_size, 1)
           
-        if lin_channels != 0:
-          self.cond_l = nn.Conv1d(lin_channels, ref_enc_gru_size, 1)
+#         if lin_channels != 0:
+#           self.cond_l = nn.Conv1d(lin_channels, ref_enc_gru_size, 1)
 
-    def forward(self, inputs, input_lengths=None, g=None, l=None):
-        enc_out = self.encoder(inputs, input_lengths=input_lengths)
+#     def forward(self, inputs, input_lengths=None, g=None, l=None):
+#         enc_out = self.encoder(inputs, input_lengths=input_lengths)
         
-        if g is not None:
-          g = torch.detach(g)
-          enc_out = enc_out + self.cond(g).squeeze(-1)
+#         if g is not None:
+#           g = torch.detach(g)
+#           enc_out = enc_out + self.cond(g).squeeze(-1)
 
-        if l is not None:
-          l = torch.detach(l)
-          enc_out = enc_out + self.cond_l(l).squeeze(-1)
+#         if l is not None:
+#           l = torch.detach(l)
+#           enc_out = enc_out + self.cond_l(l).squeeze(-1)
 
-        style_embed = self.stl(enc_out).transpose(1,2)
-        return style_embed
+#         style_embed = self.stl(enc_out).transpose(1,2)
+#         return style_embed
 
 class StochasticDurationPredictor(nn.Module):
   def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, gin_channels=0, lin_channels=0, emoin_channels=0):
