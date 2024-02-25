@@ -35,10 +35,13 @@ class Encoder(nn.Module):
       self.norm_layers_2.append(LayerNorm(hidden_channels))
 
     if gin_channels != 0:
-      self.cond_g = modules.LinearNorm(gin_channels, hidden_channels)
+      self.cond_g = nn.Linear(gin_channels, hidden_channels)
 
-    if emoin_channels != 0:
-      self.cond_emo = modules.LinearNorm(emoin_channels, hidden_channels)
+    # if emoin_channels != 0:
+    #   self.cond_emo = nn.Linear(emoin_channels, hidden_channels)
+
+    # if lin_channels != 0:
+    #   self.cond_l = modules.LinearNorm(lin_channels, hidden_channels)
       
     # if gin_channels != 0:
     #     cond_layer_g = torch.nn.Conv1d(gin_channels, 2*hidden_channels*n_layers, 1)
@@ -59,27 +62,18 @@ class Encoder(nn.Module):
   
     attn_mask = x_mask.unsqueeze(2) * x_mask.unsqueeze(-1)
     for i in range(self.n_layers):
+      x = x * x_mask
       if i == 3 - 1 and g is not None:
         x = x + self.cond_g(g.transpose(2, 1)).transpose(2, 1)
 
-      if i == 4 - 1 and emo is not None:
-        x = x + self.cond_emo(emo.transpose(2, 1)).transpose(2, 1)
+      # if i == 4 - 1 and emo is not None:
+      #   x = x + self.cond_emo(emo.transpose(2, 1)).transpose(2, 1)
 
-      if i == 5 - 1 and l is not None:
-        x = x + l
-
-      x = x * x_mask
       # if g is not None:
       #   x = self.cond_pre_g(x)
       #   cond_offset = i * 2 * self.hidden_channels
       #   g_l = g[:,cond_offset:cond_offset+2*self.hidden_channels,:]
       #   x = commons.fused_add_tanh_sigmoid_multiply(x, g_l, torch.IntTensor([self.hidden_channels]))
-
-      # if emo is not None:
-      #   x = self.cond_pre_emo(x)
-      #   cond_offset = i * 2 * self.hidden_channels
-      #   emo_l = emo[:,cond_offset:cond_offset+2*self.hidden_channels,:]
-      #   x = commons.fused_add_tanh_sigmoid_multiply(x, emo_l, torch.IntTensor([self.hidden_channels]))
 
       y = self.attn_layers[i](x, x, attn_mask)
       y = self.drop(y)
@@ -115,21 +109,22 @@ class CouplingBlock(nn.Module):
     end.bias.data.zero_()
     self.end = end
 
-    self.wn = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, p_dropout)
+    #self.wn = modules.WNGE(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, emoin_channels, p_dropout=p_dropout)
     #self.wn = modules.WN_Combine(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, emoin_channels, p_dropout)
     self.wn_pitch = modules.WNP(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, n_sqz)
     self.wn_energy = modules.WNP(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, n_sqz)
+    self.wn = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, p_dropout)
     self.wn_emo = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, emoin_channels, p_dropout)
 
-    self.pre_transformer = Encoder(
-                in_channels//2,
-                in_channels//2,
-                n_heads=2,
-                n_layers=1,
-                kernel_size=3,
-                dropout=0.1,
-                window_size=None,
-            )
+    # self.pre_transformer = Encoder(
+    #             in_channels//2,
+    #             in_channels//2,
+    #             n_heads=2,
+    #             n_layers=1,
+    #             kernel_size=3,
+    #             dropout=0.1,
+    #             window_size=None,
+    #         )
 
   def forward(self, x, x_mask=None, reverse=False, g=None, emo=None, pitch=None, energy=None, **kwargs):
     b, c, t = x.size()
@@ -144,14 +139,27 @@ class CouplingBlock(nn.Module):
 
     x_0, x_1 = x[:,:self.in_channels//2], x[:,self.in_channels//2:]
 
-    x_0_ = x_0
-    if self.pre_transformer is not None:
-        x_0_ = self.pre_transformer(x_0 * x_mask, x_mask)
-        x_0_ = x_0_ + x_0  # residual connection
+    # x_0_ = x_0
+    # if self.pre_transformer is not None:
+    #     x_0_ = self.pre_transformer(x_0 * x_mask, x_mask)
+    #     x_0_ = x_0_ + x_0  # residual connection
 
-    x = self.start(x_0_) * x_mask
-    x = self.wn(x, x_mask, g)
-    x = self.wn_emo(x, x_mask, emo) + self.wn_energy(x, x_mask, energy) + self.wn_pitch(x, x_mask, pitch)
+    x = self.start(x_0) * x_mask
+    
+    #x = self.wn(x, x_mask, g, emo)
+    x = self.wn(x, x_mask, g) 
+    x = self.wn_emo(x, x_mask, emo) 
+    x = self.wn_energy(x, x_mask, energy) 
+    x = self.wn_pitch(x, x_mask, pitch)
+    #x = self.wn_emo(x, x_mask, emo)
+    # x = self.wn_energy(x, x_mask, energy)
+    # x = self.wn_pitch(x, x_mask, pitch)
+    # if emo is not None:
+    #   x = self.wn_emo(x, x_mask, emo)
+    # if energy is not None:
+    #   x = self.wn_energy(x, x_mask, energy)
+    # if pitch is not None:
+    #   x = self.wn_pitch(x, x_mask, pitch)
     out = self.end(x)
 
     z_0 = x_0

@@ -545,11 +545,17 @@ class TextEncoder(nn.Module):
     self.lin_channels = lin_channels
     self.emoin_channels = emoin_channels
 
+    if lin_channels > 0:
+        hidden_channels -= lin_channels
+
     self.emb = nn.Embedding(n_vocab, hidden_channels)
     nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
 
-    # if lin_channels > 0:
-    #     hidden_channels += lin_channels
+    # if emoin_channels != 0:
+    #   self.cond_emo = nn.Linear(emoin_channels, hidden_channels)
+
+    if lin_channels > 0:
+        hidden_channels += lin_channels
 
     if use_sdp:
       print("Use StochasticDurationPredictor")
@@ -571,6 +577,7 @@ class TextEncoder(nn.Module):
       window_size=window_size,
       block_length=block_length,
       gin_channels=gin_channels, 
+      lin_channels=0,
       emoin_channels=emoin_channels
     )
 
@@ -582,10 +589,10 @@ class TextEncoder(nn.Module):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
     # if emo is not None:
-    #   x = x + self.emo_proj(emo).transpose(2, 1) # [b, 1, h]
+    #   x = x + self.cond_emo(emo.transpose(2, 1)) # [b, 1, h]
 
-    # if l is not None:
-    #   x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
+    if l is not None:
+      x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
 
     x = torch.transpose(x, 1, -1) # [b, h, t]
     x_mask = torch.unsqueeze(commons.sequence_mask(x_lengths, x.size(2)), 1).to(x.dtype)
@@ -789,14 +796,14 @@ class FlowGenerator(nn.Module):
         gin_channels=gin_channels,
         emoin_channels=emoin_channels) # Multi Lang
 
-    if self.use_spk_embeds:
-      print("Use Speaker Embed Linear Norm")
-      #self.emb_g = modules.LinearNorm(512, gin_channels)
-    else:
-      if n_speakers > 1:
-        print("Use Speaker Cathegorical")
-        self.emb_g = nn.Embedding(n_speakers, gin_channels)
-        nn.init.uniform_(self.emb_g.weight, -0.1, 0.1)
+    # if self.use_spk_embeds:
+    #   print("Use Speaker Embed Linear Norm")
+    #   self.emb_g = nn.Linear(512, gin_channels)
+    # else:
+    #   if n_speakers > 1:
+    #     print("Use Speaker Cathegorical")
+    #     self.emb_g = nn.Embedding(n_speakers, gin_channels)
+    #     nn.init.uniform_(self.emb_g.weight, -0.1, 0.1)
     
     if self.use_lang_embeds:
       print("Use Multilanguage Cathegorical")
@@ -807,7 +814,7 @@ class FlowGenerator(nn.Module):
       #print("Use Emotion Custom Module")
       #self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size, gin_channels=gin_channels, lin_channels=lin_channels)
       print("Use Emotion Embeddings Module")
-      self.emo_proj = modules.LinearNorm(1024, emoin_channels)
+      self.emo_proj = nn.Linear(1024, emoin_channels)
 
     if use_spp:
       print("Use StochasticPitchPredictor")
@@ -845,23 +852,14 @@ class FlowGenerator(nn.Module):
     #     param.requires_grad = False
 
   def forward(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, pitch=None, energy=None, l=None):
-    mu_emovae = None
-    emo_vad = None
-
     if g is not None:
-      g = g.unsqueeze(-1) # [b, h, 1]
+      g = F.normalize(g).unsqueeze(-1) # [b, h, 1]
 
     if l is not None:
-      l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h, 1]
-      #g = torch.cat([g, l], 1)
+      l = self.emb_l(l).unsqueeze(-1) # [b, h, 1]
 
-    #emo = self.gst_proj(y, y_lengths, g=g, l=l)
     if emo is not None:
-      emo = self.emo_proj(emo).unsqueeze(-1)
-    #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
-      #emo_vad, mu_emovae = self.emb_emoVAE(emo).unsqueeze(-1) # [b, h, 1]
-
-    #style_vector = self.style_encoder(y.transpose(1,2), y_mask).unsqueeze(-1) # [b, h, 1]
+      emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
 
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g, emo=emo)
 
@@ -883,10 +881,11 @@ class FlowGenerator(nn.Module):
       energy = energy.squeeze(1)
       energy = energy[:, :y_max_length]
       energy_mask = (energy == 0.0)
-      energy[energy_mask] = 0.0
-      energy = energy.unsqueeze(1)
+      energy_norm = torch.log(torch.clamp(energy, min=torch.finfo(energy.dtype).tiny))
+      energy_norm[energy_mask] = 0.0
+      energy_norm = energy_norm.unsqueeze(1)
 
-    z, logdet = self.decoder(y, z_mask, g=g, emo=emo, pitch=pitch_norm, energy=energy, reverse=False)
+    z, logdet = self.decoder(y, z_mask, g=g, emo=emo, pitch=pitch_norm, energy=energy_norm, reverse=False)
     with torch.no_grad():
       x_s_sq_r = torch.exp(-2 * x_logs)
       logp1 = torch.sum(-0.5 * math.log(2 * math.pi) - x_logs, [1]).unsqueeze(-1) # [b, t, 1]
@@ -894,7 +893,6 @@ class FlowGenerator(nn.Module):
       logp3 = torch.matmul((x_m * x_s_sq_r).transpose(1,2), z) # [b, t, d] x [b, d, t'] = [b, t, t']
       logp4 = torch.sum(-0.5 * (x_m ** 2) * x_s_sq_r, [1]).unsqueeze(-1) # [b, t, 1]
       logp = logp1 + logp2 + logp3 + logp4 # [b, t, t']
-
       attn = monotonic_align.maximum_path(logp, attn_mask.squeeze(1)).unsqueeze(1).detach()
 
     w = attn.squeeze(1).sum(2).unsqueeze(1) # Attention Duration
@@ -909,40 +907,39 @@ class FlowGenerator(nn.Module):
     x_feature = torch.matmul(x, attn.squeeze(1))
     if self.use_spp and pitch is not None:
       pitch_norm = pitch_norm.squeeze(1)
-      #pitch_pred = self.proj_pitch(x_feature, z_mask, g=g, emo=emo)
       l_pitch = self.proj_pitch(x_feature, z_mask, pitch_norm.unsqueeze(1), g=g, emo=emo)
       l_pitch = l_pitch / torch.sum(z_mask)
       l_pitch = torch.sum(l_pitch)
 
     if self.use_sep and energy is not None:
-      energy = energy.squeeze(1)
-      l_energy = self.proj_energy(x_feature, z_mask, energy.unsqueeze(1), emo=emo)
+      energy_norm = energy_norm.squeeze(1)
+      l_energy = self.proj_energy(x_feature, z_mask, energy_norm.unsqueeze(1), emo=emo)
       l_energy = l_energy / torch.sum(z_mask)
       l_energy = torch.sum(l_energy)
-      
-    #pitch_pred = self.proj_pitch(x_feature, z_mask, g=g, emo=emo)
-    #energy_pred = self.proj_energy(x_feature, z_mask, g=g, emo=emo)
 
     # expand prior
     z_m = torch.matmul(attn.squeeze(1).transpose(1, 2), x_m.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     z_logs = torch.matmul(attn.squeeze(1).transpose(1, 2), x_logs.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
-    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length, l_pitch, l_energy), (None, emo_vad, mu_emovae), (None, None)
+
+    # z_gen = (z_m + torch.exp(z_logs) * torch.randn_like(z_m) * 1.) * z_mask
+    # y_gen, _ = self.decoder(z_gen, z_mask, g=g, emo=emo, pitch=pitch_norm, energy=energy_norm, reverse=True)
+
+    # y_slice, slice_ids = commons.rand_segments(y, y_lengths, 64, let_short_samples=True, pad_short=True)
+    # y_gen = commons.segment(y_gen, slice_ids, 64, pad_short=True)
+    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length, l_pitch, l_energy) # (attn, l_length, l_pitch, l_energy)
 
   def infer(self, x, x_lengths, y=None, g=None, emo=None, l=None, noise_scale=1., length_scale=1., pitch_scale=0.0, energy_scale=0.0):
     #style_vector = self.style_encoder(y.transpose(1,2), None).unsqueeze(-1)
 
     if g is not None:
-      g = g.unsqueeze(-1) # [b, h]
+      g = F.normalize(g).unsqueeze(-1) # [b, h]
 
     if l is not None:
-      l = F.normalize(self.emb_l(l)).unsqueeze(-1) # [b, h]
+      l = self.emb_l(l).unsqueeze(-1) # [b, h]
       #g = torch.cat([g, l], 1)
 
-    #emo = self.gst_proj(y, None, g=g, l=l)
     if emo is not None:
-      emo = self.emo_proj(emo).unsqueeze(-1)
-    # if emo is not None:
-    #   emo_vad = self.emb_emo(emo).unsqueeze(-1) # [b, h, 1]
+      emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
 
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g, emo=emo)
 

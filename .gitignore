@@ -19,3 +19,5 @@ FromJarvis
 Database
 *.pth
 *.tar.gz
+BigVGAN_
+Temp_jarvis

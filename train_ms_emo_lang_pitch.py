@@ -210,7 +210,8 @@ def train_and_eval(rank, n_gpus, hps):
                 scheduler,
                 hps.train.learning_rate,
                 epoch,
-                os.path.join(hps.model_dir, "G_{}.pth".format(epoch)))
+                os.path.join(hps.model_dir, "G_11.pth"))
+                #os.path.join(hps.model_dir, "G_{}.pth".format(epoch)))
         else:
             train(
                 rank,
@@ -263,12 +264,13 @@ def train(
             (
                 (z, z_m, z_logs, logdet, z_mask),
                 (_, _, _),
-                (attn, l_length, l_pitch, l_energy),
-                (_, _, _),
-                (_, _)
+                (attn, l_length, l_pitch, l_energy)
             ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, pitch=pitchs, energy=energys, l=lids)
 
             with autocast(enabled=False):
+                # y_slice, slice_ids = commons.rand_segments(y, y_lengths, 128, let_short_samples=True, pad_short=True)
+                # y_gen_slice = commons.segment(y_gen.float(), slice_ids, 128, pad_short=True)
+
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 l_length = torch.sum(l_length.float())
 
@@ -278,7 +280,7 @@ def train(
                 # l_energy = F.mse_loss(energy_norm, energy_pred, reduction='none')
                 # l_energy = (l_energy * z_mask).sum() / z_mask.sum()
 
-                loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.05]
+                loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.5]
                 loss_g = sum(loss_gs)
 
         scheduler.step()
@@ -329,10 +331,13 @@ def train(
                             y_gen[0].data.cpu().numpy()[:, 0:halflen_mel] - y[0].data.cpu().numpy()[:, 0:halflen_mel]
                         ),
                         # "2_y_org_slice": utils.plot_spectrogram_to_numpy(
-                        #     y_slice[0].data.cpu().numpy()[:, 0:halflen_mel]
+                        #     y_slice[0].data.cpu().numpy()
                         # ),
                         # "2_y_gen_slice": utils.plot_spectrogram_to_numpy(
-                        #     y_gen_slice[0].data.cpu().numpy()[:, 0:halflen_mel]
+                        #     y_gen_slice[0].data.cpu().numpy()
+                        # ),
+                        # "2_y_diff": utils.plot_spectrogram_to_numpy(
+                        #     y_gen_slice[0].data.cpu().numpy()[:, 0:halflen_mel] - y_slice[0].data.cpu().numpy()[:, 0:halflen_mel]
                         # ),
                         "0_attn": utils.plot_alignment_to_numpy(
                             attn[0, 0].data.cpu().numpy()
@@ -383,17 +388,16 @@ def evaluate(
                 (
                     (z, z_m, z_logs, logdet, z_mask),
                     (_, _, _),
-                    (_, l_length, l_pitch, l_energy),
-                    (_, _, _),
-                    (_, _)
+                    (_, l_length, l_pitch, l_energy)
                 ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, pitch=pitchs, energy=energys, l=lids)
+                
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 l_length = torch.sum(l_length.float())
 
                 # l_energy = F.mse_loss(energy_norm, energy_pred, reduction='none')
                 # l_energy = (l_energy * z_mask).sum() / z_mask.sum()
 
-                loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.05]
+                loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.5]
                 loss_g = sum(loss_gs)
 
                 if batch_idx == 0:
