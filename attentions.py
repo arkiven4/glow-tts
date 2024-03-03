@@ -10,7 +10,7 @@ import modules
 from modules import LayerNorm
 
 class Encoder(nn.Module):
-  def __init__(self, hidden_channels, filter_channels, n_heads, n_layers, kernel_size=1, p_dropout=0., window_size=None, block_length=None, gin_channels=0, lin_channels=0, emoin_channels=0,**kwargs):
+  def __init__(self, hidden_channels, filter_channels, n_heads, n_layers, kernel_size=1, p_dropout=0., window_size=None, block_length=None, gin_channels=0, **kwargs):
     super().__init__()
     self.hidden_channels = hidden_channels
     self.filter_channels = filter_channels
@@ -21,7 +21,6 @@ class Encoder(nn.Module):
     self.window_size = window_size
     self.block_length = block_length
     self.gin_channels = gin_channels
-    self.emoin_channels = emoin_channels
 
     self.drop = nn.Dropout(p_dropout)
     self.attn_layers = nn.ModuleList()
@@ -53,7 +52,7 @@ class Encoder(nn.Module):
     #     self.cond_layer_emo = torch.nn.utils.weight_norm(cond_layer_emo, name='weight')
     #     self.cond_pre_emo = torch.nn.Conv1d(hidden_channels, 2*hidden_channels, 1)
 
-  def forward(self, x, x_mask, g=None, l=None, emo=None):
+  def forward(self, x, x_mask, g=None):
     # if g is not None:
     #   g = self.cond_layer_g(g)
 

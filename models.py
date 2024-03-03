@@ -576,16 +576,14 @@ class TextEncoder(nn.Module):
       p_dropout,
       window_size=window_size,
       block_length=block_length,
-      gin_channels=gin_channels, 
-      lin_channels=0,
-      emoin_channels=emoin_channels
+      gin_channels=gin_channels
     )
 
     self.proj_m = nn.Conv1d(hidden_channels, out_channels, 1)
     if not mean_only:
       self.proj_s = nn.Conv1d(hidden_channels, out_channels, 1)
 
-  def forward(self, x, x_lengths, l=None, g=None, emo=None):
+  def forward(self, x, x_lengths, l=None, g=None):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
     # if emo is not None:
@@ -599,7 +597,7 @@ class TextEncoder(nn.Module):
 
     if self.prenet:
       x = self.pre(x, x_mask)
-    x = self.encoder(x, x_mask, g=g, l=l, emo=emo)
+    x = self.encoder(x, x_mask, g=g)
 
     x_m = self.proj_m(x) * x_mask # Stats
     if not self.mean_only:
@@ -861,7 +859,7 @@ class FlowGenerator(nn.Module):
     if emo is not None:
       emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
 
-    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g, emo=emo)
+    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g)
 
     y_max_length = y.size(2)
     y, y_lengths, y_max_length = self.preprocess(y, y_lengths, y_max_length)
@@ -928,20 +926,17 @@ class FlowGenerator(nn.Module):
     # y_gen = commons.segment(y_gen, slice_ids, 64, pad_short=True)
     return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length, l_pitch, l_energy) # (attn, l_length, l_pitch, l_energy)
 
-  def infer(self, x, x_lengths, y=None, g=None, emo=None, l=None, noise_scale=1., length_scale=1., pitch_scale=0.0, energy_scale=0.0):
-    #style_vector = self.style_encoder(y.transpose(1,2), None).unsqueeze(-1)
-
+  def infer(self, x, x_lengths, y=None, g=None, emo=None, l=None, noise_scale=1., f0_noise_scale=1., energy_noise_scale=1., length_scale=1., pitch_scale=0.0, energy_scale=0.0):
     if g is not None:
       g = F.normalize(g).unsqueeze(-1) # [b, h]
 
     if l is not None:
       l = self.emb_l(l).unsqueeze(-1) # [b, h]
-      #g = torch.cat([g, l], 1)
 
     if emo is not None:
       emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
 
-    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g, emo=emo)
+    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g)
 
     if self.use_sdp:
       logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=emo, reverse=True, noise_scale=noise_scale)
@@ -966,8 +961,7 @@ class FlowGenerator(nn.Module):
     
     x_feature = torch.matmul(x, attn.squeeze(1))
     if self.use_spp:
-      pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo, noise_scale=noise_scale, reverse=True)
-      #pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo)
+      pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo, noise_scale=f0_noise_scale, reverse=True)
       pitch = pitch.squeeze(1)
       pitch = torch.clamp_min(pitch, 0)
       if pitch.shape[-1] != z.shape[-1]:
@@ -979,8 +973,7 @@ class FlowGenerator(nn.Module):
       pitch = pitch.squeeze(1)
 
     if self.use_sep:
-      energy = self.proj_energy(x_feature, z_mask, emo=emo, noise_scale=noise_scale, reverse=True)
-      #energy = self.proj_energy(x_feature, z_mask, g=g, emo=emo)
+      energy = self.proj_energy(x_feature, z_mask, emo=emo, noise_scale=energy_noise_scale, reverse=True)
       energy = energy.squeeze(1)
       energy = torch.clamp_min(energy, 0)
       if energy.shape[-1] != z.shape[-1]:

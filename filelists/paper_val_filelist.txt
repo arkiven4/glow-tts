@@ -1,0 +1,150 @@
+Database/ESD/wavs/0011/Happy/0011_001038.wav|0|paul's teeth ached because of lemon.
+Database/ESD/wavs/0015/Angry/0015_000548.wav|0|i'd shoot myself. a pause.
+Database/VIBID/wavs/Marah/vibid_mdpa_292.wav|2|jangan bohong.
+Database/ESD/wavs/0011/Sad/0011_001117.wav|0|i suppose no, it doesn't!
+Database/ESD/wavs/0011/Surprise/0011_001562.wav|0|i lent george three pounds.
+Database/VIBID/wavs/Natural/vibid_fena_1218.wav|2|bagaimana sikap para pekerja di pabrik dengan kehadiran banyak karyawan magang baru?
+Database/ESD/wavs/0016/Angry/0016_000691.wav|0|enough,you a foolish chatter.
+Database/ESD/wavs/0017/Surprise/0017_001456.wav|0|your midget wife never can sing a song.
+Database/ESD/wavs/0020/Angry/0020_000525.wav|0|all this have we won by our labour.
+Database/ESD/wavs/0018/Angry/0018_000638.wav|0|she has felt shy of it.
+Database/ESD/wavs/0020/Sad/0020_001122.wav|0|how are you, dear child?
+Database/ESD/wavs/0013/Angry/0013_000647.wav|0|how tom and jerry went to visit mister sam.
+Database/ESD/wavs/0018/Surprise/0018_001731.wav|0|she'll be feverish after so much thinking.
+Database/ESD/wavs/0015/Sad/0015_001322.wav|0|no admittance except on party business.
+Database/VIBID/wavs/Natural/vibid_fena_0850.wav|2|mereka mengemukakan aspek-aspek pandangan yang berbeda dan topik yang sama.
+Database/ESD/wavs/0012/Neutral/0012_000108.wav|0|the squire himself showed perfect.
+Database/ESD/wavs/0014/Surprise/0014_001500.wav|0|well anyhow it didn't rain, he said.
+Database/VIBID/wavs/Sedih/vibid_fyat_458.wav|2|jangan mencela orang lemah sepertiku.
+Database/VIBID/wavs/Natural/vibid_mmht_1185.wav|2|dimana tempat sampah terdekat yang dapat digunakan untuk membuang kotoran kering?
+Database/ESD/wavs/0015/Sad/0015_001371.wav|0|called out the cloud.
+Database/ESD/wavs/0019/Sad/0019_001253.wav|0|i was not grabbed.
+Database/ESD/wavs/0019/Sad/0019_001304.wav|0|she laughed.
+Database/VIBID/wavs/Bahagia/vibid_mdpa_024.wav|2|ayo kita masuk ke kelas.
+Database/ESD/wavs/0018/Sad/0018_001203.wav|0|but we are not high yet.
+Database/ESD/wavs/0015/Angry/0015_000559.wav|0|a raging fire was-in his eyes.
+Database/VIBID/wavs/Natural/vibid_mmht_0597.wav|2|jangan mudah tertipu daya oleh manusia lemah.
+Database/ESD/wavs/0014/Angry/0014_000430.wav|0|then there was a report.
+Database/ESD/wavs/0013/Happy/0013_000908.wav|0|however, somebody killed something.
+Database/VIBID/wavs/Natural/vibid_fena_0246.wav|2|tempat tinggal anak ayam seharusnya dibuat sehangat mungkin.
+Database/ESD/wavs/0013/Surprise/0013_001554.wav|0|he dreamt them all night.
+Database/ESD/wavs/0011/Sad/0011_001371.wav|0|called out the cloud.
+Database/VIBID/wavs/Natural/vibid_mmht_0592.wav|2|barang yang dibelikan ayah cepat sekali rusak.
+Database/ESD/wavs/0013/Surprise/0013_001629.wav|0|the first year they sowed rye.
+Database/ESD/wavs/0019/Surprise/0019_001491.wav|0|we expected tom would jump for joy.
+Database/ESD/wavs/0011/Happy/0011_000719.wav|0|at the end of four.
+Database/VIBID/wavs/Natural/vibid_mmht_0636.wav|2|harga lukisan yang mahal itu sesuai dengan keindahannya.
+Database/ESD/wavs/0018/Angry/0018_000500.wav|0|i hope you enjoyed yourself?
+Database/ESD/wavs/0012/Angry/0012_000369.wav|0|at the end of four.
+Database/ESD/wavs/0019/Neutral/0019_000206.wav|0|still you owe it a duty.
+Database/ESD/wavs/0020/Angry/0020_000462.wav|0|clown, to call him joey.
+Database/VIBID/wavs/Natural/vibid_fena_0640.wav|2|coba bersabarlah dulu dengan kondisimu sekarang.
+Database/VIBID/wavs/Natural/vibid_mmht_0814.wav|2|kekuatan moral menekankan bahwa sebagai mahasiswa kita harus memiliki moral yang mulia.
+Database/ESD/wavs/0020/Neutral/0020_000196.wav|0|clear are your eyes and bright your breath!
+Database/ESD/wavs/0012/Sad/0012_001321.wav|0|i say i will be emperor.
+Database/VIBID/wavs/Natural/vibid_fena_0803.wav|2|dalam kehidupan di kampus terdapat nilai-nilai penting yang nantinya akan menjadi suatu pedoman.
+Database/ESD/wavs/0020/Angry/0020_000535.wav|0|the new born baby is stolen as we go.
+Database/VIBID/wavs/Natural/vibid_fena_1278.wav|2|mengapa bapak tua itu tidak mau mengakuinya sebagai anak?
+Database/ESD/wavs/0020/Sad/0020_001240.wav|0|and they were sandy yellow brownish all over.
+Database/VIBID/wavs/Natural/vibid_mmht_0428.wav|2|banjir bandang kemarin memakan banyak korban.
+Database/ESD/wavs/0014/Sad/0014_001207.wav|0|blackbird, and jay.
+Database/ESD/wavs/0019/Surprise/0019_001736.wav|0|over them swooped the eagles.
+Database/VIBID/wavs/Natural/vibid_mmht_1255.wav|2|mengapa adik tidak diiznkan untuk mengikuti perlombaan itu?
+Database/ESD/wavs/0020/Neutral/0020_000033.wav|0|this used to be jerry's occupation.
+Database/VIBID/wavs/Marah/vibid_mdpa_629.wav|2|jangan suka mengintip jawaban ujian siswa lain.
+Database/ESD/wavs/0017/Neutral/0017_000295.wav|0|i know how to obey orders.
+Database/VIBID/wavs/Sedih/vibid_mdpa_436.wav|2|jangan berangkat hari ini.
+Database/ESD/wavs/0018/Neutral/0018_000077.wav|0|but i saw you walking.
+Database/ESD/wavs/0020/Happy/0020_001035.wav|0|but things haven't change yet.
+Database/ESD/wavs/0014/Surprise/0014_001639.wav|0|this is the way that snakes always talk.
+Database/ESD/wavs/0020/Happy/0020_000815.wav|0|he might call it, for example.
+Database/VIBID/wavs/Natural/vibid_fena_0929.wav|2|patuhi apa yang telah diatur oleh ayah karena tidak akan merugikan untuk anaknya.
+Database/VIBID/wavs/Natural/vibid_fena_1145.wav|2|berapa biaya rumah sakit yang diperlukan untuk pengobatan anak kecil penderita tumor ganas?
+Database/ESD/wavs/0018/Surprise/0018_001703.wav|0|i am loath to see him go.
+Database/ESD/wavs/0013/Sad/0013_001189.wav|0|cuckoos is downheaded and crying.
+Database/VIBID/wavs/Natural/vibid_fena_0447.wav|2|dia sudah dua kali pindah sekolah ke luar kota.
+Database/ESD/wavs/0020/Surprise/0020_001447.wav|0|please excuse me.
+Database/ESD/wavs/0011/Neutral/0011_000200.wav|0|that cloth does not look worth much!
+Database/VIBID/wavs/Bahagia/vibid_mdpa_206.wav|2|bukan main hebatnya ruben memainkan biola itu.
+Database/ESD/wavs/0019/Angry/0019_000365.wav|0|poor tom now is dead!
+Database/VIBID/wavs/Natural/vibid_mmht_0403.wav|2|aku menanam bunga mawar di depan rumah.
+Database/ESD/wavs/0016/Neutral/0016_000168.wav|0|i said you looked like an egg, sir.
+Database/VIBID/wavs/Natural/vibid_mmht_0755.wav|2|guru besar telah menghasilkan banyak karya yang sungguh mengagumkan dan membuat kami terkesima.
+Database/ESD/wavs/0020/Happy/0020_000762.wav|0|tom, went on eeyore gloomily.
+Database/ESD/wavs/0020/Happy/0020_000871.wav|0|i say neither yea nor nay.
+Database/VIBID/wavs/Natural/vibid_mmht_0250.wav|2|dia sudah lama mendiami tempat yang seram ini.
+Database/VIBID/wavs/Natural/vibid_fena_0868.wav|2|timbulnya ego merupakan bukan masalah kecil yang dapat dikesampingkan begitu saja.
+Database/VIBID/wavs/Natural/vibid_fena_0805.wav|2|dalam pembuatannya membutuhkan proses, pemikiran, waktu, tenaga, dan biaya yang sangat menguras.
+Database/VIBID/wavs/Marah/vibid_fyat_253.wav|2|jangan menyulut amarah orang lain.
+Database/VIBID/wavs/Natural/vibid_fena_1127.wav|2|baikkah jika seorang janda bertamu sendirian ke rumah seorang duda beranak satu?
+Database/VIBID/wavs/Natural/vibid_mmht_0243.wav|2|para mahasiswa sedang mempersiapkan diri untuk menghadapi ujian tengah semester.
+Database/VIBID/wavs/Natural/vibid_fena_0341.wav|2|singkong harus difermentasi agar menjadi tape.
+Database/ESD/wavs/0016/Angry/0016_000669.wav|0|how could i dig burrows with short toe nails?
+Database/VIBID/wavs/Natural/vibid_fena_0080.wav|2|rumahku di tepi jalan raya utama kota ini.
+Database/ESD/wavs/0015/Angry/0015_000365.wav|0|poor tom now is dead!
+Database/VIBID/wavs/Natural/vibid_mmht_0061.wav|2|tulisan surat itu tidak terbaca dengan jelas.
+Database/ESD/wavs/0012/Surprise/0012_001521.wav|0|finn and the fairy shoemaker.
+Database/ESD/wavs/0012/Happy/0012_001027.wav|0|it's part of my secret.
+Database/VIBID/wavs/Sedih/vibid_mdpa_539.wav|2|berikanlah dia kebebasan.
+Database/VIBID/wavs/Natural/vibid_fena_0473.wav|2|aku membelikan hadiah ulang tahun untuk ayahku.
+Database/ESD/wavs/0016/Sad/0016_001096.wav|0|they'd never know i'd regular ran away.
+Database/VIBID/wavs/Natural/vibid_mmht_0435.wav|2|warga desa berkumpul di balai desa hari ini.
+Database/VIBID/wavs/Natural/vibid_fena_0434.wav|2|sudah lama dia merantau ke kota padat penduduk itu.
+Database/VIBID/wavs/Marah/vibid_mdpa_373.wav|2|baca pesanku dengan baik.
+Database/ESD/wavs/0020/Surprise/0020_001638.wav|0|today isn't any other day.
+Database/VIBID/wavs/Sedih/vibid_fyat_560.wav|2|bersabarlah.
+Database/ESD/wavs/0011/Happy/0011_001020.wav|0|goat billy asked the old chinese guy.
+Database/ESD/wavs/0020/Angry/0020_000502.wav|0|guilty for what do you rule?
+Database/ESD/wavs/0020/Sad/0020_001090.wav|0|in which fox loses a tail and its elder sister finds one.
+Database/VIBID/wavs/Natural/vibid_fena_0416.wav|2|daerah itu cocok untuk perkebunan kelapa sawit.
+Database/ESD/wavs/0016/Happy/0016_000947.wav|0|she and i are running a neck and neck race.
+Database/ESD/wavs/0015/Angry/0015_000692.wav|0|why should i purchase my own?
+Database/ESD/wavs/0020/Sad/0020_001269.wav|0|but the tune isn't his own invention.
+Database/VIBID/wavs/Natural/vibid_mmht_0006.wav|2|besok saya pergi ke toko baju bersama ibu.
+Database/VIBID/wavs/Bahagia/vibid_fyat_605.wav|2|jangan lupa kalau ada perayaan hari raya waisak di bulan mei ini.
+Database/VIBID/wavs/Natural/vibid_mmht_0554.wav|2|bengkuang yang baru saja dipetik itu sangat segar rasanya.
+Database/ESD/wavs/0015/Angry/0015_000542.wav|0|i have had to grow old.
+Database/ESD/wavs/0011/Surprise/0011_001408.wav|0|that was his chief thought.
+Database/VIBID/wavs/Natural/vibid_fena_1525.wav|2|dua orang warga sipil tewas terhantam papan reklame yang tumbang akibat angin kencang.
+Database/ESD/wavs/0018/Neutral/0018_000215.wav|0|he likes dragons very much.
+Database/ESD/wavs/0011/Angry/0011_000472.wav|0|am i an absolute pauper?
+Database/VIBID/wavs/Natural/vibid_mmht_0008.wav|2|ibu menyirami bunga di halaman setiap sore.
+Database/VIBID/wavs/Marah/vibid_fyat_624.wav|2|cepat pulang ini sudah bulan mei.
+Database/ESD/wavs/0014/Sad/0014_001149.wav|0|i've hit the wrong nose.
+Database/ESD/wavs/0011/Sad/0011_001372.wav|0|a special pot too.
+Database/ESD/wavs/0015/Surprise/0015_001600.wav|0|that cloth does not look worth much!
+Database/VIBID/wavs/Natural/vibid_mmht_1439.wav|2|berapakah jumlah instrumen optik yang ada di laboratorium fotonika?
+Database/ESD/wavs/0019/Sad/0019_001360.wav|0|why it is just like the round egg which sounds thin.
+Database/ESD/wavs/0020/Angry/0020_000593.wav|0|and has you slain him?
+Database/VIBID/wavs/Natural/vibid_fena_1376.wav|2|kapankah seorang kepala departemen membiarkan bawahannya mandiri?
+Database/VIBID/wavs/Natural/vibid_fena_0130.wav|2|berdoalah sebelum memulai aktivitasmu hari ini.
+Database/VIBID/wavs/Natural/vibid_fena_0300.wav|2|ibu memasak sarapan pagi sebelum berangkat kerja.
+Database/ESD/wavs/0011/Angry/0011_000567.wav|0|you cruelty shall cost your life !
+Database/ESD/wavs/0016/Surprise/0016_001665.wav|0|i've just shot a stag.
+Database/VIBID/wavs/Marah/vibid_mdpa_283.wav|2|naufal jangan menyela percakapan orang dewasa.
+Database/VIBID/wavs/Bahagia/vibid_mdpa_115.wav|2|barislah yang teratur jangan berdesak desakan.
+Database/VIBID/wavs/Natural/vibid_mmht_0236.wav|2|kebutuhan air minum merupakan faktor utama bagi manusia.
+Database/ESD/wavs/0013/Surprise/0013_001570.wav|0|but if you hadn't done them.
+Database/VIBID/wavs/Marah/vibid_mdpa_630.wav|2|jangan kau bunuh tupai tak berdosa itu zivon.
+Database/ESD/wavs/0020/Angry/0020_000529.wav|0|daisy creams with pink edges.
+Database/ESD/wavs/0018/Happy/0018_000876.wav|0|she just smiled calmly, mother knows that is the best smile.
+Database/VIBID/wavs/Natural/vibid_mmht_0254.wav|2|menunggu orang lain tanpa kepastian itu sungguh membosankan.
+Database/ESD/wavs/0018/Surprise/0018_001470.wav|0|tom now let our arrows fly!
+Database/ESD/wavs/0012/Happy/0012_000965.wav|0|i've just shot a stag.
+Database/VIBID/wavs/Natural/vibid_mmht_1370.wav|2|kapan para ahli biologi melakukan penelitian mikroorganisme?
+Database/ESD/wavs/0019/Happy/0019_000950.wav|0|her kind and firm glance.
+Database/VIBID/wavs/Natural/vibid_mmht_0964.wav|2|membiasakan diri untuk tidak keluar malam hari adalah baik untuk kesehatan tubuh.
+Database/VIBID/wavs/Natural/vibid_fena_1121.wav|2|mengapa sangnat sulit menanamkan sikap optimis kepada generasi penerus bangsa?
+Database/ESD/wavs/0016/Sad/0016_001354.wav|0|how do you like you dirty bird!
+Database/ESD/wavs/0016/Angry/0016_000384.wav|0|a divine wrath made her blue eyes awful.
+Database/VIBID/wavs/Natural/vibid_fena_0989.wav|2|konsep yang akan dikembangkan dalam program kreativitas mahasiswa gagasan tertulis kali ini adalah mendesain sebuah sistem.
+Database/VIBID/wavs/Natural/vibid_fena_1372.wav|2|siapa yang berani mengajak kakak pergi ke gunung semeru?
+Database/VIBID/wavs/Natural/vibid_fena_1324.wav|2|apakah forum ini dapat dikatakan memiliki nilai edukasi?
+Database/VIBID/wavs/Natural/vibid_mmht_0180.wav|2|suara penyiar radio itu enak di dengar.
+Database/VIBID/wavs/Natural/vibid_fena_0216.wav|2|pemerintah merencanakan akan menambah jumlah kereta api saat hari liburan.
+Database/ESD/wavs/0017/Angry/0017_000573.wav|0|pick, pick, pick!
+Database/ESD/wavs/0017/Angry/0017_000563.wav|0|let it give us a chance, my precious.
+Database/VIBID/wavs/Natural/vibid_mmht_1174.wav|2|tidakkah orang-orang itu menyadari bahwa harta di dunia yang kita miliki hanyalah titipan?
+Database/ESD/wavs/0016/Angry/0016_000435.wav|0|suppose i take grandmother a fresh vegetable.
+Database/VIBID/wavs/Natural/vibid_mmht_0926.wav|2|kamar tidur yang biasa ditempati oleh eyang sekarang dijadikan gudang barang bekas dan usang.
+Database/ESD/wavs/0018/Neutral/0018_000278.wav|0|i know you .
