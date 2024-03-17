@@ -210,8 +210,8 @@ def train_and_eval(rank, n_gpus, hps):
                 scheduler,
                 hps.train.learning_rate,
                 epoch,
-                os.path.join(hps.model_dir, "G_11.pth"))
-                #os.path.join(hps.model_dir, "G_{}.pth".format(epoch)))
+                #os.path.join(hps.model_dir, "G_11.pth"))
+                os.path.join(hps.model_dir, "G_{}.pth".format(epoch)))
         else:
             train(
                 rank,
@@ -264,7 +264,8 @@ def train(
             (
                 (z, z_m, z_logs, logdet, z_mask),
                 (_, _, _),
-                (attn, l_length, l_pitch, l_energy)
+                (attn, l_length, l_pitch, l_energy),
+                (pitch_norm, pred_pitch, energy_norm, pred_energy)
             ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, pitch=pitchs, energy=energys, l=lids)
 
             with autocast(enabled=False):
@@ -274,10 +275,10 @@ def train(
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 l_length = torch.sum(l_length.float())
 
-                # l_pitch = F.mse_loss(pitch_norm, pitch_pred, reduction='none')
+                # l_pitch = F.mse_loss(pitch_norm, pred_pitch, reduction='none')
                 # l_pitch = (l_pitch * z_mask).sum() / z_mask.sum()
 
-                # l_energy = F.mse_loss(energy_norm, energy_pred, reduction='none')
+                # l_energy = F.mse_loss(energy_norm, pred_energy, reduction='none')
                 # l_energy = (l_energy * z_mask).sum() / z_mask.sum()
 
                 loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.5]
@@ -388,13 +389,17 @@ def evaluate(
                 (
                     (z, z_m, z_logs, logdet, z_mask),
                     (_, _, _),
-                    (_, l_length, l_pitch, l_energy)
+                    (_, l_length, l_pitch, l_energy),
+                    (pitch_norm, pred_pitch, energy_norm, pred_energy)
                 ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, pitch=pitchs, energy=energys, l=lids)
                 
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 l_length = torch.sum(l_length.float())
 
-                # l_energy = F.mse_loss(energy_norm, energy_pred, reduction='none')
+                # l_pitch = F.mse_loss(pitch_norm, pred_pitch, reduction='none')
+                # l_pitch = (l_pitch * z_mask).sum() / z_mask.sum()
+
+                # l_energy = F.mse_loss(energy_norm, pred_energy, reduction='none')
                 # l_energy = (l_energy * z_mask).sum() / z_mask.sum()
 
                 loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.5]

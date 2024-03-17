@@ -113,7 +113,7 @@ class CouplingBlock(nn.Module):
     self.wn_pitch = modules.WNP(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, n_sqz)
     self.wn_energy = modules.WNP(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, n_sqz)
     self.wn = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, p_dropout)
-    self.wn_emo = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, emoin_channels, p_dropout)
+    #self.wn_emo = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, emoin_channels, p_dropout)
 
     # self.pre_transformer = Encoder(
     #             in_channels//2,
@@ -147,7 +147,7 @@ class CouplingBlock(nn.Module):
     
     #x = self.wn(x, x_mask, g, emo)
     x = self.wn(x, x_mask, g) 
-    x = self.wn_emo(x, x_mask, emo) 
+    #x = self.wn_emo(x, x_mask, emo) 
     x = self.wn_energy(x, x_mask, energy) 
     x = self.wn_pitch(x, x_mask, pitch)
     #x = self.wn_emo(x, x_mask, emo)
@@ -179,7 +179,7 @@ class CouplingBlock(nn.Module):
 
   def store_inverse(self):
     self.wn.remove_weight_norm()
-    self.wn_emo.remove_weight_norm()
+    #self.wn_emo.remove_weight_norm()
     self.wn_energy.remove_weight_norm()
     self.wn_pitch.remove_weight_norm()
 

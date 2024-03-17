@@ -306,6 +306,7 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
     """
     def __init__(self, audiopaths_lid_text, hparams):
         self.audiopaths_lid_text = load_filepaths_and_text(audiopaths_lid_text)
+        print(len(self.audiopaths_lid_text))
         self.text_cleaners = hparams.text_cleaners
         self.max_wav_value = hparams.max_wav_value
         self.sampling_rate = hparams.sampling_rate

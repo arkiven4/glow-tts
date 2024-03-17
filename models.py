@@ -691,7 +691,7 @@ class FlowGenerator(nn.Module):
       out_channels,
       kernel_size=3, 
       n_heads=2, 
-      n_layers_enc=6,
+      n_layers_enc=10,
       p_dropout=0., 
       n_blocks_dec=12, 
       kernel_size_dec=5, 
@@ -808,16 +808,16 @@ class FlowGenerator(nn.Module):
       self.emb_l = nn.Embedding(n_lang, lin_channels)
       torch.nn.init.xavier_uniform_(self.emb_l.weight)
 
-    if self.use_emo_embeds:
-      #print("Use Emotion Custom Module")
-      #self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size, gin_channels=gin_channels, lin_channels=lin_channels)
-      print("Use Emotion Embeddings Module")
-      self.emo_proj = nn.Linear(1024, emoin_channels)
+    # if self.use_emo_embeds:
+    #   #print("Use Emotion Custom Module")
+    #   #self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size, gin_channels=gin_channels, lin_channels=lin_channels)
+    #   print("Use Emotion Embeddings Module")
+    #   self.emo_proj = nn.Linear(1024, emoin_channels)
 
     if use_spp:
       print("Use StochasticPitchPredictor")
       # self.proj_pitch = TemporalPredictor(
-      #       hidden_channels_enc + lin_channels,
+      #       hidden_channels_enc,
       #       filter_size=256,
       #       kernel_size=3,
       #       dropout=0.1, 
@@ -829,6 +829,15 @@ class FlowGenerator(nn.Module):
 
     if use_sep:
       print("Use StochasticEnergyPredictor Updated") 
+      # self.proj_energy = TemporalPredictor(
+      #       hidden_channels_enc,
+      #       filter_size=256,
+      #       kernel_size=3,
+      #       dropout=0.1, 
+      #       n_layers=2,
+      #       n_predictions=1,
+      #       emoin_channels=emoin_channels
+      # )
       self.proj_energy = StochasticEnergyPredictor(hidden_channels_enc, 256, 3, 0.1, 4, emoin_channels=emoin_channels)
 
     # for param in self.decoder.parameters():
@@ -857,7 +866,7 @@ class FlowGenerator(nn.Module):
       l = self.emb_l(l).unsqueeze(-1) # [b, h, 1]
 
     if emo is not None:
-      emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
+      emo = F.normalize(emo).unsqueeze(-1)
 
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g)
 
@@ -883,7 +892,7 @@ class FlowGenerator(nn.Module):
       energy_norm[energy_mask] = 0.0
       energy_norm = energy_norm.unsqueeze(1)
 
-    z, logdet = self.decoder(y, z_mask, g=g, emo=emo, pitch=pitch_norm, energy=energy_norm, reverse=False)
+    z, logdet = self.decoder(y, z_mask, g=g, emo=None, pitch=pitch_norm, energy=energy_norm, reverse=False)
     with torch.no_grad():
       x_s_sq_r = torch.exp(-2 * x_logs)
       logp1 = torch.sum(-0.5 * math.log(2 * math.pi) - x_logs, [1]).unsqueeze(-1) # [b, t, 1]
@@ -908,12 +917,14 @@ class FlowGenerator(nn.Module):
       l_pitch = self.proj_pitch(x_feature, z_mask, pitch_norm.unsqueeze(1), g=g, emo=emo)
       l_pitch = l_pitch / torch.sum(z_mask)
       l_pitch = torch.sum(l_pitch)
+      #pred_pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo)
 
     if self.use_sep and energy is not None:
       energy_norm = energy_norm.squeeze(1)
       l_energy = self.proj_energy(x_feature, z_mask, energy_norm.unsqueeze(1), emo=emo)
       l_energy = l_energy / torch.sum(z_mask)
       l_energy = torch.sum(l_energy)
+      #pred_energy = self.proj_energy(x_feature, z_mask, emo=emo)
 
     # expand prior
     z_m = torch.matmul(attn.squeeze(1).transpose(1, 2), x_m.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
@@ -924,9 +935,9 @@ class FlowGenerator(nn.Module):
 
     # y_slice, slice_ids = commons.rand_segments(y, y_lengths, 64, let_short_samples=True, pad_short=True)
     # y_gen = commons.segment(y_gen, slice_ids, 64, pad_short=True)
-    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length, l_pitch, l_energy) # (attn, l_length, l_pitch, l_energy)
+    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length, l_pitch, l_energy), (None, None, None, None) # (attn, l_length, l_pitch, l_energy)
 
-  def infer(self, x, x_lengths, y=None, g=None, emo=None, l=None, noise_scale=1., f0_noise_scale=1., energy_noise_scale=1., length_scale=1., pitch_scale=0.0, energy_scale=0.0):
+  def infer(self, x, x_lengths, y=None, g=None, emo=None, l=None, noise_scale=1., noise_scale_w=1., f0_noise_scale=1., energy_noise_scale=1., length_scale=1., pitch_scale=0.0, energy_scale=0.0):
     if g is not None:
       g = F.normalize(g).unsqueeze(-1) # [b, h]
 
@@ -934,12 +945,12 @@ class FlowGenerator(nn.Module):
       l = self.emb_l(l).unsqueeze(-1) # [b, h]
 
     if emo is not None:
-      emo = F.normalize(self.emo_proj(emo)).unsqueeze(-1)
+      emo = F.normalize(emo).unsqueeze(-1)
 
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g)
 
     if self.use_sdp:
-      logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=emo, reverse=True, noise_scale=noise_scale)
+      logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=emo, reverse=True, noise_scale=noise_scale_w)
     else:
       logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=emo)
 
@@ -962,6 +973,7 @@ class FlowGenerator(nn.Module):
     x_feature = torch.matmul(x, attn.squeeze(1))
     if self.use_spp:
       pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo, noise_scale=f0_noise_scale, reverse=True)
+      #pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo)
       pitch = pitch.squeeze(1)
       pitch = torch.clamp_min(pitch, 0)
       if pitch.shape[-1] != z.shape[-1]:
@@ -974,6 +986,7 @@ class FlowGenerator(nn.Module):
 
     if self.use_sep:
       energy = self.proj_energy(x_feature, z_mask, emo=emo, noise_scale=energy_noise_scale, reverse=True)
+      #energy = self.proj_energy(x_feature, z_mask, emo=emo)
       energy = energy.squeeze(1)
       energy = torch.clamp_min(energy, 0)
       if energy.shape[-1] != z.shape[-1]:
