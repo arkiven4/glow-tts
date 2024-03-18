@@ -275,11 +275,11 @@ def train(
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 l_length = torch.sum(l_length.float())
 
-                # l_pitch = F.mse_loss(pitch_norm, pred_pitch, reduction='none')
-                # l_pitch = (l_pitch * z_mask).sum() / z_mask.sum()
+                l_pitch = F.mse_loss(pitch_norm, pred_pitch, reduction='none')
+                l_pitch = (l_pitch * z_mask).sum() / z_mask.sum()
 
-                # l_energy = F.mse_loss(energy_norm, pred_energy, reduction='none')
-                # l_energy = (l_energy * z_mask).sum() / z_mask.sum()
+                l_energy = F.mse_loss(energy_norm, pred_energy, reduction='none')
+                l_energy = (l_energy * z_mask).sum() / z_mask.sum()
 
                 loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.5]
                 loss_g = sum(loss_gs)
@@ -396,13 +396,13 @@ def evaluate(
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 l_length = torch.sum(l_length.float())
 
-                # l_pitch = F.mse_loss(pitch_norm, pred_pitch, reduction='none')
-                # l_pitch = (l_pitch * z_mask).sum() / z_mask.sum()
+                l_pitch = F.mse_loss(pitch_norm, pred_pitch, reduction='none')
+                l_pitch = (l_pitch * z_mask).sum() / z_mask.sum()
 
-                # l_energy = F.mse_loss(energy_norm, pred_energy, reduction='none')
-                # l_energy = (l_energy * z_mask).sum() / z_mask.sum()
+                l_energy = F.mse_loss(energy_norm, pred_energy, reduction='none')
+                l_energy = (l_energy * z_mask).sum() / z_mask.sum()
 
-                loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.5]
+                loss_gs = [l_mle, l_length, l_pitch * 0.1, l_energy * 0.1]
                 loss_g = sum(loss_gs)
 
                 if batch_idx == 0:

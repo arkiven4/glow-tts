@@ -9,11 +9,11 @@
     "eps": 1e-9,
     "warmup_steps": 4000,
     "scheduler": "noam",
-    "batch_size": 12,
+    "batch_size": 18,
     "ddi": false,
     "fp16_run": true,
     "warm_start": false,
-    "warm_start_checkpoint": "G_75_textencoder6.pth",
+    "warm_start_checkpoint": "logs/base_blank_emo_lang_pitch/H_50.pth",
     "ignored_layer": ["encoder.emb.weight"]
   },
   "data": {
