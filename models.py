@@ -655,7 +655,7 @@ class FlowSpecDecoder(nn.Module):
           sigmoid_scale=sigmoid_scale,
           n_sqz=n_sqz))
 
-  def forward(self, x, x_mask, g=None, emo=None, pitch=None, energy=None, reverse=False):
+  def forward(self, x, x_mask, g=None, prosody=None, reverse=False):
     if not reverse:
       flows = self.flows
       logdet_tot = 0
@@ -668,10 +668,10 @@ class FlowSpecDecoder(nn.Module):
 
     for f in flows:
       if not reverse:
-        x, logdet = f(x, x_mask, g=g, emo=emo, pitch=pitch, energy=energy, reverse=reverse)
+        x, logdet = f(x, x_mask, g=g, prosody=prosody, reverse=reverse)
         logdet_tot += logdet
       else:
-        x, logdet = f(x, x_mask, g=g, emo=emo, pitch=pitch, energy=energy, reverse=reverse)
+        x, logdet = f(x, x_mask, g=g, prosody=prosody, reverse=reverse)
 
     if self.n_sqz > 1:
       x, x_mask = commons.unsqueeze(x, x_mask, self.n_sqz)
@@ -826,6 +826,7 @@ class FlowGenerator(nn.Module):
             gin_channels=gin_channels, emoin_channels=emoin_channels
       )
       #self.proj_pitch = StochasticPitchPredictor(hidden_channels_enc, 256, 3, 0.1, 4, gin_channels=gin_channels, emoin_channels=emoin_channels)
+      self.pitch_emb = nn.Conv1d(1, hidden_channels + lin_channels, kernel_size=3, padding=int((3 - 1) / 2))
 
     if use_sep:
       #print("Use StochasticEnergyPredictor Updated") 
@@ -839,6 +840,7 @@ class FlowGenerator(nn.Module):
             emoin_channels=emoin_channels
       )
       #self.proj_energy = StochasticEnergyPredictor(hidden_channels_enc, 256, 3, 0.1, 4, emoin_channels=emoin_channels)
+      self.energy_emb = nn.Conv1d(1, hidden_channels + lin_channels, kernel_size=3,  padding=int((3 - 1) / 2))
 
     # for param in self.decoder.parameters():
     #     param.requires_grad = False
@@ -882,6 +884,7 @@ class FlowGenerator(nn.Module):
       pitch_norm = torch.log(torch.clamp(pitch, min=torch.finfo(pitch.dtype).tiny))
       pitch_norm[pitch_mask] = 0.0
       pitch_norm = pitch_norm.unsqueeze(1)
+      pitch_emb = self.pitch_emb(pitch_norm)
       #pitch = pitch_norm # [b, 1, t]
 
     if self.use_sep and energy is not None:
@@ -891,8 +894,11 @@ class FlowGenerator(nn.Module):
       energy_norm = torch.log(torch.clamp(energy, min=torch.finfo(energy.dtype).tiny))
       energy_norm[energy_mask] = 0.0
       energy_norm = energy_norm.unsqueeze(1)
+      energy_emb = self.energy_emb(energy_norm)
+    
+    prosody_emb = pitch_emb + energy_emb
 
-    z, logdet = self.decoder(y, z_mask, g=g, emo=None, pitch=pitch_norm, energy=energy_norm, reverse=False)
+    z, logdet = self.decoder(y, z_mask, g=g, prosody=prosody_emb, reverse=False)
     with torch.no_grad():
       x_s_sq_r = torch.exp(-2 * x_logs)
       logp1 = torch.sum(-0.5 * math.log(2 * math.pi) - x_logs, [1]).unsqueeze(-1) # [b, t, 1]
@@ -984,6 +990,7 @@ class FlowGenerator(nn.Module):
         pitch = pitch.squeeze(-1) 
       pitch = pitch + pitch_scale
       pitch = pitch.squeeze(1)
+      pitch_emb = self.pitch_emb(pitch)
 
     if self.use_sep:
       #energy = self.proj_energy(x_feature, z_mask, emo=emo, noise_scale=energy_noise_scale, reverse=True)
@@ -997,8 +1004,10 @@ class FlowGenerator(nn.Module):
         energy = energy.squeeze(-1)    
       energy = energy + energy_scale
       energy = energy.squeeze(1)
+      energy_emb = self.energy_emb(energy)
     
-    y, logdet = self.decoder(z, z_mask, g=g, emo=emo, pitch=pitch, energy=energy, reverse=True)
+    prosody_emb = pitch_emb + energy_emb
+    y, logdet = self.decoder(z, z_mask, g=g, prosody=prosody_emb, reverse=True)
     return (y, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, logw, logw_)
 
   def voice_conversion(self, y, y_lengths, spk_embed_src, spk_embed_tgt, l=None):

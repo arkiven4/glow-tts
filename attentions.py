@@ -110,9 +110,10 @@ class CouplingBlock(nn.Module):
 
     #self.wn = modules.WNGE(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, emoin_channels, p_dropout=p_dropout)
     #self.wn = modules.WN_Combine(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, emoin_channels, p_dropout)
-    self.wn_pitch = modules.WNP(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, n_sqz)
-    self.wn_energy = modules.WNP(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, n_sqz)
+    #self.wn_pitch = modules.WNP(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, n_sqz)
+    #self.wn_energy = modules.WNP(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, n_sqz)
     self.wn = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, p_dropout)
+    self.wn_prosody = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, in_channels, p_dropout)
     #self.wn_emo = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, emoin_channels, p_dropout)
 
     # self.pre_transformer = Encoder(
@@ -125,16 +126,16 @@ class CouplingBlock(nn.Module):
     #             window_size=None,
     #         )
 
-  def forward(self, x, x_mask=None, reverse=False, g=None, emo=None, pitch=None, energy=None, **kwargs):
+  def forward(self, x, x_mask=None, reverse=False, g=None, prosody=None, **kwargs):
     b, c, t = x.size()
     if x_mask is None:
       x_mask = 1
 
-    if pitch is not None and len(pitch.shape) == 2:
-      pitch = pitch.unsqueeze(1) # B, T -> B,C,T
+    # if pitch is not None and len(pitch.shape) == 2:
+    #   pitch = pitch.unsqueeze(1) # B, T -> B,C,T
 
-    if energy is not None and len(energy.shape) == 2:
-      energy = energy.unsqueeze(1) # B, T -> B,C,T
+    # if energy is not None and len(energy.shape) == 2:
+    #   energy = energy.unsqueeze(1) # B, T -> B,C,T
 
     x_0, x_1 = x[:,:self.in_channels//2], x[:,self.in_channels//2:]
 
@@ -147,9 +148,10 @@ class CouplingBlock(nn.Module):
     
     #x = self.wn(x, x_mask, g, emo)
     x = self.wn(x, x_mask, g) 
+    x = self.wn_prosody(x, x_mask, prosody) 
     #x = self.wn_emo(x, x_mask, emo) 
-    x = self.wn_energy(x, x_mask, energy) 
-    x = self.wn_pitch(x, x_mask, pitch)
+    #x = self.wn_energy(x, x_mask, energy) 
+    #x = self.wn_pitch(x, x_mask, pitch)
     #x = self.wn_emo(x, x_mask, emo)
     # x = self.wn_energy(x, x_mask, energy)
     # x = self.wn_pitch(x, x_mask, pitch)
