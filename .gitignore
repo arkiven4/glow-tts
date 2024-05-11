@@ -21,3 +21,6 @@ Database
 *.tar.gz
 BigVGAN_
 Temp_jarvis
+G_26.pth.gstori
+G_72.pth.dp_emoembintext
+G_72.pth.sdp_emointext_gstvae

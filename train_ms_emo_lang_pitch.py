@@ -173,6 +173,7 @@ def train_and_eval(rank, n_gpus, hps):
             optimizer_g.step_num = (epoch_str - 1) * len(train_loader)
             # optimizer_g._update_learning_rate()
             global_step = (epoch_str - 1) * len(train_loader)
+            scheduler.last_epoch = epoch_str - 2
         except Exception as e:
             print(e)
             # if hps.train.ddi and os.path.isfile(os.path.join(hps.model_dir, "ddi_G.pth")):
@@ -226,7 +227,7 @@ def train_and_eval(rank, n_gpus, hps):
                 None,
             )
 
-        # scheduler.step()
+        scheduler.step()
 
 
 def train(
@@ -244,7 +245,7 @@ def train(
     train_loader.batch_sampler.set_epoch(epoch)
     global global_step
     generator.train()
-    for batch_idx, (x, x_lengths, y, y_lengths, speakers, emos, pitchs, energys, lids) in enumerate(
+    for batch_idx, (x, x_lengths, y, y_lengths, speakers, _, pitchs, energys, lids) in enumerate(
         tqdm(train_loader)
     ):
         x, x_lengths = x.cuda(rank, non_blocking=True), x_lengths.cuda(
@@ -254,7 +255,7 @@ def train(
             rank, non_blocking=True
         )
         speakers = speakers.cuda(rank, non_blocking=True)
-        emos = emos.cuda(rank, non_blocking=True)
+        #emos = emos.cuda(rank, non_blocking=True)
         pitchs = pitchs.cuda(rank, non_blocking=True)
         energys = energys.cuda(rank, non_blocking=True)
         lids = lids.cuda(rank, non_blocking=True)
@@ -265,8 +266,8 @@ def train(
                 (z, z_m, z_logs, logdet, z_mask),
                 (_, _, _),
                 (attn, l_length, l_pitch, l_energy),
-                (pitch_norm, pred_pitch, energy_norm, pred_energy)
-            ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, pitch=pitchs, energy=energys, l=lids)
+                (pitch_norm, pred_pitch, energy_norm, pred_energy), (kl_loss_emo)
+            ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=None, pitch=pitchs, energy=energys, l=lids)
 
             with autocast(enabled=False):
                 # y_slice, slice_ids = commons.rand_segments(y, y_lengths, 128, let_short_samples=True, pad_short=True)
@@ -275,16 +276,17 @@ def train(
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 l_length = torch.sum(l_length.float())
 
-                l_pitch = F.mse_loss(pitch_norm, pred_pitch, reduction='none')
-                l_pitch = (l_pitch * z_mask).sum() / z_mask.sum()
+                # l_pitch = F.mse_loss(pitch_norm, pred_pitch, reduction='none')
+                # l_pitch = (l_pitch * z_mask).sum() / z_mask.sum()
 
-                l_energy = F.mse_loss(energy_norm, pred_energy, reduction='none')
-                l_energy = (l_energy * z_mask).sum() / z_mask.sum()
+                # l_energy = F.mse_loss(energy_norm, pred_energy, reduction='none')
+                # l_energy = (l_energy * z_mask).sum() / z_mask.sum()
 
+                #kl_weight = kl_anneal_function('logistic', 50000, global_step, 0.0025, 10000, 0.2)
                 loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.5]
                 loss_g = sum(loss_gs)
 
-        scheduler.step()
+        #scheduler.step()
 
         optimizer_g.zero_grad()
         scaler.scale(loss_g).backward()
@@ -300,7 +302,7 @@ def train(
                     x_lengths[:1],
                     y=y[:1],
                     g=speakers[:1],  
-                    emo=emos[:1],  
+                    emo=None,  
                     l=lids[:1],
                 )
                 
@@ -372,7 +374,7 @@ def evaluate(
                 x_lengths,
                 y,
                 y_lengths,
-                speakers, emos, pitchs, energys, lids
+                speakers, _, pitchs, energys, lids
             ) in enumerate(val_loader):
                 x, x_lengths = x.cuda(rank, non_blocking=True), x_lengths.cuda(
                     rank, non_blocking=True
@@ -381,7 +383,7 @@ def evaluate(
                     rank, non_blocking=True
                 )
                 speakers = speakers.cuda(rank, non_blocking=True)
-                emos = emos.cuda(rank, non_blocking=True)
+                #emos = emos.cuda(rank, non_blocking=True)
                 pitchs = pitchs.cuda(rank, non_blocking=True)
                 energys = energys.cuda(rank, non_blocking=True)
                 lids = lids.cuda(rank, non_blocking=True)
@@ -390,19 +392,20 @@ def evaluate(
                     (z, z_m, z_logs, logdet, z_mask),
                     (_, _, _),
                     (_, l_length, l_pitch, l_energy),
-                    (pitch_norm, pred_pitch, energy_norm, pred_energy)
-                ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, pitch=pitchs, energy=energys, l=lids)
+                    (pitch_norm, pred_pitch, energy_norm, pred_energy), (kl_loss_emo)
+                ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=None, pitch=pitchs, energy=energys, l=lids)
                 
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 l_length = torch.sum(l_length.float())
 
-                l_pitch = F.mse_loss(pitch_norm, pred_pitch, reduction='none')
-                l_pitch = (l_pitch * z_mask).sum() / z_mask.sum()
+                # l_pitch = F.mse_loss(pitch_norm, pred_pitch, reduction='none')
+                # l_pitch = (l_pitch * z_mask).sum() / z_mask.sum()
 
-                l_energy = F.mse_loss(energy_norm, pred_energy, reduction='none')
-                l_energy = (l_energy * z_mask).sum() / z_mask.sum()
+                # l_energy = F.mse_loss(energy_norm, pred_energy, reduction='none')
+                # l_energy = (l_energy * z_mask).sum() / z_mask.sum()
+                #kl_weight = kl_anneal_function('logistic', 50000, global_step, 0.0025, 10000, 0.2)
 
-                loss_gs = [l_mle, l_length, l_pitch * 0.1, l_energy * 0.1]
+                loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.5]
                 loss_g = sum(loss_gs)
 
                 if batch_idx == 0:
@@ -426,6 +429,17 @@ def evaluate(
         )
         logger.info("====> Epoch: {}".format(epoch))
 
+
+def kl_anneal_function(anneal_function, lag, step, k, x0, upper):
+    if anneal_function == 'logistic':
+        return float(upper/(upper+np.exp(-k*(step-x0))))
+    elif anneal_function == 'linear':
+        if step > lag:
+            return min(upper, step/x0)
+        else:
+            return 0
+    elif anneal_function == 'constant':
+        return 0.001
 
 if __name__ == "__main__":
     main()

@@ -197,27 +197,7 @@
 /run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0018/Sad/0018_001310.wav|0|as soon as she went in, there was disorder.
 /run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0018/Surprise/0018_001600.wav|0|that cloth does not look worth much!
 /run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0018/Surprise/0018_001505.wav|0|he was killed by an arrow.
-/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0018/Surprise/0018_001521.wav|0|finn and the fairy shoemaker.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_027615.wav|2|Amin gua gua paham banget karakter lu seperti apa.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_030947.wav|2|eh udah biar mama buka kain ya.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_013222.wav|2|Aku sudah tahu ya kalau ini ismaulah kamu. Dimana buku diary yang kamu jadikan buat ngejebak aku?.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_025181.wav|2|juga baik banget gak pernah cari masalah sama orang lain.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_001020.wav|2|Baik sih kurang tahu ya, tapi setau baik mah enggak boleh..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_001468.wav|2|Hmm krim coklat italinya enak banget sih..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_006525.wav|2|Sekarang kamu segera ke depan para peserta MMA.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_012153.wav|2|Kalau di landa kerinduan gini emang paling cocok makan cokelat dilan..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_002263.wav|2|Itu adalah apa yang saya katakan pada Brasil, saya tidak bisa dipastikan..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_012018.wav|2|Apakah Anda mau dicek apakah sudah sesuai atau belum pesanan?.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_030740.wav|2|umurnya sekitar dua puluh tujuh tahun gitu.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_005988.wav|2|Jangan pikirkan berat berat, sayang bayi yang ada di luar.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_014631.wav|2|peduli banget sama tantes sementara anak tantes sendiri.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_031895.wav|2|soalnya dulu waktu mama sama papa aku masih tidur.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_018547.wav|2|Jadi kalau kamu enggak mau bersaksi.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_027532.wav|2|Ada apa, Joko? Ini ada surat imbuhan untuk pasang bendera..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_030205.wav|2|Ibu lu harus tahu kalau lu masih hidup dan lu baik baik aja..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_020378.wav|2|Busen deh makanannya menu ini ini aja..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_048888.wav|2|Inna dengan keluarga yusra.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_049449.wav|2|Iya, nanti kita janji lagi ya Pak, ya? Cuman terima kasih..
+/run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0018/Surprise/0018_001521.wav|0|finn and the fairy shoema.
 /run/media/viblab/Markov2/Pras/Thesis/Database/VCTK/wavs/p343/p343_264.wav|0|There is no room for error.
 /run/media/viblab/Markov2/Pras/Thesis/Database/VCTK/wavs/p312/p312_215.wav|0|The dangers are very obvious.
 /run/media/viblab/Markov2/Pras/Thesis/Database/VCTK/wavs/p323/p323_292.wav|0|No decision has yet been made.
@@ -238,3 +218,65 @@
 /run/media/viblab/Markov2/Pras/Thesis/Database/VCTK/wavs/p307/p307_423.wav|0|Slowly, however, a picture is emerging in Scotland.
 /run/media/viblab/Markov2/Pras/Thesis/Database/VCTK/wavs/p268/p268_393.wav|0|Calvin was always recognised as a player with potential.
 /run/media/viblab/Markov2/Pras/Thesis/Database/VCTK/wavs/p285/p285_012.wav|0|Throughout the centuries people have explained the rainbow in various ways. 
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_003.wav|3|コンピュータゲームのメーカーや、業界団体などに関連する人物のカテゴリ。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_004.wav|3|サービスマネージャー導入駅のため、大井町駅から、遠隔管理している。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_006.wav|3|ツュレンハルト領は、ヴュルテンベルク領に編入された。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_010.wav|3|スマートフォンから、フィーチャーフォンまで、マルチデバイスに対応。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_013.wav|3|そこへ、オーナーが新しいシェフとして、腕利きのヒョヌクを招く。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_014.wav|3|クィーンズアベニューアルファに所属している。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_015.wav|3|一方で、漁業と商業で、リャネス港は繁栄していた。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_016.wav|3|この、ニューサウスウェールズ代表チームが、ワラビーズの中核となって行く。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_017.wav|3|ただし、ギャンブル依存症の入院治療を行っている病院は、わずかである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_025.wav|3|その飄々とした人柄が、老若男女に慕われている。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_026.wav|3|現在、ニュージャージー州、ムーアズタウンに住んでいる。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_030.wav|3|防氷ブーツは、表面に張られた、ゴム製の薄い膜でできている。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_031.wav|3|後者の代表が、ウェッジウッドの、ジャスパーウェアである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_033.wav|3|芸能プロダクション、アミューズのグループ企業。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_034.wav|3|長母音を省略して、エリュシオンとも表記される。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_040.wav|3|ギレスピーは、マッギーを通じて、イネスと知り合った。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_042.wav|3|祭神は、ヴィシュヌ派の聖人、スワーミーナーラーヤン。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_046.wav|3|フォーミュラカーは、通常、オープンホイールで、シングルシーターである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_051.wav|3|デビュー後の数年間は、ベビーフェイスとして、本名で活動。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_053.wav|3|当時、あやしいワールドに常駐していた擬古猫が、空白にて発表。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_057.wav|3|このジェシー役でステイモスは、エミー賞にノミネートされたこともある。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_058.wav|3|スウェーデン移民の両親の許に、マサチューセッツ州、ケンブリッジにて生まれる。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_059.wav|3|球宴のファン投票でも、人気が偶像化していた、長嶋茂雄に肉薄する。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_060.wav|3|母は、ピーターマリッツバーグの精神病院に入院しているときに、ベッシーを産む。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_061.wav|3|ポイントガードから、スモールフォワードまでこなせる、総合力が高いユーティリティープレーヤーである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_063.wav|3|大当り終了後は、グラディエーターチャンスに突入する。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_064.wav|3|この菌による病気は、灰色かび病と名づけられているものが多い。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_066.wav|3|肝臓への酸素供給は、肝動脈と、低圧系の門脈を介して、行われている。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_067.wav|3|デッドキーは、タイプライターや、コンピュータのキーボードにおける、特殊な装飾キーである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_068.wav|3|シャンシャン馬は、鵜戸神宮へ参拝する、新婚夫婦が乗っていた馬のこと。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_073.wav|3|上院議員として、バーンウェルは、カリフォルニア州の、連邦加入に賛成した。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_074.wav|3|レジェンドシリーズをベースに、ヨーフリー機構を備えた、ビューカメラ。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_075.wav|3|楽曲のセンターポジションは、エーケービーフォーティーエイトの、高橋みなみが務めた。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_080.wav|3|かすかに聞こえてくる1931年版の讃美歌が、次第に大きくなっていく。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_082.wav|3|カーミラ星と呼ばれている惑星から、宇宙船に乗って、地球に侵入した宇宙人。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_083.wav|3|ドッガーバンクは、タラやニシンの漁獲量が多い、重要な、漁場である。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_088.wav|3|そこには、百ドル札と、アメリカに来いという、短いメッセージだけだった。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_090.wav|3|戦闘服は、両腕を露出し、両脚が、アンダースーツで覆われている。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_091.wav|3|同母姉に、スウェーデン王妃、ジョゼフィーヌがいる。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_098.wav|3|乾ドックに入渠して、オーバーホールすべきかどうか、パフォーマンスがチェックされた。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_099.wav|3|デビューウェイトは、スーパーバンタム級ではなく、フェザー級だった。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_023.wav|3|南西部ウォーレンは、ベイアーマンファームズと、フィッツジェラルドの地区で、構成される。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_025.wav|3|その飄々とした人柄が、老若男女に慕われている。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_026.wav|3|現在、ニュージャージー州、ムーアズタウンに住んでいる。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_027.wav|3|町域にあった、三根山藩は、長岡藩に、米百俵を送ったことで有名。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_030.wav|3|防氷ブーツは、表面に張られた、ゴム製の薄い膜でできている。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_031.wav|3|後者の代表が、ウェッジウッドの、ジャスパーウェアである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_033.wav|3|芸能プロダクション、アミューズのグループ企業。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_034.wav|3|長母音を省略して、エリュシオンとも表記される。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_036.wav|3|番組冒頭を、東京ムービー製作のアニメーションで、表現する点も、共通していた。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_037.wav|3|コミューンは、セーヌ川と、エソンヌ川の、合流地点となっている。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_038.wav|3|同時に、福井ミラクルエレファンツに、コーチ兼任で、入団することが発表された。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_039.wav|3|夫である小室が、救急車を呼び、都内病院に、緊急搬送される。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_040.wav|3|ギレスピーは、マッギーを通じて、イネスと知り合った。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_041.wav|3|フォンテーヌブロー様式では、寓意的な絵が、漆喰のモールドに使われている。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_042.wav|3|祭神は、ヴィシュヌ派の聖人、スワーミーナーラーヤン。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_043.wav|3|ハーデースが、ペルセポネーに恋をしたのは、アプロディーテーの、策略であるとされている。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_046.wav|3|フォーミュラカーは、通常、オープンホイールで、シングルシーターである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_049.wav|3|プレイヤーキャラクターは、宮殿を占拠した、邪悪なクリーチャーに遭遇する。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_051.wav|3|デビュー後の数年間は、ベビーフェイスとして、本名で活動。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_053.wav|3|当時、あやしいワールドに常駐していた擬古猫が、空白にて発表。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_055.wav|3|ウォリアーズミックスマーシャルアーツアカデミー所属。

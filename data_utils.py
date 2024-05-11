@@ -352,7 +352,7 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
         filename = audiopath.split("/")[-1].split(".")[0]
         database_name = audiopath.split("/")[self.database_name_index]
 
-        text = self.get_text(text)
+        text = self.get_text(text, lid)
         mel, energy = self.get_mel(audiopath)
         energy = energy[:, :mel.size(1)]
 
@@ -386,11 +386,11 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
 
         return melspec, energy
 
-    def get_text(self, text):
+    def get_text(self, text, lang):
         if self.cleaned_text:
             text_norm = cleaned_text_to_sequence(text)
         else:
-            text_norm = text_to_sequence(text, self.text_cleaners)
+            text_norm = text_to_sequence(text, [self.text_cleaners[int(lang)]])
             
         if self.add_blank:
             text_norm = commons.intersperse(text_norm, len(symbols)) # add a blank token, whose id number is len(symbols)

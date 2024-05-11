@@ -5,6 +5,7 @@ from torch.nn import functional as F
 
 import modules
 import modules_gst
+import modules_vits
 import commons
 import attentions
 import monotonic_align
@@ -67,95 +68,132 @@ import monotonic_align
 #         z = self.reparameterize(mu, logvar)
 #         return z, mu
     
-# class MelStyleEncoder(nn.Module):
-#     ''' MelStyleEncoder '''
-#     def __init__(self, in_dim, style_hidden, style_vector_dim, style_kernel_size, style_head, dropout):
-#         super(MelStyleEncoder, self).__init__()
-#         self.in_dim = in_dim
-#         self.hidden_dim = style_hidden
-#         self.out_dim = style_vector_dim
-#         self.kernel_size = style_kernel_size
-#         self.n_head = style_head
-#         self.dropout = dropout
+class MelStyleEncoder(nn.Module):
+    ''' MelStyleEncoder '''
+    def __init__(self, n_mel_channels=80,
+          style_hidden=256,
+          style_vector_dim=512,
+          style_kernel_size=5,
+          style_head=2,
+          dropout=0.1):
+        super(MelStyleEncoder, self).__init__()
+        self.in_dim = n_mel_channels 
+        self.hidden_dim = style_hidden
+        self.out_dim = style_vector_dim
+        self.kernel_size = style_kernel_size
+        self.n_head = style_head
+        self.dropout = dropout
 
-#         self.spectral = nn.Sequential(
-#             modules.LinearNorm(self.in_dim, self.hidden_dim),
-#             modules.Mish(),
-#             nn.Dropout(self.dropout),
-#             modules.LinearNorm(self.hidden_dim, self.hidden_dim),
-#             modules.Mish(),
-#             nn.Dropout(self.dropout)
-#         )
+        self.spectral = nn.Sequential(
+            modules_vits.LinearNorm(self.in_dim, self.hidden_dim),
+            modules_vits.Mish(),
+            nn.Dropout(self.dropout),
+            modules_vits.LinearNorm(self.hidden_dim, self.hidden_dim),
+            modules_vits.Mish(),
+            nn.Dropout(self.dropout)
+        )
 
-#         self.temporal = nn.Sequential(
-#             modules.Conv1dGLU(self.hidden_dim, self.hidden_dim, self.kernel_size, self.dropout),
-#             modules.Conv1dGLU(self.hidden_dim, self.hidden_dim, self.kernel_size, self.dropout),
-#         )
+        self.temporal = nn.Sequential(
+            modules_vits.Conv1dGLU(self.hidden_dim, self.hidden_dim, self.kernel_size, self.dropout),
+            modules_vits.Conv1dGLU(self.hidden_dim, self.hidden_dim, self.kernel_size, self.dropout),
+        )
 
-#         self.slf_attn = modules.MultiHeadAttention(self.n_head, self.hidden_dim, 
-#                                 self.hidden_dim//self.n_head, self.hidden_dim//self.n_head, self.dropout) 
-#         self.fc = modules.LinearNorm(self.hidden_dim, self.out_dim)
+        self.slf_attn = modules_vits.MultiHeadAttention(self.n_head, self.hidden_dim, 
+                                self.hidden_dim//self.n_head, self.hidden_dim//self.n_head, self.dropout) 
 
-#     def temporal_avg_pool(self, x, mask=None):
-#         if mask is None:
-#             out = torch.mean(x, dim=1)
-#         else:
-#             len_ = (~mask).sum(dim=1).unsqueeze(1)
-#             x = x.masked_fill(mask.unsqueeze(-1), 0)
-#             x = x.sum(dim=1)
-#             out = torch.div(x, len_)
-#         return out
+        self.fc = modules_vits.LinearNorm(self.hidden_dim, self.out_dim)
 
-#     def forward(self, x, mask=None):
+        # self.mu = nn.Linear(self.out_dim, 256)
+        # self.log_var = nn.Linear(self.out_dim, 256)
+
+    def temporal_avg_pool(self, x, mask=None):
+        if mask is None:
+            out = torch.mean(x, dim=1)
+        else:
+            len_ = (~mask).sum(dim=1).unsqueeze(1)
+            x = x.masked_fill(mask.unsqueeze(-1), 0)
+            x = x.sum(dim=1)
+            out = torch.div(x, len_)
+        return out
+
+    # def reparameterize(self, mu, logvar):
+    #     std = torch.exp(0.5*logvar)
+    #     eps = torch.randn_like(std)
+    #     return mu + eps*std
+
+    def forward(self, x):
+        #print(x.shape)
+        x = x.transpose(2, 1)
+        # spectral
+        x = self.spectral(x)
+        # temporal
+        x = x.transpose(1,2)
+        x = self.temporal(x)
+        x = x.transpose(1,2)
         
-#         max_len = x.shape[1]
-#         if mask is not None:
-#               mask = (mask.int()==0).squeeze(1)
-#               slf_attn_mask = mask.unsqueeze(1).expand(-1, max_len, -1)
-#         else:
-#               slf_attn_mask = None
-#         # spectral
-#         x = self.spectral(x)
-#         # temporal
-#         x = x.transpose(1,2)
-#         x = self.temporal(x)
-#         x = x.transpose(1,2)
-#         # self-attention
-#         if mask is not None:
-#             x = x.masked_fill(mask.unsqueeze(-1), 0)
-#         x, _ = self.slf_attn(x, mask=slf_attn_mask)
-#         # fc
-#         x = self.fc(x)
-#         # temoral average pooling
-#         w = self.temporal_avg_pool(x, mask=mask)
+        x, _ = self.slf_attn(x, mask=None)
+        x = self.fc(x)
+        w = self.temporal_avg_pool(x, mask=None).unsqueeze(2)
 
-#         return w
+        # mu = self.mu(w)
+        # logvar = self.log_var(w)
+        # z = self.reparameterize(mu, logvar).unsqueeze(2)
 
-# class GST(nn.Module):
-#     def __init__(self, token_num, token_embedding_size, num_heads, ref_enc_filters, n_mel_channels, ref_enc_gru_size, gin_channels=0, lin_channels=0):
-#         super().__init__()
-#         self.encoder = modules_gst.ReferenceEncoder(ref_enc_filters, n_mel_channels, ref_enc_gru_size)
-#         self.stl = modules_gst.STL(token_num, token_embedding_size, num_heads, ref_enc_gru_size)
+        return w
 
-#         if gin_channels != 0:
-#           self.cond = nn.Conv1d(gin_channels, ref_enc_gru_size, 1)
+#Interference Example https://github.com/jinhan/tacotron2-gst/blob/master/inference.ipynb
+class GST(nn.Module):
+    def __init__(self, token_num, token_embedding_size, num_heads, ref_enc_filters, n_mel_channels, ref_enc_gru_size, gin_channels=0, lin_channels=0):
+        super().__init__()
+        #self.encoder = modules_gst.ReferenceEncoderNew(ref_enc_filters, n_mel_channels, ref_enc_gru_size)
+        self.encoder = modules_gst.ReferenceEncoder(ref_enc_filters, n_mel_channels, ref_enc_gru_size)
+        self.stl = modules_gst.STL(token_num, token_embedding_size, num_heads, ref_enc_gru_size)
+
+        # self.mu = nn.Linear(ref_enc_gru_size, 32)
+        # self.log_var = nn.Linear(ref_enc_gru_size, 32)
+        # self.fc3 = nn.Linear(32, 256)
+
+        if gin_channels != 0:
+          self.cond = nn.Conv1d(gin_channels, ref_enc_gru_size, 1)
           
-#         if lin_channels != 0:
-#           self.cond_l = nn.Conv1d(lin_channels, ref_enc_gru_size, 1)
+        if lin_channels != 0:
+          self.cond_l = nn.Conv1d(lin_channels, ref_enc_gru_size, 1)
 
-#     def forward(self, inputs, input_lengths=None, g=None, l=None):
-#         enc_out = self.encoder(inputs, input_lengths=input_lengths)
-        
-#         if g is not None:
-#           g = torch.detach(g)
-#           enc_out = enc_out + self.cond(g).squeeze(-1)
+    # def encode_param(self, x):
+    #     x = F.relu(self.encoder_fc1(x))
+    #     mu = self.mu(x)
+    #     logvar = self.log_var(x)
+    #     return mu, logvar
 
-#         if l is not None:
-#           l = torch.detach(l)
-#           enc_out = enc_out + self.cond_l(l).squeeze(-1)
+    def reparameterize(self, mu, logvar, infer):
+        # if infer == False:
 
-#         style_embed = self.stl(enc_out).transpose(1,2)
-#         return style_embed
+        # else:
+        #     return mu
+        std = torch.exp(0.5*logvar)
+        eps = torch.randn_like(std)
+        return mu + eps*std
+
+    def forward(self, inputs, input_lengths=None, infer=False, g=None, l=None):
+        enc_out = self.encoder(inputs)
+        #enc_out = self.encoder(inputs, input_lengths=input_lengths)
+        # if g is not None:
+        #   g = torch.detach(g)
+        #   enc_out = enc_out + self.cond(g).squeeze(-1)
+
+        # if l is not None:
+        #   l = torch.detach(l)
+        #   enc_out = enc_out + self.cond_l(l).squeeze(-1)
+
+        # mu = self.mu(enc_out)
+        # logvar = self.log_var(enc_out)
+        # z = self.reparameterize(mu, logvar, infer)
+        # style_embed = self.fc3(z).unsqueeze(2)
+
+        # kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+
+        style_embed = self.stl(enc_out).transpose(1,2)
+        return style_embed, None
 
 class StochasticDurationPredictor(nn.Module):
   def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, gin_channels=0, lin_channels=0, emoin_channels=0):
@@ -551,8 +589,8 @@ class TextEncoder(nn.Module):
     self.emb = nn.Embedding(n_vocab, hidden_channels)
     nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
 
-    # if emoin_channels != 0:
-    #   self.cond_emo = nn.Linear(emoin_channels, hidden_channels)
+    if emoin_channels != 0:
+      self.cond_emo = nn.Linear(emoin_channels, hidden_channels)
 
     if lin_channels > 0:
         hidden_channels += lin_channels
@@ -583,11 +621,11 @@ class TextEncoder(nn.Module):
     if not mean_only:
       self.proj_s = nn.Conv1d(hidden_channels, out_channels, 1)
 
-  def forward(self, x, x_lengths, l=None, g=None):
+  def forward(self, x, x_lengths, l=None, g=None, emo=None):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
-    # if emo is not None:
-    #   x = x + self.cond_emo(emo.transpose(2, 1)) # [b, 1, h]
+    if emo is not None:
+      x = x + self.cond_emo(emo.transpose(2, 1)) # [b, 1, h]
 
     if l is not None:
       x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
@@ -655,7 +693,7 @@ class FlowSpecDecoder(nn.Module):
           sigmoid_scale=sigmoid_scale,
           n_sqz=n_sqz))
 
-  def forward(self, x, x_mask, g=None, prosody=None, reverse=False):
+  def forward(self, x, x_mask, g=None, pitch=None, energy=None, reverse=False):
     if not reverse:
       flows = self.flows
       logdet_tot = 0
@@ -668,10 +706,10 @@ class FlowSpecDecoder(nn.Module):
 
     for f in flows:
       if not reverse:
-        x, logdet = f(x, x_mask, g=g, prosody=prosody, reverse=reverse)
+        x, logdet = f(x, x_mask, g=g, pitch=pitch, energy=energy, reverse=reverse)
         logdet_tot += logdet
       else:
-        x, logdet = f(x, x_mask, g=g, prosody=prosody, reverse=reverse)
+        x, logdet = f(x, x_mask, g=g, pitch=pitch, energy=energy, reverse=reverse)
 
     if self.n_sqz > 1:
       x, x_mask = commons.unsqueeze(x, x_mask, self.n_sqz)
@@ -808,39 +846,39 @@ class FlowGenerator(nn.Module):
       self.emb_l = nn.Embedding(n_lang, lin_channels)
       torch.nn.init.xavier_uniform_(self.emb_l.weight)
 
-    # if self.use_emo_embeds:
-    #   #print("Use Emotion Custom Module")
-    #   #self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size, gin_channels=gin_channels, lin_channels=lin_channels)
+    if self.use_emo_embeds:
+      print("Use Emotion Custom Module")
+      self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size)
+      #self.emo_ref = MelStyleEncoder()
+
     #   print("Use Emotion Embeddings Module")
-    #   self.emo_proj = nn.Linear(1024, emoin_channels)
+    #   self.emb_emo = nn.Linear(1024, emoin_channels)
 
     if use_spp:
-      #print("Use StochasticPitchPredictor")
-      self.proj_pitch = TemporalPredictor(
-            hidden_channels_enc,
-            filter_size=256,
-            kernel_size=3,
-            dropout=0.1, 
-            n_layers=2,
-            n_predictions=1,
-            gin_channels=gin_channels, emoin_channels=emoin_channels
-      )
-      #self.proj_pitch = StochasticPitchPredictor(hidden_channels_enc, 256, 3, 0.1, 4, gin_channels=gin_channels, emoin_channels=emoin_channels)
-      self.pitch_emb = nn.Conv1d(1, hidden_channels + lin_channels, kernel_size=3, padding=int((3 - 1) / 2))
+      print("Use StochasticPitchPredictor")
+      # self.proj_pitch = TemporalPredictor(
+      #       hidden_channels_enc,
+      #       filter_size=256,
+      #       kernel_size=3,
+      #       dropout=0.1, 
+      #       n_layers=2,
+      #       n_predictions=1,
+      #       gin_channels=gin_channels, emoin_channels=emoin_channels
+      # )
+      self.proj_pitch = StochasticPitchPredictor(hidden_channels_enc, 256, 3, 0.1, 4, gin_channels=gin_channels, emoin_channels=emoin_channels)
 
     if use_sep:
-      #print("Use StochasticEnergyPredictor Updated") 
-      self.proj_energy = TemporalPredictor(
-            hidden_channels_enc,
-            filter_size=256,
-            kernel_size=3,
-            dropout=0.1, 
-            n_layers=2,
-            n_predictions=1,
-            emoin_channels=emoin_channels
-      )
-      #self.proj_energy = StochasticEnergyPredictor(hidden_channels_enc, 256, 3, 0.1, 4, emoin_channels=emoin_channels)
-      self.energy_emb = nn.Conv1d(1, hidden_channels + lin_channels, kernel_size=3,  padding=int((3 - 1) / 2))
+      print("Use StochasticEnergyPredictor Updated") 
+      # self.proj_energy = TemporalPredictor(
+      #       hidden_channels_enc,
+      #       filter_size=256,
+      #       kernel_size=3,
+      #       dropout=0.1, 
+      #       n_layers=2,
+      #       n_predictions=1,
+      #       emoin_channels=emoin_channels
+      # )
+      self.proj_energy = StochasticEnergyPredictor(hidden_channels_enc, 256, 3, 0.1, 4, emoin_channels=emoin_channels)
 
     # for param in self.decoder.parameters():
     #     param.requires_grad = False
@@ -867,10 +905,12 @@ class FlowGenerator(nn.Module):
     if l is not None:
       l = self.emb_l(l).unsqueeze(-1) # [b, h, 1]
 
-    if emo is not None:
-      emo = F.normalize(emo).unsqueeze(-1)
+    # if emo is not None:
+    #   emo = emo.unsqueeze(-1) # [b, h, 1]
 
-    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g)
+    emo, kl_loss_emo = self.gst_proj(y)
+    #emo = self.emo_ref(y)
+    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g, emo=emo)
 
     y_max_length = y.size(2)
     y, y_lengths, y_max_length = self.preprocess(y, y_lengths, y_max_length)
@@ -884,8 +924,6 @@ class FlowGenerator(nn.Module):
       pitch_norm = torch.log(torch.clamp(pitch, min=torch.finfo(pitch.dtype).tiny))
       pitch_norm[pitch_mask] = 0.0
       pitch_norm = pitch_norm.unsqueeze(1)
-      pitch_emb = self.pitch_emb(pitch_norm)
-      #pitch = pitch_norm # [b, 1, t]
 
     if self.use_sep and energy is not None:
       energy = energy.squeeze(1)
@@ -894,11 +932,8 @@ class FlowGenerator(nn.Module):
       energy_norm = torch.log(torch.clamp(energy, min=torch.finfo(energy.dtype).tiny))
       energy_norm[energy_mask] = 0.0
       energy_norm = energy_norm.unsqueeze(1)
-      energy_emb = self.energy_emb(energy_norm)
-    
-    prosody_emb = pitch_emb + energy_emb
 
-    z, logdet = self.decoder(y, z_mask, g=g, prosody=prosody_emb, reverse=False)
+    z, logdet = self.decoder(y, z_mask, g=g, pitch=pitch_norm, energy=energy_norm, reverse=False)
     with torch.no_grad():
       x_s_sq_r = torch.exp(-2 * x_logs)
       logp1 = torch.sum(-0.5 * math.log(2 * math.pi) - x_logs, [1]).unsqueeze(-1) # [b, t, 1]
@@ -920,17 +955,17 @@ class FlowGenerator(nn.Module):
     x_feature = torch.matmul(x, attn.squeeze(1))
     if self.use_spp and pitch is not None:
       pitch_norm = pitch_norm.squeeze(1)
-      # l_pitch = self.proj_pitch(x_feature, z_mask, pitch_norm.unsqueeze(1), g=g, emo=emo)
-      # l_pitch = l_pitch / torch.sum(z_mask)
-      # l_pitch = torch.sum(l_pitch)
-      pred_pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo)
+      l_pitch = self.proj_pitch(x_feature, z_mask, pitch_norm.unsqueeze(1), g=g, emo=emo)
+      l_pitch = l_pitch / torch.sum(z_mask)
+      l_pitch = torch.sum(l_pitch)
+      #pred_pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo)
 
     if self.use_sep and energy is not None:
       energy_norm = energy_norm.squeeze(1)
-      # l_energy = self.proj_energy(x_feature, z_mask, energy_norm.unsqueeze(1), emo=emo)
-      # l_energy = l_energy / torch.sum(z_mask)
-      # l_energy = torch.sum(l_energy)
-      pred_energy = self.proj_energy(x_feature, z_mask, emo=emo)
+      l_energy = self.proj_energy(x_feature, z_mask, energy_norm.unsqueeze(1), emo=emo)
+      l_energy = l_energy / torch.sum(z_mask)
+      l_energy = torch.sum(l_energy)
+      #pred_energy = self.proj_energy(x_feature, z_mask, emo=emo)
 
 
     # expand prior
@@ -942,19 +977,24 @@ class FlowGenerator(nn.Module):
 
     # y_slice, slice_ids = commons.rand_segments(y, y_lengths, 64, let_short_samples=True, pad_short=True)
     # y_gen = commons.segment(y_gen, slice_ids, 64, pad_short=True)
-    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length, None, None), (pitch_norm, pred_pitch, energy_norm, pred_energy) # (attn, l_length, l_pitch, l_energy)
+    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length, l_pitch, l_energy), (None, None, None, None), (kl_loss_emo) # (attn, l_length, l_pitch, l_energy)
 
-  def infer(self, x, x_lengths, y=None, g=None, emo=None, l=None, noise_scale=1., noise_scale_w=1., f0_noise_scale=1., energy_noise_scale=1., length_scale=1., pitch_scale=0.0, energy_scale=0.0):
+  def infer(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None, gst_token=None, noise_scale=1., noise_scale_w=1., f0_noise_scale=1., energy_noise_scale=1., length_scale=1., pitch_scale=0.0, energy_scale=0.0):
     if g is not None:
       g = F.normalize(g).unsqueeze(-1) # [b, h]
 
     if l is not None:
       l = self.emb_l(l).unsqueeze(-1) # [b, h]
 
-    if emo is not None:
-      emo = F.normalize(emo).unsqueeze(-1)
-
-    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g)
+    # if emo is not None:
+    #   emo = emo.unsqueeze(-1)
+    
+    if gst_token is not None:
+       emo = gst_token
+    elif y is not None:
+      emo, _ = self.gst_proj(y, infer=True)
+    #emo = self.emo_ref(y)
+    x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g, emo=emo)
 
     if self.use_sdp:
       logw = self.encoder.proj_w(x, x_mask, g=g, l=l, emo=emo, reverse=True, noise_scale=noise_scale_w)
@@ -964,10 +1004,10 @@ class FlowGenerator(nn.Module):
     w = torch.exp(logw) * x_mask * length_scale
     w_ceil = torch.ceil(w)
     y_lengths = torch.clamp_min(torch.sum(w_ceil, [1, 2]), 1).long()
-    y_max_length = None
+    #y_max_length = None
 
-    y, y_lengths, y_max_length = self.preprocess(None, y_lengths, y_max_length)
-    z_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, y_max_length), 1).to(x_mask.dtype)
+    #y, y_lengths, y_max_length = self.preprocess(None, y_lengths, y_max_length)
+    z_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, None), 1).to(x_mask.dtype)
     attn_mask = torch.unsqueeze(x_mask, -1) * torch.unsqueeze(z_mask, 2)
 
     attn = commons.generate_path(w_ceil.squeeze(1), attn_mask.squeeze(1)).unsqueeze(1)
@@ -979,8 +1019,8 @@ class FlowGenerator(nn.Module):
     
     x_feature = torch.matmul(x, attn.squeeze(1))
     if self.use_spp:
-      #pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo, noise_scale=f0_noise_scale, reverse=True)
-      pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo)
+      pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo, noise_scale=f0_noise_scale, reverse=True)
+      #pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo)
       pitch = pitch.squeeze(1)
       pitch = torch.clamp_min(pitch, 0)
       if pitch.shape[-1] != z.shape[-1]:
@@ -990,11 +1030,10 @@ class FlowGenerator(nn.Module):
         pitch = pitch.squeeze(-1) 
       pitch = pitch + pitch_scale
       pitch = pitch.squeeze(1)
-      pitch_emb = self.pitch_emb(pitch)
 
     if self.use_sep:
-      #energy = self.proj_energy(x_feature, z_mask, emo=emo, noise_scale=energy_noise_scale, reverse=True)
-      energy = self.proj_energy(x_feature, z_mask, emo=emo)
+      energy = self.proj_energy(x_feature, z_mask, emo=emo, noise_scale=energy_noise_scale, reverse=True)
+      #energy = self.proj_energy(x_feature, z_mask, emo=emo)
       energy = energy.squeeze(1)
       energy = torch.clamp_min(energy, 0)
       if energy.shape[-1] != z.shape[-1]:
@@ -1004,10 +1043,8 @@ class FlowGenerator(nn.Module):
         energy = energy.squeeze(-1)    
       energy = energy + energy_scale
       energy = energy.squeeze(1)
-      energy_emb = self.energy_emb(energy)
     
-    prosody_emb = pitch_emb + energy_emb
-    y, logdet = self.decoder(z, z_mask, g=g, prosody=prosody_emb, reverse=True)
+    y, logdet = self.decoder(z, z_mask, g=g, pitch=pitch, energy=energy, reverse=True)
     return (y, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, logw, logw_)
 
   def voice_conversion(self, y, y_lengths, spk_embed_src, spk_embed_tgt, l=None):

@@ -148,41 +148,6 @@
 /run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0016/Angry/0016_000435.wav|0|suppose i take grandmother a fresh vegetable.
 /run/media/viblab/Markov2/Pras/Thesis/Database/VIBID/wavs/Natural/vibid_mmht_0926.wav|2|kamar tidur yang biasa ditempati oleh eyang sekarang dijadikan gudang barang bekas dan usang.
 /run/media/viblab/Markov2/Pras/Thesis/Database/ESD/wavs/0018/Neutral/0018_000278.wav|0|i know you .
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_049520.wav|2|Kebetulan saya sudah siapkan surat kontraknya?.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_022588.wav|2|Tapi aku kaget banget gitu dia memanggil nama Pak Jeffrey. Aku pikir itu bukan kamu..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_012429.wav|2|Kalau mau, biar aku cari linknya untuk kamu..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_027335.wav|2|Untuk gak ketemu sama perempuan itu? Di tempat umum?.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_016003.wav|2|kan bapak juga sempat minta saya untuk cari tahu tentang badam.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_025381.wav|2|Analiptiknya sama kayak analiptik yang dipakai sama namir artinya..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_035528.wav|2|Menggoda cari referensi gerakannya dari Youtube..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_027968.wav|2|Oh ini bukan punya saya pak, punya saya ada kok?.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_030880.wav|2|Lima masih harus digaji. Masa kita gaji orang yang gak kerjaan apa apa. Kan itu sama aja gaji buta, ya kan ji..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_043229.wav|2|aku akan berakspektasi apa apa apa apa.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_032149.wav|2|waalaikumsalam ada apa yakim.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_049455.wav|2|Kalau agen masa kehilangan, rindu.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_005831.wav|2|Ayo dong, Tante, Temaninazam..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_024838.wav|2|Alhamdulilah aku sudah menulisnya dengan Safia Monica..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_047260.wav|2|Paket, paket dari siapa ya? Tunggu sebentar aja..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_042139.wav|2|Terus aku setuju mau mengajarin para santri di pesantrenya..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_000731.wav|2|belum mah coba kamu telepon tanya situasinya gimana kalau perlu kamu suruh pulang ya.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_034455.wav|2|Apa dia kesel ya? Dengar gua mau diajak makan sama Pak Ben. Hmm jangan jangan dia cemburu nih..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_038865.wav|2|Kresnya? Iyalah, Roma kelapa kan dari kelapa pilihan, jadi rasa kelapaannya asli.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_018625.wav|2|Yamaha, Shiva, mana kau bisa mendemari masnya?.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_003717.wav|2|Pasti saat ini kamu membutuhkan aku untuk menghibur kamu untuk menampinya kamu..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_001899.wav|2|Kasi sakinah bahagia banget.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_041206.wav|2|selama hati yang berani ini bertekad hingga semuanya bisa terwujud sampai di sini.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_009699.wav|2|mungkin secara kostum dari juri bisa dibuat agak lebih kekinian.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_039453.wav|2|Oh, pada aku sudah berusaha ceria banget sama Mardan. Kenapa dia disiksa itu? Siyakin aku?.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_047863.wav|2|Terima kasih ya kalian ketemu datang..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_022365.wav|2|Orang yang bapaknya Misno punya aja masih hidup..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_006123.wav|2|Kalau tidak, kamu akan pergi dengan lima orang lain, mereka akan pergi..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_023344.wav|2|Mhm, Mhm, Mhm, ini kok tidak bagus.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_030541.wav|2|Oh gitu, ya tolong ya bang ya, soalnya stoknya udah habis..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_015052.wav|2|saya boleh izin gak ikut Dewi.
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_032896.wav|2|Jangan, kasih tahu kadinis kalau Sakinah ceritain semuanya ke mama..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_041257.wav|2|Tapi kalau kita tidak bisa, kita harus menghidupkan kembali..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_038825.wav|2|Ibu ikut senang loh kalau kamu sudah menemukan jodoh kamu..
-/run/media/viblab/Markov2/Pras/Thesis/Database/Crawmul/wavs/crawmul_036648.wav|2|Ini berputar di belakang..
 /run/media/viblab/Markov2/Pras/Thesis/Database/VCTK/wavs/p297/p297_158.wav|0|The man was pronounced dead on arrival.
 /run/media/viblab/Markov2/Pras/Thesis/Database/VCTK/wavs/p283/p283_405.wav|0|There is a lack of logic.
 /run/media/viblab/Markov2/Pras/Thesis/Database/VCTK/wavs/p275/p275_002.wav|0|Ask her to bring these things with her from the store.  
@@ -218,3 +183,30 @@
 /run/media/viblab/Markov2/Pras/Thesis/Database/VCTK/wavs/p259/p259_139.wav|0|I think he's the favourite, no question.
 /run/media/viblab/Markov2/Pras/Thesis/Database/VCTK/wavs/p360/p360_402.wav|0|There is so much at stake.
 /run/media/viblab/Markov2/Pras/Thesis/Database/VCTK/wavs/p272/p272_397.wav|0|It will take place in July.
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_003.wav|3|コンピュータゲームのメーカーや、業界団体などに関連する人物のカテゴリ。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_004.wav|3|サービスマネージャー導入駅のため、大井町駅から、遠隔管理している。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_006.wav|3|ツュレンハルト領は、ヴュルテンベルク領に編入された。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_009.wav|3|また禰寝氏は、中山王の治める、琉球王国との交易にも参加した。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_010.wav|3|スマートフォンから、フィーチャーフォンまで、マルチデバイスに対応。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_011.wav|3|軽妙洒脱なナレーションから、情緒感溢れる語りまで、幅広い表現力を持つ。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_012.wav|3|構造は、鋼製の単一アーチで、橋脚は、石積みである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_013.wav|3|そこへ、オーナーが新しいシェフとして、腕利きのヒョヌクを招く。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_014.wav|3|クィーンズアベニューアルファに所属している。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_015.wav|3|一方で、漁業と商業で、リャネス港は繁栄していた。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_016.wav|3|この、ニューサウスウェールズ代表チームが、ワラビーズの中核となって行く。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_017.wav|3|ただし、ギャンブル依存症の入院治療を行っている病院は、わずかである。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_018.wav|3|他のメジャーなディストリビューションに比べ、セキュリティー上の問題の修正が、遅い場合もある。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_020.wav|3|全米パブリッシャーズ協会の、ベストストラテジーゲームオブザイヤーを、日本人として受賞。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs043/jvs043_021.wav|3|痛みは、点滴より鎮痛薬を、静脈投与することで、鎮痛を行う。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_055.wav|3|ウォリアーズミックスマーシャルアーツアカデミー所属。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_057.wav|3|このジェシー役でステイモスは、エミー賞にノミネートされたこともある。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_060.wav|3|母は、ピーターマリッツバーグの精神病院に入院しているときに、ベッシーを産む。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_063.wav|3|大当り終了後は、グラディエーターチャンスに突入する。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_064.wav|3|この菌による病気は、灰色かび病と名づけられているものが多い。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_068.wav|3|シャンシャン馬は、鵜戸神宮へ参拝する、新婚夫婦が乗っていた馬のこと。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_074.wav|3|レジェンドシリーズをベースに、ヨーフリー機構を備えた、ビューカメラ。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_075.wav|3|楽曲のセンターポジションは、エーケービーフォーティーエイトの、高橋みなみが務めた。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_080.wav|3|かすかに聞こえてくる1931年版の讃美歌が、次第に大きくなっていく。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_091.wav|3|同母姉に、スウェーデン王妃、ジョゼフィーヌがいる。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_098.wav|3|乾ドックに入渠して、オーバーホールすべきかどうか、パフォーマンスがチェックされた。
+/run/media/viblab/Markov2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_099.wav|3|デビューウェイトは、スーパーバンタム級ではなく、フェザー級だった。

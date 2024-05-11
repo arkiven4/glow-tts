@@ -210,7 +210,7 @@ def load_wav_to_torch(full_path):
 
 def load_filepaths_and_text(filename, split="|"):
   with open(filename, encoding='utf-8') as f:
-    filepaths_and_text = [line.strip().split(split) for line in f if int(line.strip().split(split)[1]) == 0 or int(line.strip().split(split)[1]) == 2]
+    filepaths_and_text = [line.strip().split(split) for line in f] #if int(line.strip().split(split)[1]) == 0 or int(line.strip().split(split)[1]) == 2
   return filepaths_and_text
 
 
