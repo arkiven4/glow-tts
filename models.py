@@ -905,8 +905,8 @@ class FlowGenerator(nn.Module):
     if l is not None:
       l = self.emb_l(l).unsqueeze(-1) # [b, h, 1]
 
-    # if emo is not None:
-    #   emo = emo.unsqueeze(-1) # [b, h, 1]
+    if emo is not None:
+      emo = emo.unsqueeze(-1) # [b, h, 1]
 
     emo, kl_loss_emo = self.gst_proj(y)
     #emo = self.emo_ref(y)
@@ -921,7 +921,8 @@ class FlowGenerator(nn.Module):
       pitch = pitch.squeeze(1)
       pitch = pitch[:, :y_max_length]
       pitch_mask = (pitch == 0.0)
-      pitch_norm = torch.log(torch.clamp(pitch, min=torch.finfo(pitch.dtype).tiny))
+      #pitch_norm = torch.log(torch.clamp(pitch, min=torch.finfo(pitch.dtype).tiny))
+      pitch_norm = pitch
       pitch_norm[pitch_mask] = 0.0
       pitch_norm = pitch_norm.unsqueeze(1)
 
@@ -929,7 +930,8 @@ class FlowGenerator(nn.Module):
       energy = energy.squeeze(1)
       energy = energy[:, :y_max_length]
       energy_mask = (energy == 0.0)
-      energy_norm = torch.log(torch.clamp(energy, min=torch.finfo(energy.dtype).tiny))
+      #energy_norm = torch.log(torch.clamp(energy, min=torch.finfo(energy.dtype).tiny))
+      energy_norm = energy
       energy_norm[energy_mask] = 0.0
       energy_norm = energy_norm.unsqueeze(1)
 
@@ -1022,7 +1024,7 @@ class FlowGenerator(nn.Module):
       pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo, noise_scale=f0_noise_scale, reverse=True)
       #pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo)
       pitch = pitch.squeeze(1)
-      pitch = torch.clamp_min(pitch, 0)
+      #pitch = torch.clamp_min(pitch, 0)
       if pitch.shape[-1] != z.shape[-1]:
         # need to expand predicted pitch to match no of tokens
         durs_predicted = torch.sum(attn, -1) * x_mask.squeeze()
@@ -1035,7 +1037,7 @@ class FlowGenerator(nn.Module):
       energy = self.proj_energy(x_feature, z_mask, emo=emo, noise_scale=energy_noise_scale, reverse=True)
       #energy = self.proj_energy(x_feature, z_mask, emo=emo)
       energy = energy.squeeze(1)
-      energy = torch.clamp_min(energy, 0)
+      #energy = torch.clamp_min(energy, 0)
       if energy.shape[-1] != z.shape[-1]:
         # need to expand predicted energy to match no of tokens
         durs_predicted = torch.sum(attn, -1) * x_mask.squeeze()

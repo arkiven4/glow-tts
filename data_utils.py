@@ -3,6 +3,7 @@ import random
 import numpy as np
 import torch
 import torch.utils.data
+import torch.nn.functional as F
 
 import commons 
 from utils import load_wav_to_torch, load_filepaths_and_text
@@ -355,14 +356,15 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
         text = self.get_text(text, lid)
         mel, energy = self.get_mel(audiopath)
         energy = energy[:, :mel.size(1)]
+        energy = F.pad(input=torch.diff(energy), pad=(0, 1), mode='constant', value=0)
 
         spk_emb = torch.Tensor(np.load(f"{self.spk_embeds_path.replace('dataset_name', database_name)}/{filename}.npy"))
         emo_emb = torch.Tensor(np.load(f"{self.emo_embeds_path.replace('dataset_name', database_name)}/{filename}.npy"))
         f0 = np.load(f"{self.f0_embeds_path.replace('dataset_name', database_name)}/{filename}.npy")
         f0 = torch.from_numpy(f0)[None]
-        f0 = f0[:, :mel.size(1)]
+        f0 = F.pad(input=torch.diff(f0[:, :mel.size(1)]), pad=(0, 1), mode='constant', value=0)
         lid = self.get_lid(lid)
-        
+
         return (text, mel, spk_emb, emo_emb, f0, energy, lid) # f0 or emo
 
     def get_mel(self, filename):
