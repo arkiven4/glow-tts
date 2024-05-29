@@ -9,6 +9,7 @@ import modules_vits
 import commons
 import attentions
 import monotonic_align
+from model_emocatch import EmoCatcher
 
 # class VAD_CartesianEncoder(nn.Module):
 #     def __init__(self, hidden_state=96, latent_size=256):
@@ -847,8 +848,12 @@ class FlowGenerator(nn.Module):
       torch.nn.init.xavier_uniform_(self.emb_l.weight)
 
     if self.use_emo_embeds:
-      print("Use Emotion Custom Module")
-      self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size)
+      # print("Use GST Custom Module")
+      # self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size)
+      print("Use Emo Catcher Custom Module")
+      self.emo_proj = EmoCatcher(input_dim=80, hidden_dim=512, kernel_size=3, num_classes=5)
+      self.emo_proj.load_state_dict(torch.load("./output/model/best_model*.pth"))
+      self.emo_proj.eval()
       #self.emo_ref = MelStyleEncoder()
 
     #   print("Use Emotion Embeddings Module")
@@ -905,10 +910,12 @@ class FlowGenerator(nn.Module):
     if l is not None:
       l = self.emb_l(l).unsqueeze(-1) # [b, h, 1]
 
-    if emo is not None:
-      emo = emo.unsqueeze(-1) # [b, h, 1]
+    # if emo is not None:
+    #   emo = emo.unsqueeze(-1) # [b, h, 1]
 
-    emo, kl_loss_emo = self.gst_proj(y)
+    #emo, kl_loss_emo = self.gst_proj(y)
+    #emo, kl_loss_emo = self.gst_proj(y)
+    _, emo = self.emo_proj(y.unsqueeze(1), y_lengths)
     #emo = self.emo_ref(y)
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g, emo=emo)
 
@@ -991,11 +998,12 @@ class FlowGenerator(nn.Module):
     # if emo is not None:
     #   emo = emo.unsqueeze(-1)
     
-    if gst_token is not None:
-       emo = gst_token
-    elif y is not None:
-      emo, _ = self.gst_proj(y, infer=True)
+    # if gst_token is not None:
+    #    emo = gst_token
+    # elif y is not None:
+    #   emo, _ = self.gst_proj(y, infer=True)
     #emo = self.emo_ref(y)
+    _, emo = self.emo_proj(y.unsqueeze(1), y_lengths)
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g, emo=emo)
 
     if self.use_sdp:
