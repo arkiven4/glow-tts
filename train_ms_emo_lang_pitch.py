@@ -266,7 +266,7 @@ def train(
                 (z, z_m, z_logs, logdet, z_mask),
                 (_, _, _),
                 (attn, l_length, l_pitch, l_energy),
-                (pitch_norm, pred_pitch, energy_norm, pred_energy), (kl_loss_emo)
+                (pitch_norm, pred_pitch, energy_norm, pred_energy), (l_emo)
             ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=None, pitch=pitchs, energy=energys, l=lids)
 
             with autocast(enabled=False):
@@ -301,6 +301,7 @@ def train(
                     x[:1],
                     x_lengths[:1],
                     y=y[:1],
+                    y_lengths=y_lengths[:1],
                     g=speakers[:1],  
                     emo=None,  
                     l=lids[:1],
@@ -392,7 +393,7 @@ def evaluate(
                     (z, z_m, z_logs, logdet, z_mask),
                     (_, _, _),
                     (_, l_length, l_pitch, l_energy),
-                    (pitch_norm, pred_pitch, energy_norm, pred_energy), (kl_loss_emo)
+                    (pitch_norm, pred_pitch, energy_norm, pred_energy), (l_emo)
                 ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=None, pitch=pitchs, energy=energys, l=lids)
                 
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)

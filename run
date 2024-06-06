@@ -1,0 +1,1 @@
+TORCH_DISTRIBUTED_DEBUG=DETAIL python train_ms_emo_lang_pitch.py -c configs/base_blank_emo_lang_pitch.json -m base_blank_emo_lang_pitch

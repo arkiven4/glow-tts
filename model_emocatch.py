@@ -77,7 +77,7 @@ class EmoCatcher(nn.Module):
         self.attention= BahdanauAttention(hidden_dim)
         
         self.linear1 = nn.Sequential(nn.Linear(hidden_dim, hidden_dim//2),
-                                    nn.BatchNorm1d(hidden_dim//2),
+                                    #nn.BatchNorm1d(hidden_dim//2),
                                     nn.GELU(),
                                     nn.Dropout(0.1),
                                     )
@@ -119,6 +119,10 @@ class EmoCatcher(nn.Module):
 
         
     def forward(self,x, L, return_attention_weights = False):
+        # if L.shape[0] == 1:
+        #     x = x.repeat(2, 1, 1, 1)
+        #     L = L.repeat(2)
+
         x = x.squeeze(1)
         # conv
         z = self.conv_block1(x) ## (N, h//2, L)
@@ -144,6 +148,10 @@ class EmoCatcher(nn.Module):
         # fc
         z2 = self.linear1(o_att)
         y = self.linear2(z2)
+
+        # if L.shape[0] == 2:
+        #     z2 = z2[0]
+        #     y = y[0]
         
         if return_attention_weights:
             return y, att_weights, z2

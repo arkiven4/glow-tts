@@ -11,6 +11,8 @@ import attentions
 import monotonic_align
 from model_emocatch import EmoCatcher
 
+cosine_sim = nn.CosineSimilarity(dim=1, eps=1e-6)
+
 # class VAD_CartesianEncoder(nn.Module):
 #     def __init__(self, hidden_state=96, latent_size=256):
 #         super(VAD_CartesianEncoder, self).__init__()
@@ -852,8 +854,11 @@ class FlowGenerator(nn.Module):
       # self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size)
       print("Use Emo Catcher Custom Module")
       self.emo_proj = EmoCatcher(input_dim=80, hidden_dim=512, kernel_size=3, num_classes=5)
-      self.emo_proj.load_state_dict(torch.load("./output/model/best_model*.pth"))
+      self.emo_proj.load_state_dict(torch.load("/run/media/fourier/Data2/Pras/Thesis/TryModel/glow-tts/best_model_0.9170_0.5059.pth"))
       self.emo_proj.eval()
+      for param in self.emo_proj.parameters():
+        param.requires_grad = False
+
       #self.emo_ref = MelStyleEncoder()
 
     #   print("Use Emotion Embeddings Module")
@@ -915,7 +920,8 @@ class FlowGenerator(nn.Module):
 
     #emo, kl_loss_emo = self.gst_proj(y)
     #emo, kl_loss_emo = self.gst_proj(y)
-    _, emo = self.emo_proj(y.unsqueeze(1), y_lengths)
+    _, emo = self.emo_proj(y.unsqueeze(1), y_lengths.cpu())
+    emo = emo.unsqueeze(-1)
     #emo = self.emo_ref(y)
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g, emo=emo)
 
@@ -976,17 +982,20 @@ class FlowGenerator(nn.Module):
       l_energy = torch.sum(l_energy)
       #pred_energy = self.proj_energy(x_feature, z_mask, emo=emo)
 
-
     # expand prior
     z_m = torch.matmul(attn.squeeze(1).transpose(1, 2), x_m.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     z_logs = torch.matmul(attn.squeeze(1).transpose(1, 2), x_logs.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
 
-    # z_gen = (z_m + torch.exp(z_logs) * torch.randn_like(z_m) * 1.) * z_mask
-    # y_gen, _ = self.decoder(z_gen, z_mask, g=g, emo=emo, pitch=pitch_norm, energy=energy_norm, reverse=True)
+    z_gen = (z_m + torch.exp(z_logs) * torch.randn_like(z_m) * 1.) * z_mask
+    y_gen, _ = self.decoder(z_gen, z_mask, g=g, pitch=pitch_norm, energy=energy_norm, reverse=True)
 
+    _, emo_gen = self.emo_proj(y_gen.unsqueeze(1), torch.tensor(y_gen.size(2)).repeat(y_gen.shape[0])) # [b, h]
+    #l_emo = torch.sum(cosine_sim(emo.squeeze(-1), emo_gen)) / emo_gen.shape[0] # [b]
+    l_emo = -torch.nn.functional.cosine_similarity(emo.squeeze(-1), emo_gen).mean()
+    l_emo = l_emo * 9.0
     # y_slice, slice_ids = commons.rand_segments(y, y_lengths, 64, let_short_samples=True, pad_short=True)
     # y_gen = commons.segment(y_gen, slice_ids, 64, pad_short=True)
-    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length, l_pitch, l_energy), (None, None, None, None), (kl_loss_emo) # (attn, l_length, l_pitch, l_energy)
+    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length, l_pitch, l_energy), (None, None, None, None), (l_emo) # (attn, l_length, l_pitch, l_energy)
 
   def infer(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None, gst_token=None, noise_scale=1., noise_scale_w=1., f0_noise_scale=1., energy_noise_scale=1., length_scale=1., pitch_scale=0.0, energy_scale=0.0):
     if g is not None:
@@ -1003,7 +1012,9 @@ class FlowGenerator(nn.Module):
     # elif y is not None:
     #   emo, _ = self.gst_proj(y, infer=True)
     #emo = self.emo_ref(y)
-    _, emo = self.emo_proj(y.unsqueeze(1), y_lengths)
+    _, emo = self.emo_proj(y.unsqueeze(1), y_lengths.cpu())
+    emo = emo.unsqueeze(-1)
+    
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g, emo=emo)
 
     if self.use_sdp:
