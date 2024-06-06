@@ -9,11 +9,11 @@
     "eps": 1e-9,
     "warmup_steps": 4000,
     "scheduler": "noam",
-    "batch_size": 16,
+    "batch_size": 12,
     "ddi": false,
     "fp16_run": false,
-    "warm_start": false,
-    "warm_start_checkpoint": "logs/base_blank_emo_lang_pitch/G_215.pth",
+    "warm_start": true,
+    "warm_start_checkpoint": "logs/base_blank_emo_lang_pitch/G_83.pth",
     "ignored_layer": []
   },
   "data": {

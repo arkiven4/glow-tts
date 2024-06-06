@@ -14,3 +14,6 @@ TODO
 
 
 logs/base_blank_emo_lang_8c3fa52/G_414.pth -> Default
+
+
+sleep 7 && /usr/bin/anydesk %u
