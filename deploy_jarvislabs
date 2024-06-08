@@ -7,11 +7,13 @@ screen
 git clone https://github.com/arkiven4/glow-tts
 cd glow-tts
 pip install gdown
-gdown https://drive.google.com/uc?id=1opCiNQCi3-baKbyw4DacYNWkr2FtFteA
-tar -xvzf ToJarvis.tar.gz
+mkdir Database
+cd Database
+gdown https://drive.google.com/file/d/180Yan92AXO1Uw86_UQMl4KQFj7qyrVci/view?usp=sharing
+tar -xvzf Database.tar.gz
 
 screen
-cd ..
+cd ~
 apt-cache policy python3.8
 apt install python3.8 python3.8-distutils python3.8-dev -y
 
@@ -21,9 +23,11 @@ python3.8 get-pip.py
 cd glow-tts
 python3.8 -m pip install -r requirements.txt
 cd monotonic_align; mkdir monotonic_align; python3.8 setup.py build_ext --inplace
+cd ..
+gdown https://drive.google.com/file/d/1p5Z-zZByv3_cPv9enj2wdtn7FO7XSiBc/view?usp=sharing
 
 # Configure all Setting Like DB, Dkk
-sed -i -- 's,/run/media/viblab/Markov2/Pras/Thesis,/home/glow-tts,g' filelists/*.txt
+sed -i -- 's,/run/media/viblab/Markov2/Pras/Thesis/,/home/glow-tts,g' filelists/*.txt
 nano train_ms_emo_lang_pitch.py # Disable Torch Save Point and Disable Multiprocessing
 nano configs/base_blank_emo_lang_pitch.json
 Change data_utils.py database_name
