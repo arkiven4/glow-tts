@@ -413,7 +413,6 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
         try:
             self.get_mel_text_speaker_pair(self.audiopaths_lid_text[index])
         except:
-            print(index)
             print(self.get_mel_text_speaker_pair(self.audiopaths_lid_text[index]))
         return self.get_mel_text_speaker_pair(self.audiopaths_lid_text[index])
 
