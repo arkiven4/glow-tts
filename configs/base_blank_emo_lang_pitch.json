@@ -12,7 +12,7 @@
     "batch_size": 12,
     "ddi": false,
     "fp16_run": false,
-    "warm_start": true,
+    "warm_start": false,
     "warm_start_checkpoint": "logs/base_blank_emo_lang_pitch/G_83.pth",
     "ignored_layer": []
   },
@@ -34,9 +34,9 @@
     "cleaned_text": false,
     "n_speakers": 109,
     "n_lang": 10,
-    "spk_embeds_path": "/run/media/fourier/Data2/Pras/Thesis/Database/dataset_name/spk_embeds/",
-    "emo_embeds_path": "/run/media/fourier/Data2/Pras/Thesis/Database/dataset_name/emo_embeds/",
-    "f0_embeds_path": "/run/media/fourier/Data2/Pras/Thesis/Database/dataset_name/f0_straight/",
+    "spk_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/spk_embeds/",
+    "emo_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/emo_embeds/",
+    "f0_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/f0_straight/",
     "database_name_index": 8
   },
   "model": {

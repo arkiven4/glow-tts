@@ -207,20 +207,11 @@ class GSTNoReff(nn.Module):
 
         self.stl = modules_gst.STL(token_num, token_embedding_size, num_heads, ref_enc_gru_size)
 
-    def reparameterize(self, mu, logvar, infer):
-        # if infer == False:
-
-        # else:
-        #     return mu
-        std = torch.exp(0.5*logvar)
-        eps = torch.randn_like(std)
-        return mu + eps*std
-
     def forward(self, inputs):
-        enc_out = self.encoder(inputs)
+        enc_out = self.cond_emo(inputs) # torch.Size([12, 128])
         style_embed = self.stl(enc_out).transpose(1,2)
 
-        return style_embed, None
+        return style_embed
 
 class StochasticDurationPredictor(nn.Module):
   def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, gin_channels=0, lin_channels=0, emoin_channels=0):
@@ -263,8 +254,8 @@ class StochasticDurationPredictor(nn.Module):
     if lin_channels != 0 :
       self.cond_lang = nn.Conv1d(lin_channels, filter_channels, 1)
 
-    if emoin_channels != 0:
-      self.cond_emo = nn.Conv1d(emoin_channels, filter_channels, 1)
+    # if emoin_channels != 0:
+    #   self.cond_emo = nn.Conv1d(emoin_channels, filter_channels, 1)
 
   def forward(self, x, x_mask, dr=None, g=None, l=None, emo=None, reverse=False, noise_scale=1.0):
     x = torch.detach(x)
@@ -274,9 +265,9 @@ class StochasticDurationPredictor(nn.Module):
         g = torch.detach(g)
         x = x + self.cond(g)
 
-    if emo is not None:
-        emo = torch.detach(emo)
-        x = x + self.cond_emo(emo)
+    # if emo is not None:
+    #     emo = torch.detach(emo)
+    #     x = x + self.cond_emo(emo)
 
     if l is not None:
         l = torch.detach(l)
@@ -876,7 +867,7 @@ class FlowGenerator(nn.Module):
     if self.use_emo_embeds:
       print("Use GST Custom Module")
       # self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size)
-      self.gst_proj = GSTNoReff(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size)
+      self.gst_proj = GSTNoReff(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size, emoin_channels=1024)
 
     #   print("Use Emo Catcher Custom Module")
     #   self.emo_proj = EmoCatcher(input_dim=80, hidden_dim=512, kernel_size=3, num_classes=5)
@@ -942,7 +933,7 @@ class FlowGenerator(nn.Module):
       l = self.emb_l(l).unsqueeze(-1) # [b, h, 1]
 
     if emo is not None:
-      emo = self.gst_proj(emo).unsqueeze(-1) # [b, h, 1]
+      emo = self.gst_proj(emo) # [b, h, 1]
 
     #emo, kl_loss_emo = self.gst_proj(y)
     #emo, kl_loss_emo = self.gst_proj(y)
@@ -1032,7 +1023,7 @@ class FlowGenerator(nn.Module):
       l = self.emb_l(l).unsqueeze(-1) # [b, h]
 
     if emo is not None:
-      emo = self.gst_proj(emo).unsqueeze(-1) # [b, h, 1]
+      emo = self.gst_proj(emo) # [b, h, 1]
     
     # if gst_token is not None:
     #    emo = gst_token

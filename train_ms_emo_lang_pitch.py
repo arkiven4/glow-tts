@@ -245,7 +245,7 @@ def train(
     train_loader.batch_sampler.set_epoch(epoch)
     global global_step
     generator.train()
-    for batch_idx, (x, x_lengths, y, y_lengths, speakers, _, pitchs, energys, lids) in enumerate(
+    for batch_idx, (x, x_lengths, y, y_lengths, speakers, emos, pitchs, energys, lids) in enumerate(
         tqdm(train_loader)
     ):
         x, x_lengths = x.cuda(rank, non_blocking=True), x_lengths.cuda(
@@ -255,7 +255,7 @@ def train(
             rank, non_blocking=True
         )
         speakers = speakers.cuda(rank, non_blocking=True)
-        #emos = emos.cuda(rank, non_blocking=True)
+        emos = emos.cuda(rank, non_blocking=True)
         pitchs = pitchs.cuda(rank, non_blocking=True)
         energys = energys.cuda(rank, non_blocking=True)
         lids = lids.cuda(rank, non_blocking=True)
@@ -267,7 +267,7 @@ def train(
                 (_, _, _),
                 (attn, l_length, l_pitch, l_energy),
                 (pitch_norm, pred_pitch, energy_norm, pred_energy), (l_emo)
-            ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=None, pitch=pitchs, energy=energys, l=lids)
+            ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, pitch=pitchs, energy=energys, l=lids)
 
             with autocast(enabled=False):
                 # y_slice, slice_ids = commons.rand_segments(y, y_lengths, 128, let_short_samples=True, pad_short=True)
@@ -303,7 +303,7 @@ def train(
                     y=y[:1],
                     y_lengths=y_lengths[:1],
                     g=speakers[:1],  
-                    emo=None,  
+                    emo=emos[:1],  
                     l=lids[:1],
                 )
                 
@@ -375,7 +375,7 @@ def evaluate(
                 x_lengths,
                 y,
                 y_lengths,
-                speakers, _, pitchs, energys, lids
+                speakers, emos, pitchs, energys, lids
             ) in enumerate(val_loader):
                 x, x_lengths = x.cuda(rank, non_blocking=True), x_lengths.cuda(
                     rank, non_blocking=True
@@ -384,7 +384,7 @@ def evaluate(
                     rank, non_blocking=True
                 )
                 speakers = speakers.cuda(rank, non_blocking=True)
-                #emos = emos.cuda(rank, non_blocking=True)
+                emos = emos.cuda(rank, non_blocking=True)
                 pitchs = pitchs.cuda(rank, non_blocking=True)
                 energys = energys.cuda(rank, non_blocking=True)
                 lids = lids.cuda(rank, non_blocking=True)
@@ -394,7 +394,7 @@ def evaluate(
                     (_, _, _),
                     (_, l_length, l_pitch, l_energy),
                     (pitch_norm, pred_pitch, energy_norm, pred_energy), (l_emo)
-                ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=None, pitch=pitchs, energy=energys, l=lids)
+                ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, pitch=pitchs, energy=energys, l=lids)
                 
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 l_length = torch.sum(l_length.float())
