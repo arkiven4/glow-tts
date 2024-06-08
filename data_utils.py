@@ -356,13 +356,19 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
         text = self.get_text(text, lid)
         mel, energy = self.get_mel(audiopath)
         energy = energy[:, :mel.size(1)]
+        energy[energy == 0] = torch.nan
         energy = F.pad(input=torch.diff(energy), pad=(0, 1), mode='constant', value=0)
+        energy = torch.nan_to_num(energy, nan=0.0)
 
         spk_emb = torch.Tensor(np.load(f"{self.spk_embeds_path.replace('dataset_name', database_name)}/{filename}.npy"))
         emo_emb = torch.Tensor(np.load(f"{self.emo_embeds_path.replace('dataset_name', database_name)}/{filename}.npy"))
+
         f0 = np.load(f"{self.f0_embeds_path.replace('dataset_name', database_name)}/{filename}.npy")
         f0 = torch.from_numpy(f0)[None]
-        f0 = F.pad(input=torch.diff(f0[:, :mel.size(1)]), pad=(0, 1), mode='constant', value=0)
+        f0[f0 == 0] = torch.nan
+        f0 = F.pad(input=torch.diff(f0), pad=(0, 1), mode='constant', value=0)
+        f0 = torch.nan_to_num(f0, nan=0.0)
+        
         lid = self.get_lid(lid)
 
         return (text, mel, spk_emb, emo_emb, f0, energy, lid) # f0 or emo
