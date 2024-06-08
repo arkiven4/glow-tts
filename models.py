@@ -198,6 +198,30 @@ class GST(nn.Module):
         style_embed = self.stl(enc_out).transpose(1,2)
         return style_embed, None
 
+class GSTNoReff(nn.Module):
+    def __init__(self, token_num, token_embedding_size, num_heads, ref_enc_filters, n_mel_channels, ref_enc_gru_size, emoin_channels=0, lin_channels=0):
+        super().__init__()
+
+        if emoin_channels != 0:
+          self.cond_emo = nn.Linear(emoin_channels, ref_enc_gru_size)
+
+        self.stl = modules_gst.STL(token_num, token_embedding_size, num_heads, ref_enc_gru_size)
+
+    def reparameterize(self, mu, logvar, infer):
+        # if infer == False:
+
+        # else:
+        #     return mu
+        std = torch.exp(0.5*logvar)
+        eps = torch.randn_like(std)
+        return mu + eps*std
+
+    def forward(self, inputs):
+        enc_out = self.encoder(inputs)
+        style_embed = self.stl(enc_out).transpose(1,2)
+
+        return style_embed, None
+
 class StochasticDurationPredictor(nn.Module):
   def __init__(self, in_channels, filter_channels, kernel_size, p_dropout, n_flows=4, gin_channels=0, lin_channels=0, emoin_channels=0):
     super().__init__()
@@ -339,23 +363,23 @@ class StochasticPitchPredictor(nn.Module):
     self.flows.append(modules.ElementwiseAffine(2))
     self.flows += [modules.ConvFlow(2, filter_channels, kernel_size, num_layers=3) for _ in range(n_flows)]
 
-    if gin_channels != 0:
-      self.cond = nn.Conv1d(gin_channels, filter_channels, 1)
+    # if gin_channels != 0:
+    #   self.cond = nn.Conv1d(gin_channels, filter_channels, 1)
 
-    if emoin_channels != 0:
-      self.cond_emo = nn.Conv1d(emoin_channels, filter_channels, 1)
+    # if emoin_channels != 0:
+    #   self.cond_emo = nn.Conv1d(emoin_channels, filter_channels, 1)
 
   def forward(self, x, x_mask, dr=None, g=None, emo=None, reverse=False, noise_scale=1.0):
     x = torch.detach(x)
     x = self.pre(x)
 
-    if g is not None:
-        g = torch.detach(g)
-        x = x + self.cond(g)
+    # if g is not None:
+    #     g = torch.detach(g)
+    #     x = x + self.cond(g)
 
-    if emo is not None:
-        emo = torch.detach(emo)
-        x = x + self.cond_emo(emo)
+    # if emo is not None:
+    #     emo = torch.detach(emo)
+    #     x = x + self.cond_emo(emo)
 
     x = self.convs(x, x_mask)
     x = self.proj(x) * x_mask
@@ -412,16 +436,16 @@ class StochasticEnergyPredictor(nn.Module):
     self.flows.append(modules.ElementwiseAffine(2))
     self.flows += [modules.ConvFlow(2, filter_channels, kernel_size, num_layers=3) for _ in range(n_flows)]
 
-    if emoin_channels != 0:
-      self.cond_emo = nn.Conv1d(emoin_channels, filter_channels, 1)
+    # if emoin_channels != 0:
+    #   self.cond_emo = nn.Conv1d(emoin_channels, filter_channels, 1)
 
   def forward(self, x, x_mask, dr=None, g=None, emo=None, reverse=False, noise_scale=1.0):
     x = torch.detach(x)
     x = self.pre(x)
 
-    if emo is not None:
-        emo = torch.detach(emo)
-        x = x + self.cond_emo(emo)
+    # if emo is not None:
+    #     emo = torch.detach(emo)
+    #     x = x + self.cond_emo(emo)
 
     x = self.convs(x, x_mask)
     x = self.proj(x) * x_mask
@@ -850,14 +874,16 @@ class FlowGenerator(nn.Module):
       torch.nn.init.xavier_uniform_(self.emb_l.weight)
 
     if self.use_emo_embeds:
-      # print("Use GST Custom Module")
+      print("Use GST Custom Module")
       # self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size)
-      print("Use Emo Catcher Custom Module")
-      self.emo_proj = EmoCatcher(input_dim=80, hidden_dim=512, kernel_size=3, num_classes=5)
-      self.emo_proj.load_state_dict(torch.load("/run/media/fourier/Data2/Pras/Thesis/TryModel/glow-tts/best_model_0.9170_0.5059.pth"))
-      self.emo_proj.eval()
-      for param in self.emo_proj.parameters():
-        param.requires_grad = False
+      self.gst_proj = GSTNoReff(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size)
+
+    #   print("Use Emo Catcher Custom Module")
+    #   self.emo_proj = EmoCatcher(input_dim=80, hidden_dim=512, kernel_size=3, num_classes=5)
+    #   self.emo_proj.load_state_dict(torch.load("/run/media/fourier/Data2/Pras/Thesis/TryModel/glow-tts/best_model_0.9170_0.5059.pth"))
+    #   self.emo_proj.eval()
+    #   for param in self.emo_proj.parameters():
+    #     param.requires_grad = False
 
       #self.emo_ref = MelStyleEncoder()
 
@@ -915,14 +941,15 @@ class FlowGenerator(nn.Module):
     if l is not None:
       l = self.emb_l(l).unsqueeze(-1) # [b, h, 1]
 
-    # if emo is not None:
-    #   emo = emo.unsqueeze(-1) # [b, h, 1]
+    if emo is not None:
+      emo = self.gst_proj(emo).unsqueeze(-1) # [b, h, 1]
 
     #emo, kl_loss_emo = self.gst_proj(y)
     #emo, kl_loss_emo = self.gst_proj(y)
-    _, emo = self.emo_proj(y.unsqueeze(1), y_lengths.cpu())
-    emo = emo.unsqueeze(-1)
+    # _, emo = self.emo_proj(y.unsqueeze(1), y_lengths.cpu())
+    # emo = emo.unsqueeze(-1)
     #emo = self.emo_ref(y)
+    
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g, emo=emo)
 
     y_max_length = y.size(2)
@@ -986,34 +1013,34 @@ class FlowGenerator(nn.Module):
     z_m = torch.matmul(attn.squeeze(1).transpose(1, 2), x_m.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     z_logs = torch.matmul(attn.squeeze(1).transpose(1, 2), x_logs.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
 
-    z_gen = (z_m + torch.exp(z_logs) * torch.randn_like(z_m) * 1.) * z_mask
-    y_gen, _ = self.decoder(z_gen, z_mask, g=g, pitch=pitch_norm, energy=energy_norm, reverse=True)
+    #z_gen = (z_m + torch.exp(z_logs) * torch.randn_like(z_m) * 1.) * z_mask
+    #y_gen, _ = self.decoder(z_gen, z_mask, g=g, pitch=pitch_norm, energy=energy_norm, reverse=True)
 
-    _, emo_gen = self.emo_proj(y_gen.unsqueeze(1), torch.tensor(y_gen.size(2)).repeat(y_gen.shape[0])) # [b, h]
-    #l_emo = torch.sum(cosine_sim(emo.squeeze(-1), emo_gen)) / emo_gen.shape[0] # [b]
-    l_emo = -torch.nn.functional.cosine_similarity(emo.squeeze(-1), emo_gen).mean()
-    l_emo = l_emo * 9.0
+    # _, emo_gen = self.emo_proj(y_gen.unsqueeze(1), torch.tensor(y_gen.size(2)).repeat(y_gen.shape[0])) # [b, h]
+    # #l_emo = torch.sum(cosine_sim(emo.squeeze(-1), emo_gen)) / emo_gen.shape[0] # [b]
+    # l_emo = -torch.nn.functional.cosine_similarity(emo.squeeze(-1), emo_gen).mean()
+    # l_emo = l_emo * 9.0
     # y_slice, slice_ids = commons.rand_segments(y, y_lengths, 64, let_short_samples=True, pad_short=True)
     # y_gen = commons.segment(y_gen, slice_ids, 64, pad_short=True)
-    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length, l_pitch, l_energy), (None, None, None, None), (l_emo) # (attn, l_length, l_pitch, l_energy)
+    return (z, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, l_length, l_pitch, l_energy), (None, None, None, None), (None) # (attn, l_length, l_pitch, l_energy)
 
-  def infer(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None, gst_token=None, noise_scale=1., noise_scale_w=1., f0_noise_scale=1., energy_noise_scale=1., length_scale=1., pitch_scale=0.0, energy_scale=0.0):
+  def infer(self, x, x_lengths, y=None, y_lengths=None, g=None, emo=None, l=None, gst_token=None, noise_scale=1., noise_scale_w=1., f0_noise_scale=1., energy_noise_scale=1., length_scale=1., pitch_scale=1.0, energy_scale=1.0):
     if g is not None:
       g = F.normalize(g).unsqueeze(-1) # [b, h]
 
     if l is not None:
       l = self.emb_l(l).unsqueeze(-1) # [b, h]
 
-    # if emo is not None:
-    #   emo = emo.unsqueeze(-1)
+    if emo is not None:
+      emo = self.gst_proj(emo).unsqueeze(-1) # [b, h, 1]
     
     # if gst_token is not None:
     #    emo = gst_token
     # elif y is not None:
     #   emo, _ = self.gst_proj(y, infer=True)
     #emo = self.emo_ref(y)
-    _, emo = self.emo_proj(y.unsqueeze(1), y_lengths.cpu())
-    emo = emo.unsqueeze(-1)
+    # _, emo = self.emo_proj(y.unsqueeze(1), y_lengths.cpu())
+    # emo = emo.unsqueeze(-1)
     
     x, x_m, x_logs, x_mask = self.encoder(x, x_lengths, l=l, g=g, emo=emo)
 
@@ -1049,7 +1076,7 @@ class FlowGenerator(nn.Module):
         durs_predicted = torch.sum(attn, -1) * x_mask.squeeze()
         pitch, _ = commons.regulate_len(durs_predicted, pitch.unsqueeze(-1))
         pitch = pitch.squeeze(-1) 
-      pitch = pitch + pitch_scale
+      pitch = pitch * pitch_scale
       pitch = pitch.squeeze(1)
 
     if self.use_sep:
@@ -1062,7 +1089,7 @@ class FlowGenerator(nn.Module):
         durs_predicted = torch.sum(attn, -1) * x_mask.squeeze()
         energy, _ = commons.regulate_len(durs_predicted, energy.unsqueeze(-1))
         energy = energy.squeeze(-1)    
-      energy = energy + energy_scale
+      energy = energy * energy_scale
       energy = energy.squeeze(1)
     
     y, logdet = self.decoder(z, z_mask, g=g, pitch=pitch, energy=energy, reverse=True)
