@@ -1,6 +1,6 @@
 cd ~
 apt update
-apt install software-properties-common screen -y
+apt install software-properties-common screen nano -y
 add-apt-repository ppa:deadsnakes/ppa -y
 screen
 
@@ -9,8 +9,8 @@ cd glow-tts
 pip install gdown
 mkdir Database
 cd Database
-gdown https://drive.google.com/file/d/180Yan92AXO1Uw86_UQMl4KQFj7qyrVci/view?usp=sharing
-tar -xvzf Database.tar.gz
+gdown https://drive.google.com/uc?id=180Yan92AXO1Uw86_UQMl4KQFj7qyrVci
+tar -xvzf Database.tar.gz --no-same-owners
 
 screen
 cd ~
@@ -20,18 +20,28 @@ apt install python3.8 python3.8-distutils python3.8-dev -y
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python3.8 get-pip.py
 
-cd glow-tts
+cd /workspace/glow-tts
 python3.8 -m pip install -r requirements.txt
 cd monotonic_align; mkdir monotonic_align; python3.8 setup.py build_ext --inplace
 cd ..
-gdown https://drive.google.com/file/d/1p5Z-zZByv3_cPv9enj2wdtn7FO7XSiBc/view?usp=sharing
+gdown https://drive.google.com/uc?id=1p5Z-zZByv3_cPv9enj2wdtn7FO7XSiBc
+
+# pyopenjtalk.extract_fullcontext("ashdaks") #coba setup dulu
 
 # Configure all Setting Like DB, Dkk
-sed -i -- 's,/run/media/viblab/Markov2/Pras/Thesis/,/home/glow-tts,g' filelists/*.txt
+sed -i -- 's,/run/media/viblab/Markov2/Pras/Thesis/,/workspace/glow-tts/,g' filelists/*.txt
+sed -i -- 's,/run/media/viblab/Markov2/Pras/Thesis/,/workspace/glow-tts/,g' configs/*.json
 nano train_ms_emo_lang_pitch.py # Disable Torch Save Point and Disable Multiprocessing
 nano configs/base_blank_emo_lang_pitch.json
 Change data_utils.py database_name
 
-TORCH_DISTRIBUTED_DEBUG=DETAIL python train_ms_emo_lang_pitch.py -c configs/base_blank_emo_lang_pitch.json -m base_blank_emo_lang_pitch
+# https://github.com/r9y9/open_jtalk/releases/download/v1.11.1/open_jtalk_dic_utf_8-1.11.tar.gz -> Extract di tempat openjtalk
+
+TORCH_DISTRIBUTED_DEBUG=DETAIL python3.8 train_ms_emo_lang_pitch.py -c configs/base_blank_emo_lang_pitch.json -m base_blank_emo_lang_pitch
 
 tensorboard --logdir=. --bind_all
+
+%load_ext tensorboard
+%tensorboard --logdir /root/glow-tts/base_blank_emo_lang_pitch --bind_all --host 0.0.0.0
+
+python3.8 -m tensorboard --logdir /workspace/glow-tts/logs/base_blank_emo_lang_pitch --host 0.0.0.0
