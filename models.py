@@ -608,7 +608,7 @@ class TextEncoder(nn.Module):
     nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
 
     if emoin_channels != 0:
-      self.cond_emo = nn.Linear(emoin_channels, hidden_channels)
+      self.cond_emo = nn.Linear(1024, hidden_channels)
 
     if lin_channels > 0:
         hidden_channels += lin_channels
@@ -865,9 +865,10 @@ class FlowGenerator(nn.Module):
       torch.nn.init.xavier_uniform_(self.emb_l.weight)
 
     if self.use_emo_embeds:
-      print("Use GST Custom Module")
+       print("Use Raw Emo")
+      #print("Use GST Custom Module")
       # self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size)
-      self.gst_proj = GSTNoReff(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size, emoin_channels=1024)
+      #self.gst_proj = GSTNoReff(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size, emoin_channels=1024)
 
     #   print("Use Emo Catcher Custom Module")
     #   self.emo_proj = EmoCatcher(input_dim=80, hidden_dim=512, kernel_size=3, num_classes=5)
@@ -933,7 +934,7 @@ class FlowGenerator(nn.Module):
       l = self.emb_l(l).unsqueeze(-1) # [b, h, 1]
 
     if emo is not None:
-      emo = self.gst_proj(emo) # [b, h, 1]
+      emo = emo.unsqueeze(-1) #self.gst_proj(emo) # [b, h, 1]
 
     #emo, kl_loss_emo = self.gst_proj(y)
     #emo, kl_loss_emo = self.gst_proj(y)
@@ -1023,7 +1024,7 @@ class FlowGenerator(nn.Module):
       l = self.emb_l(l).unsqueeze(-1) # [b, h]
 
     if emo is not None:
-      emo = self.gst_proj(emo) # [b, h, 1]
+      emo = emo.unsqueeze(-1) #self.gst_proj(emo) # [b, h, 1]
     
     # if gst_token is not None:
     #    emo = gst_token
