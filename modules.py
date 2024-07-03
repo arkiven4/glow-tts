@@ -364,6 +364,7 @@ class WNProsody(torch.nn.Module):
         self.drop = nn.Dropout(p_dropout)
         self.n_sqz = n_sqz
         self.gin_channels1 = gin_channels1
+        self.gin_channels2 = gin_channels2
 
         if gin_channels1 != 0:
             cond_layer1 = torch.nn.Conv1d(gin_channels1, 2 * hidden_channels * n_layers // self.n_sqz, 1)

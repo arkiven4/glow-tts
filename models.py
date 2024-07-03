@@ -608,7 +608,7 @@ class TextEncoder(nn.Module):
     nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
 
     if emoin_channels != 0:
-      self.cond_emo = nn.Linear(1024, hidden_channels)
+      self.cond_emo = nn.Linear(emoin_channels, hidden_channels)
 
     if lin_channels > 0:
         hidden_channels += lin_channels
@@ -711,7 +711,7 @@ class FlowSpecDecoder(nn.Module):
           sigmoid_scale=sigmoid_scale,
           n_sqz=n_sqz))
 
-  def forward(self, x, x_mask, g=None, pitch=None, energy=None, reverse=False):
+  def forward(self, x, x_mask, g=None, emo=None, pitch=None, energy=None, reverse=False):
     if not reverse:
       flows = self.flows
       logdet_tot = 0
@@ -724,10 +724,10 @@ class FlowSpecDecoder(nn.Module):
 
     for f in flows:
       if not reverse:
-        x, logdet = f(x, x_mask, g=g, pitch=pitch, energy=energy, reverse=reverse)
+        x, logdet = f(x, x_mask, g=g, emo=emo, pitch=pitch, energy=energy, reverse=reverse)
         logdet_tot += logdet
       else:
-        x, logdet = f(x, x_mask, g=g, pitch=pitch, energy=energy, reverse=reverse)
+        x, logdet = f(x, x_mask, g=g, emo=emo, pitch=pitch, energy=energy, reverse=reverse)
 
     if self.n_sqz > 1:
       x, x_mask = commons.unsqueeze(x, x_mask, self.n_sqz)
@@ -847,8 +847,7 @@ class FlowGenerator(nn.Module):
         n_split=n_split,
         n_sqz=n_sqz,
         sigmoid_scale=sigmoid_scale,
-        gin_channels=gin_channels,
-        emoin_channels=emoin_channels) # Multi Lang
+        gin_channels=gin_channels) # Multi Lang
 
     # if self.use_spk_embeds:
     #   print("Use Speaker Embed Linear Norm")
@@ -967,7 +966,7 @@ class FlowGenerator(nn.Module):
       energy_norm[energy_mask] = 0.0
       energy_norm = energy_norm.unsqueeze(1)
 
-    z, logdet = self.decoder(y, z_mask, g=g, pitch=pitch_norm, energy=energy_norm, reverse=False)
+    z, logdet = self.decoder(y, z_mask, g=g, emo=None, pitch=pitch_norm, energy=energy_norm, reverse=False)
     with torch.no_grad():
       x_s_sq_r = torch.exp(-2 * x_logs)
       logp1 = torch.sum(-0.5 * math.log(2 * math.pi) - x_logs, [1]).unsqueeze(-1) # [b, t, 1]
@@ -1084,7 +1083,7 @@ class FlowGenerator(nn.Module):
       energy = energy * energy_scale
       energy = energy.squeeze(1)
     
-    y, logdet = self.decoder(z, z_mask, g=g, pitch=pitch, energy=energy, reverse=True)
+    y, logdet = self.decoder(z, z_mask, g=g, emo=None, pitch=pitch, energy=energy, reverse=True)
     return (y, z_m, z_logs, logdet, z_mask), (x_m, x_logs, x_mask), (attn, logw, logw_)
 
   def voice_conversion(self, y, y_lengths, spk_embed_src, spk_embed_tgt, l=None):

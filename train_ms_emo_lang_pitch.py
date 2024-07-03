@@ -102,7 +102,7 @@ def train_and_eval(rank, n_gpus, hps):
     collate_fn = TextMelMyOwnCollate(1)
     train_loader = DataLoader(
         train_dataset,
-        num_workers=8,
+        num_workers=16,
         shuffle=False,
         pin_memory=True,
         collate_fn=collate_fn,
@@ -115,7 +115,7 @@ def train_and_eval(rank, n_gpus, hps):
         val_dataset = TextMelMyOwnLoader(hps.data.validation_files, hps.data)
         val_loader = DataLoader(
             val_dataset,
-            num_workers=8,
+            num_workers=16,
             shuffle=False,
             batch_size=hps.train.batch_size,
             pin_memory=True,

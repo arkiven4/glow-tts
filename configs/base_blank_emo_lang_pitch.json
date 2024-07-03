@@ -9,11 +9,11 @@
     "eps": 1e-9,
     "warmup_steps": 4000,
     "scheduler": "noam",
-    "batch_size": 14,
+    "batch_size": 24,
     "ddi": false,
     "fp16_run": false,
     "warm_start": false,
-    "warm_start_checkpoint": "logs/base_blank_emo_lang_pitch_gsttotextencoder/G_127.pth",
+    "warm_start_checkpoint": "G_219_controllableWithoutEmoinDecoder.pth",
     "ignored_layer": []
   },
   "data": {
@@ -34,9 +34,9 @@
     "cleaned_text": false,
     "n_speakers": 109,
     "n_lang": 10,
-    "spk_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/spk_embeds/",
-    "emo_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/emo_embeds/",
-    "f0_embeds_path": "/run/media/viblab/Markov2/Pras/Thesis/Database/dataset_name/f0_straight/",
+    "spk_embeds_path": "/run/media/fourier/Data2/Pras/Thesis/Database/dataset_name/spk_embeds/",
+    "emo_embeds_path": "/run/media/fourier/Data2/Pras/Thesis/Database/dataset_name/emo_embeds/",
+    "f0_embeds_path": "/run/media/fourier/Data2/Pras/Thesis/Database/dataset_name/f0_straight/",
     "database_name_index": 8
   },
   "model": {
@@ -64,7 +64,7 @@
     "use_lang_embeds": true,
     "use_emo_embeds": true,
     "lin_channels": 4,
-    "emoin_channels": 256,
+    "emoin_channels": 1024,
     "ref_enc_filters": [32, 32, 64, 64, 128, 128],
     "ref_enc_gru_size":128,
     "token_embedding_size":256,

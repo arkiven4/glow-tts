@@ -109,11 +109,12 @@ class CouplingBlock(nn.Module):
     self.end = end
 
     #self.wn = modules.WNGE(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, emoin_channels, p_dropout=p_dropout)
-    #self.wn = modules.WN_Combine(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, emoin_channels, p_dropout)
-    #self.wn_pitch = modules.WNP(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, n_sqz)
-    #self.wn_energy = modules.WNP(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, n_sqz)
-    self.wn_prosody = modules.WNProsody(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, 1, n_sqz)
+    #self.wn = modules.WN_Combine(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, emoin_channels, p_dropo
+    self.wn_pitch = modules.WNP(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, n_sqz)
+    self.wn_energy = modules.WNP(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, n_sqz)
+    #self.wn_prosody = modules.WNProsody(hidden_channels, kernel_size, dilation_rate, n_layers, p_dropout, 1, 1, n_sqz)
     self.wn = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels, p_dropout)
+    #self.wn_emo = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, emoin_channels, p_dropout)
     #self.wn_prosody = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, hidden_channels, p_dropout)
     #self.wn_emo = modules.WN(in_channels, hidden_channels, kernel_size, dilation_rate, n_layers, emoin_channels, p_dropout)
 
@@ -127,7 +128,7 @@ class CouplingBlock(nn.Module):
     #             window_size=None,
     #         )
 
-  def forward(self, x, x_mask=None, reverse=False, g=None, pitch=None, energy=None, **kwargs):
+  def forward(self, x, x_mask=None, reverse=False, g=None, emo=None, pitch=None, energy=None, **kwargs):
     b, c, t = x.size()
     if x_mask is None:
       x_mask = 1
@@ -149,10 +150,11 @@ class CouplingBlock(nn.Module):
     
     #x = self.wn(x, x_mask, g, emo)
     x = self.wn(x, x_mask, g) 
-    x = self.wn_prosody(x, x_mask, pitch, energy) 
     #x = self.wn_emo(x, x_mask, emo) 
-    #x = self.wn_energy(x, x_mask, energy) 
-    #x = self.wn_pitch(x, x_mask, pitch)
+    #x = self.wn_prosody(x, x_mask, pitch, energy) 
+    #x = self.wn_emo(x, x_mask, emo) sss
+    x = self.wn_energy(x, x_mask, energy) 
+    x = self.wn_pitch(x, x_mask, pitch)
     #x = self.wn_emo(x, x_mask, emo)
     # x = self.wn_energy(x, x_mask, energy)
     # x = self.wn_pitch(x, x_mask, pitch)
@@ -183,8 +185,10 @@ class CouplingBlock(nn.Module):
   def store_inverse(self):
     self.wn.remove_weight_norm()
     #self.wn_emo.remove_weight_norm()
-    # self.wn_energy.remove_weight_norm()
-    # self.wn_pitch.remove_weight_norm()
+    #self.wn_prosody.remove_weight_norm()
+    #self.wn_emo.remove_weight_norm()
+    self.wn_energy.remove_weight_norm()
+    self.wn_pitch.remove_weight_norm()
 
 
 class MultiHeadAttention(nn.Module):
