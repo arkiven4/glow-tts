@@ -283,7 +283,7 @@ def train(
                 # l_energy = (l_energy * z_mask).sum() / z_mask.sum()
 
                 #kl_weight = kl_anneal_function('logistic', 50000, global_step, 0.0025, 10000, 0.2)
-                loss_gs = [l_mle, l_length, l_pitch, l_energy]
+                loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.5]
                 loss_g = sum(loss_gs)
 
         #scheduler.step()
@@ -406,7 +406,7 @@ def evaluate(
                 # l_energy = (l_energy * z_mask).sum() / z_mask.sum()
                 #kl_weight = kl_anneal_function('logistic', 50000, global_step, 0.0025, 10000, 0.2)
 
-                loss_gs = [l_mle, l_length, l_pitch, l_energy]
+                loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.5]
                 loss_g = sum(loss_gs)
 
                 if batch_idx == 0:

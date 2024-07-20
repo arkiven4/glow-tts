@@ -471,6 +471,47 @@ class StochasticEnergyPredictor(nn.Module):
     logw = z0
     return logw
 
+class ProsodyDecoder(nn.Module):
+    def __init__(
+        self,
+        out_channels,
+        hidden_channels,
+        filter_channels,
+        n_heads,
+        n_layers,
+        kernel_size,
+        p_dropout,
+        emoin_channels=0,
+    ):
+        super().__init__()
+        self.out_channels = out_channels
+        self.hidden_channels = hidden_channels
+        self.filter_channels = filter_channels
+        self.n_heads = n_heads
+        self.n_layers = n_layers
+        self.kernel_size = kernel_size
+        self.p_dropout = p_dropout
+        self.emoin_channels = emoin_channels
+
+        self.prenet = nn.Conv1d(hidden_channels, hidden_channels, 3, padding=1)
+        self.decoder = attentions_so.FFT(
+            hidden_channels, filter_channels, n_heads, n_layers, kernel_size, p_dropout
+        )
+        self.proj = nn.Conv1d(hidden_channels, out_channels, 1)
+        self.f0_prenet = nn.Conv1d(1, hidden_channels, 3, padding=1)
+        self.cond = nn.Conv1d(emoin_channels, hidden_channels, 1)
+
+    def forward(self, x, norm_f0, x_mask, emo=None):
+        x = torch.detach(x)
+        if emo is not None:
+            emo = torch.detach(emo)
+            x = x + self.cond(emo)
+        x += self.f0_prenet(norm_f0)
+        x = self.prenet(x) * x_mask
+        x = self.decoder(x * x_mask, x_mask)
+        x = self.proj(x) * x_mask
+        return x
+
 class TemporalPredictor(nn.Module):
     """Predicts a single float per each temporal location"""
 
@@ -632,7 +673,8 @@ class TextEncoder(nn.Module):
       p_dropout,
       window_size=window_size,
       block_length=block_length,
-      gin_channels=gin_channels
+      gin_channels=gin_channels,
+      emoin_channels=emoin_channels
     )
 
     self.proj_m = nn.Conv1d(hidden_channels, out_channels, 1)
@@ -653,7 +695,8 @@ class TextEncoder(nn.Module):
 
     if self.prenet:
       x = self.pre(x, x_mask)
-    x = self.encoder(x, x_mask, g=g)
+
+    x = self.encoder(x, x_mask, g=g, emo=emo)
 
     x_m = self.proj_m(x) * x_mask # Stats
     if not self.mean_only:
@@ -892,7 +935,10 @@ class FlowGenerator(nn.Module):
       #       n_predictions=1,
       #       gin_channels=gin_channels, emoin_channels=emoin_channels
       # )
-      self.proj_pitch = StochasticPitchPredictor(hidden_channels_enc, 256, 3, 0.1, 4, gin_channels=gin_channels, emoin_channels=emoin_channels)
+      self.proj_pitch = StochasticPitchPredictor(hidden_channels_enc, 256, 3, 0.1, 4, emoin_channels=emoin_channels)
+    else:
+      print("Use Prosody Pred Pitch Updated") 
+      self.proj_pitch = ProsodyDecoder(1, hidden_channels_enc, 256, 2, 6, 3, 0.1, emoin_channels=emoin_channels)
 
     if use_sep:
       print("Use StochasticEnergyPredictor Updated") 
@@ -906,6 +952,9 @@ class FlowGenerator(nn.Module):
       #       emoin_channels=emoin_channels
       # )
       self.proj_energy = StochasticEnergyPredictor(hidden_channels_enc, 256, 3, 0.1, 4, emoin_channels=emoin_channels)
+    else:
+      print("Use Prosody Pred Energy Updated") 
+      self.proj_energy = ProsodyDecoder(hidden_channels_enc, 256, 3, 0.1, 4, emoin_channels=emoin_channels)
 
     # for param in self.decoder.parameters():
     #     param.requires_grad = False
@@ -988,10 +1037,14 @@ class FlowGenerator(nn.Module):
     x_feature = torch.matmul(x, attn.squeeze(1))
     if self.use_spp and pitch is not None:
       pitch_norm = pitch_norm.squeeze(1)
-      l_pitch = self.proj_pitch(x_feature, z_mask, pitch_norm.unsqueeze(1), g=g, emo=emo)
+      l_pitch = self.proj_pitch(x_feature, z_mask, pitch_norm.unsqueeze(1), emo=emo)
       l_pitch = l_pitch / torch.sum(z_mask)
       l_pitch = torch.sum(l_pitch)
       #pred_pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo)
+    else:
+      pitch_norm = pitch_norm.squeeze(1)
+      pred_pitch = self.proj_pitch(x_feature, pitch_norm.unsqueeze(1), z_mask, emo=emo)
+      l_pitch = F.mse_loss(pred_pitch, pitch_norm)
 
     if self.use_sep and energy is not None:
       energy_norm = energy_norm.squeeze(1)
@@ -999,6 +1052,10 @@ class FlowGenerator(nn.Module):
       l_energy = l_energy / torch.sum(z_mask)
       l_energy = torch.sum(l_energy)
       #pred_energy = self.proj_energy(x_feature, z_mask, emo=emo)
+    else:
+      energy_norm = energy_norm.squeeze(1)
+      pred_energy = self.proj_energy(x_feature, energy_norm.unsqueeze(1), z_mask, emo=emo)
+      l_energy = F.mse_loss(pred_energy, energy_norm)
 
     # expand prior
     z_m = torch.matmul(attn.squeeze(1).transpose(1, 2), x_m.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
@@ -1058,7 +1115,7 @@ class FlowGenerator(nn.Module):
     
     x_feature = torch.matmul(x, attn.squeeze(1))
     if self.use_spp:
-      pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo, noise_scale=f0_noise_scale, reverse=True)
+      pitch = self.proj_pitch(x_feature, z_mask, emo=emo, noise_scale=f0_noise_scale, reverse=True)
       #pitch = self.proj_pitch(x_feature, z_mask, g=g, emo=emo)
       pitch = pitch.squeeze(1)
       #pitch = torch.clamp_min(pitch, 0)
