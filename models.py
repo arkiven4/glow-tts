@@ -648,8 +648,8 @@ class TextEncoder(nn.Module):
     self.emb = nn.Embedding(n_vocab, hidden_channels)
     nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
 
-    if emoin_channels != 0:
-      self.cond_emo = nn.Linear(emoin_channels, hidden_channels)
+    #if emoin_channels != 0:
+      #self.cond_emo = nn.Linear(emoin_channels, hidden_channels)
 
     if lin_channels > 0:
         hidden_channels += lin_channels
@@ -684,8 +684,8 @@ class TextEncoder(nn.Module):
   def forward(self, x, x_lengths, l=None, g=None, emo=None):
     x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
 
-    if emo is not None:
-      x = x + self.cond_emo(emo.transpose(2, 1)) # [b, 1, h]
+    #if emo is not None:
+      #x = x + self.cond_emo(emo.transpose(2, 1)) # [b, 1, h]
 
     if l is not None:
       x = torch.cat((x, l.transpose(2, 1).expand(x.size(0), x.size(1), -1)), dim=-1)
