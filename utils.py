@@ -93,8 +93,8 @@ def load_checkpoint(checkpoint_path, model, optimizer=None, scheduler=None):
     learning_rate = checkpoint_dict['learning_rate']
   if optimizer is not None and 'optimizer' in checkpoint_dict.keys():
     optimizer.load_state_dict(checkpoint_dict['optimizer'])
-  if scheduler is not None and 'scheduler' in checkpoint_dict.keys():
-    scheduler.load_state_dict(checkpoint_dict['scheduler'])
+  # if scheduler is not None and 'scheduler' in checkpoint_dict.keys():
+  #   scheduler.load_state_dict(checkpoint_dict['scheduler'])
   saved_state_dict = checkpoint_dict['model']
   if hasattr(model, 'module'):
     state_dict = model.module.state_dict()
@@ -147,6 +147,30 @@ def latest_checkpoint_path(dir_path, regex="G_*.pth"):
   print(x)
   return x
 
+
+def plot_pitch_to_numpy(pitch, pitch_pred):
+  global MATPLOTLIB_FLAG
+  if not MATPLOTLIB_FLAG:
+    import matplotlib
+    matplotlib.use("Agg")
+    MATPLOTLIB_FLAG = True
+    mpl_logger = logging.getLogger('matplotlib')
+    mpl_logger.setLevel(logging.WARNING)
+
+  import matplotlib.pylab as plt
+  import numpy as np
+  
+  fig, ax = plt.subplots()
+  ax.plot(pitch, label="Original")
+  ax.plot(pitch_pred, label="Prediction")
+  plt.tight_layout()
+  plt.legend(loc="upper left")
+
+  fig.canvas.draw()
+  data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+  data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+  plt.close()
+  return data
 
 def plot_spectrogram_to_numpy(spectrogram):
   global MATPLOTLIB_FLAG

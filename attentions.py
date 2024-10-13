@@ -61,8 +61,8 @@ class Encoder(nn.Module):
       emo = self.cond_layer_emo(emo)
   
     attn_mask = x_mask.unsqueeze(2) * x_mask.unsqueeze(-1)
+    x = x * x_mask
     for i in range(self.n_layers):
-      x = x * x_mask
       if i == 3 - 1 and g is not None:
         x = x + self.cond_g(g.transpose(2, 1)).transpose(2, 1)
 
@@ -147,9 +147,11 @@ class CouplingBlock(nn.Module):
     # if self.pre_transformer is not None:
     #     x_0_ = self.pre_transformer(x_0 * x_mask, x_mask)
     #     x_0_ = x_0_ + x_0  # residual connection
+
     x = self.start(x_0) * x_mask
     
     #x = self.wn(x, x_mask, g, emo)
+    #x = self.wn(x, x_mask, torch.cat((g, emo), 1)) 
     x = self.wn(x, x_mask, g) 
     #x = self.wn_emo(x, x_mask, emo) 
     #x = self.wn_prosody(x, x_mask, pitch, energy) 

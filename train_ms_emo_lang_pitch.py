@@ -32,6 +32,14 @@ from Noam_Scheduler import Modified_Noam_Scheduler
 global_step = 0
 global_tqdm = None
 
+def adjust_learning_rate_myown(target_iter, current_iter, opt, start_lr=1e-3, end_lr=2e-4):
+    if current_iter >= target_iter:
+        scale = end_lr
+    else:
+        scale = start_lr - (current_iter / target_iter) * (start_lr - end_lr)
+
+    for param_group in opt.param_groups:
+        param_group['lr'] = scale
 
 def main():
     """Assume Single Node Multi GPUs Training Only"""
@@ -68,36 +76,36 @@ def train_and_eval(rank, n_gpus, hps):
     torch.cuda.set_device(rank)
 
     # Weight Sampler
-    with open(hps.data.training_files, "r") as txt_file:
-        lines = txt_file.readlines()
-    attr_names_samples = np.array([item.split("|")[1] for item in lines])
-    unique_attr_names = np.unique(attr_names_samples).tolist()
-    attr_idx = [unique_attr_names.index(l) for l in attr_names_samples]
-    attr_count = np.array(
-        [len(np.where(attr_names_samples == l)[0]) for l in unique_attr_names]
-    )
-    weight_attr = 1.0 / attr_count
-    dataset_samples_weight = np.array([weight_attr[l] for l in attr_idx])
-    dataset_samples_weight = dataset_samples_weight / np.linalg.norm(
-        dataset_samples_weight
-    )
-    weights, attr_names, attr_weights = (
-        torch.from_numpy(dataset_samples_weight).float(),
-        unique_attr_names,
-        np.unique(dataset_samples_weight).tolist(),
-    )
-    weights = weights * 1.0
-    w_sampler = WeightedRandomSampler(weights, len(weights))
+    # with open(hps.data.training_files, "r") as txt_file:
+    #     lines = txt_file.readlines()
+    # attr_names_samples = np.array([item.split("|")[1] for item in lines])
+    # unique_attr_names = np.unique(attr_names_samples).tolist()
+    # attr_idx = [unique_attr_names.index(l) for l in attr_names_samples]
+    # attr_count = np.array(
+    #     [len(np.where(attr_names_samples == l)[0]) for l in unique_attr_names]
+    # )
+    # weight_attr = 1.0 / attr_count
+    # dataset_samples_weight = np.array([weight_attr[l] for l in attr_idx])
+    # dataset_samples_weight = dataset_samples_weight / np.linalg.norm(
+    #     dataset_samples_weight
+    # )
+    # weights, attr_names, attr_weights = (
+    #     torch.from_numpy(dataset_samples_weight).float(),
+    #     unique_attr_names,
+    #     np.unique(dataset_samples_weight).tolist(),
+    # )
+    # weights = weights * 1.0
+    # w_sampler = WeightedRandomSampler(weights, len(weights))
 
     train_dataset = TextMelMyOwnLoader(hps.data.training_files, hps.data)
     train_sampler = DistributedBucketSampler(
         train_dataset,
         hps.train.batch_size,
-        [32, 300, 400, 500, 600, 700, 800, 900, 1000],
+        [32,300,400,500,600,700,800,900,1000],
         num_replicas=n_gpus,
         rank=rank,
         shuffle=True,
-        weights=w_sampler,
+        #weights=w_sampler,
     )
     collate_fn = TextMelMyOwnCollate(1)
     train_loader = DataLoader(
@@ -142,16 +150,18 @@ def train_and_eval(rank, n_gpus, hps):
         **hps.model
     ).cuda(rank)
 
-    optimizer_g = bnb.optim.AdamW(
-        generator.parameters(),
-        hps.train.learning_rate,
-        betas=hps.train.betas,
-        eps=hps.train.eps,
-    )
+    # optimizer_g = bnb.optim.AdamW(
+    #     generator.parameters(),
+    #     hps.train.learning_rate,
+    #     betas=hps.train.betas,
+    #     eps=hps.train.eps,
+    # )
 
-    scheduler = Modified_Noam_Scheduler(
-        optimizer=optimizer_g, base=hps.train.warmup_steps
-    )
+    optimizer_g = torch.optim.AdamW(generator.parameters(), hps.train.learning_rate, betas=hps.train.betas, eps=hps.train.eps)
+    
+    # scheduler = Modified_Noam_Scheduler(
+    #     optimizer=optimizer_g, base=hps.train.warmup_steps
+    # )
 
     generator = DDP(generator, device_ids=[rank])
     epoch_str = 1
@@ -166,19 +176,24 @@ def train_and_eval(rank, n_gpus, hps):
             _, _, _, _, epoch_str = utils.load_checkpoint(
                 utils.latest_checkpoint_path(hps.model_dir, "G_*.pth"),
                 generator,
+                optimizer_g,
                 None,
-                scheduler,
             )
             epoch_str += 1
-            optimizer_g.step_num = (epoch_str - 1) * len(train_loader)
+            #optimizer_g.step_num = (epoch_str - 1) * len(train_loader)
             # optimizer_g._update_learning_rate()
             global_step = (epoch_str - 1) * len(train_loader)
-            scheduler.last_epoch = epoch_str - 2
+            
         except Exception as e:
             print(e)
             # if hps.train.ddi and os.path.isfile(os.path.join(hps.model_dir, "ddi_G.pth")):
             #   _ = utils.load_checkpoint(os.path.join(hps.model_dir, "ddi_G.pth"), generator, optimizer_g)
 
+    print(epoch_str)
+    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer_g, gamma=hps.train.lr_decay, last_epoch=epoch_str - 2)
+    #scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer_g, max_lr=hps.train.learning_rate, steps_per_epoch=len(train_loader), epochs=500)
+    #scheduler.last_epoch = epoch_str - 1
+    #scheduler.step()
     scaler = GradScaler(enabled=hps.train.fp16_run)
 
     for epoch in range(epoch_str, hps.train.epochs + 1):
@@ -213,6 +228,8 @@ def train_and_eval(rank, n_gpus, hps):
                 epoch,
                 #os.path.join(hps.model_dir, "G_11.pth"))
                 os.path.join(hps.model_dir, "G_{}.pth".format(epoch)))
+
+            
         else:
             train(
                 rank,
@@ -283,21 +300,20 @@ def train(
                 # l_energy = (l_energy * z_mask).sum() / z_mask.sum()
 
                 #kl_weight = kl_anneal_function('logistic', 50000, global_step, 0.0025, 10000, 0.2)
-                loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.5]
+                loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.5] #[l_mle, l_length]
                 loss_g = sum(loss_gs)
-
-        #scheduler.step()
 
         optimizer_g.zero_grad()
         scaler.scale(loss_g).backward()
         scaler.unscale_(optimizer_g)
-        grad_norm = commons.clip_grad_value_(generator.parameters(), 5)
+        grad_norm = commons.clip_grad_value_(generator.parameters(), None)
         scaler.step(optimizer_g)
         scaler.update()
+        #scheduler.step()
 
         if rank == 0:
             if batch_idx % hps.train.log_interval == 0:
-                (y_gen, *_), *_ = generator.module.infer(
+                (y_gen, *_), (_, _, _), (_, _, _), (pitch_pred, energy_pred) = generator.module.infer(
                     x[:1],
                     x_lengths[:1],
                     y=y[:1],
@@ -305,11 +321,13 @@ def train(
                     g=speakers[:1],  
                     emo=emos[:1],  
                     l=lids[:1],
+                    # pitch=pitchs[:1],
+                    # energy=energys[:1]
                 )
                 
                 halflen_mel = min(
-                    y_gen[0].data.cpu().numpy().shape[1] // 4,
-                    y[0].data.cpu().numpy().shape[1] // 4,
+                    y_gen[0].data.cpu().numpy().shape[1] // 6,
+                    y[0].data.cpu().numpy().shape[1] // 6,
                 )
 
                 scalar_dict = {
@@ -334,6 +352,9 @@ def train(
                         "1_y_diff": utils.plot_spectrogram_to_numpy(
                             y_gen[0].data.cpu().numpy()[:, 0:halflen_mel] - y[0].data.cpu().numpy()[:, 0:halflen_mel]
                         ),
+                        "2_pitch": utils.plot_pitch_to_numpy(
+                            pitchs[0].data.cpu().numpy()[0, 0:halflen_mel], pitch_pred[0].data.cpu().numpy().reshape(1, -1)[0, 0:halflen_mel]
+                        ),
                         # "2_y_org_slice": utils.plot_spectrogram_to_numpy(
                         #     y_slice[0].data.cpu().numpy()
                         # ),
@@ -343,13 +364,16 @@ def train(
                         # "2_y_diff": utils.plot_spectrogram_to_numpy(
                         #     y_gen_slice[0].data.cpu().numpy()[:, 0:halflen_mel] - y_slice[0].data.cpu().numpy()[:, 0:halflen_mel]
                         # ),
+                        
                         "0_attn": utils.plot_alignment_to_numpy(
                             attn[0, 0].data.cpu().numpy()
                         ),
                     },
                     scalars=scalar_dict,
                 )
+
         global_step += 1
+        #adjust_learning_rate_myown(300000, global_step, optimizer_g, start_lr=5e-4, end_lr=1e-4)
 
     if rank == 0:
         logger.info("====> Epoch: {}".format(epoch))
@@ -406,7 +430,7 @@ def evaluate(
                 # l_energy = (l_energy * z_mask).sum() / z_mask.sum()
                 #kl_weight = kl_anneal_function('logistic', 50000, global_step, 0.0025, 10000, 0.2)
 
-                loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.5]
+                loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.5] #[l_mle, l_length]
                 loss_g = sum(loss_gs)
 
                 if batch_idx == 0:
@@ -429,6 +453,7 @@ def evaluate(
             writer=writer_eval, global_step=global_step, scalars=scalar_dict
         )
         logger.info("====> Epoch: {}".format(epoch))
+        generator.train()
 
 
 def kl_anneal_function(anneal_function, lag, step, k, x0, upper):

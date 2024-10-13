@@ -7,13 +7,14 @@
     "learning_rate": 2e-4,
     "betas": [0.8, 0.99],
     "eps": 1e-9,
-    "warmup_steps": 4000,
+    "lr_decay": 0.999875,
+    "warmup_steps": 0,
     "scheduler": "noam",
-    "batch_size": 34,
+    "batch_size": 36,
     "ddi": false,
     "fp16_run": false,
     "warm_start": false,
-    "warm_start_checkpoint": "logs/base_blank_emo_lang_pitch/G_1090.pth",
+    "warm_start_checkpoint": "./logs/base_blank_emo_lang_pitch_styleencoder/G_200.pth",
     "ignored_layer": []
   },
   "data": {

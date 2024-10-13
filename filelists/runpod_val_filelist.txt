@@ -175,3 +175,28 @@
 /run/media/fourier/Data2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_091.wav|3|同母姉に、スウェーデン王妃、ジョゼフィーヌがいる。
 /run/media/fourier/Data2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_098.wav|3|乾ドックに入渠して、オーバーホールすべきかどうか、パフォーマンスがチェックされた。
 /run/media/fourier/Data2/Pras/Thesis/Database/JVS/wavs/jvs013/jvs013_099.wav|3|デビューウェイトは、スーパーバンタム級ではなく、フェザー級だった。
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p241/p241_239.wav|0|A change in that position would require a decision by the council.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p270/p270_240.wav|0|We were a shambles at the back.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p247/p247_122.wav|0|However, the problem is timing.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p363/p363_311.wav|0|There is another side to it.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p255/p255_166.wav|0|Eight months later, he was dead.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p287/p287_076.wav|0|By then, he was walking on water.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p233/p233_233.wav|0|It's a question of creating a future awareness.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p259/p259_480.wav|0|Their one weakness was running between the wickets.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p299/p299_349.wav|0|I can't stop people thinking.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p233/p233_356.wav|0|Also, it is the season of goodwill.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p288/p288_174.wav|0|Mr Docherty said the whole family was shocked.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p314/p314_322.wav|0|He wasn't ready to cope with the pressures.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p256/p256_149.wav|0|Crucially, though, United were still alive.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p339/p339_126.wav|0|That imbalance was evident in their play.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p305/p305_241.wav|0|I have been here for only three months.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p316/p316_281.wav|0|It's all a part of letting it go.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p288/p288_303.wav|0|We believe the world has too many refugees already.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p300/p300_242.wav|0|They were two different types.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p240/p240_074.wav|0|They do not work for Glasgow City Council.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p304/p304_098.wav|0|We shouldn't have a rush to judgment.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p360/p360_055.wav|0|But here it is also very bad.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p246/p246_309.wav|0|The minister is the engineer.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p257/p257_116.wav|0|Naturally, it was not difficult to find support for these proposals.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p279/p279_172.wav|0|His team management was protective.
+/run/media/fourier/Data2/Pras/Thesis/Database/VCTK/wavs/p258/p258_126.wav|0|Our thoughts are with the relatives of the family.
