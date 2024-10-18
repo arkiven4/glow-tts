@@ -110,7 +110,7 @@ def train_and_eval(rank, n_gpus, hps):
     collate_fn = TextMelMyOwnCollate(1)
     train_loader = DataLoader(
         train_dataset,
-        num_workers=16,
+        num_workers=28,
         shuffle=False,
         pin_memory=True,
         collate_fn=collate_fn,
@@ -123,7 +123,7 @@ def train_and_eval(rank, n_gpus, hps):
         val_dataset = TextMelMyOwnLoader(hps.data.validation_files, hps.data)
         val_loader = DataLoader(
             val_dataset,
-            num_workers=16,
+            num_workers=28,
             shuffle=False,
             batch_size=hps.train.batch_size,
             pin_memory=True,
@@ -158,7 +158,7 @@ def train_and_eval(rank, n_gpus, hps):
     # )
 
     optimizer_g = torch.optim.AdamW(generator.parameters(), hps.train.learning_rate, betas=hps.train.betas, eps=hps.train.eps)
-    
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer_g, max_lr=hps.train.learning_rate, steps_per_epoch=len(train_loader), epochs=500)
     # scheduler = Modified_Noam_Scheduler(
     #     optimizer=optimizer_g, base=hps.train.warmup_steps
     # )
@@ -177,7 +177,7 @@ def train_and_eval(rank, n_gpus, hps):
                 utils.latest_checkpoint_path(hps.model_dir, "G_*.pth"),
                 generator,
                 optimizer_g,
-                None,
+                scheduler,
             )
             epoch_str += 1
             #optimizer_g.step_num = (epoch_str - 1) * len(train_loader)
@@ -190,10 +190,10 @@ def train_and_eval(rank, n_gpus, hps):
             #   _ = utils.load_checkpoint(os.path.join(hps.model_dir, "ddi_G.pth"), generator, optimizer_g)
 
     print(epoch_str)
-    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer_g, gamma=hps.train.lr_decay, last_epoch=epoch_str - 2)
-    #scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer_g, max_lr=hps.train.learning_rate, steps_per_epoch=len(train_loader), epochs=500)
-    #scheduler.last_epoch = epoch_str - 1
-    #scheduler.step()
+    #scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer_g, gamma=hps.train.lr_decay, last_epoch=epoch_str - 2)
+    #scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer_g, max_lr=hps.train.learning_rate, steps_per_epoch=len(train_loader), epochs=500, last_epoch=epoch_str-1)
+    # scheduler.last_epoch = epoch_str - 1
+    # scheduler.step()
     scaler = GradScaler(enabled=hps.train.fp16_run)
 
     for epoch in range(epoch_str, hps.train.epochs + 1):
@@ -244,7 +244,7 @@ def train_and_eval(rank, n_gpus, hps):
                 None,
             )
 
-        scheduler.step()
+        #scheduler.step()
 
 
 def train(
@@ -262,7 +262,7 @@ def train(
     train_loader.batch_sampler.set_epoch(epoch)
     global global_step
     generator.train()
-    for batch_idx, (x, x_lengths, y, y_lengths, speakers, emos, pitchs, energys, lids) in enumerate(
+    for batch_idx, (x, x_lengths, y, y_lengths, speakers, emos, emo_cartesians, pitchs, energys, lids) in enumerate(
         tqdm(train_loader)
     ):
         x, x_lengths = x.cuda(rank, non_blocking=True), x_lengths.cuda(
@@ -273,10 +273,12 @@ def train(
         )
         speakers = speakers.cuda(rank, non_blocking=True)
         emos = emos.cuda(rank, non_blocking=True)
+        emo_cartesians = emo_cartesians.cuda(rank, non_blocking=True)
         pitchs = pitchs.cuda(rank, non_blocking=True)
         energys = energys.cuda(rank, non_blocking=True)
         lids = lids.cuda(rank, non_blocking=True)
 
+        optimizer_g.zero_grad()
         # Train Generator
         with autocast(enabled=hps.train.fp16_run):
             (
@@ -284,7 +286,7 @@ def train(
                 (_, _, _),
                 (attn, l_length, l_pitch, l_energy),
                 (pitch_norm, pred_pitch, energy_norm, pred_energy), (l_emo)
-            ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, pitch=pitchs, energy=energys, l=lids)
+            ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, emo_cartesian=emo_cartesians, pitch=pitchs, energy=energys, l=lids)
 
             with autocast(enabled=False):
                 # y_slice, slice_ids = commons.rand_segments(y, y_lengths, 128, let_short_samples=True, pad_short=True)
@@ -303,13 +305,13 @@ def train(
                 loss_gs = [l_mle, l_length, l_pitch * 0.5, l_energy * 0.5] #[l_mle, l_length]
                 loss_g = sum(loss_gs)
 
-        optimizer_g.zero_grad()
+        
         scaler.scale(loss_g).backward()
         scaler.unscale_(optimizer_g)
         grad_norm = commons.clip_grad_value_(generator.parameters(), None)
         scaler.step(optimizer_g)
         scaler.update()
-        #scheduler.step()
+        scheduler.step()
 
         if rank == 0:
             if batch_idx % hps.train.log_interval == 0:
@@ -320,6 +322,7 @@ def train(
                     y_lengths=y_lengths[:1],
                     g=speakers[:1],  
                     emo=emos[:1],  
+                    emo_cartesian=emo_cartesians[:1],
                     l=lids[:1],
                     # pitch=pitchs[:1],
                     # energy=energys[:1]
@@ -353,7 +356,10 @@ def train(
                             y_gen[0].data.cpu().numpy()[:, 0:halflen_mel] - y[0].data.cpu().numpy()[:, 0:halflen_mel]
                         ),
                         "2_pitch": utils.plot_pitch_to_numpy(
-                            pitchs[0].data.cpu().numpy()[0, 0:halflen_mel], pitch_pred[0].data.cpu().numpy().reshape(1, -1)[0, 0:halflen_mel]
+                            pitchs[0].data.cpu().numpy()[0, 0:halflen_mel], torch.exp(pitch_pred[0]).data.cpu().numpy().reshape(1, -1)[0, 0:halflen_mel]
+                        ),
+                        "2_energy": utils.plot_pitch_to_numpy(
+                            energys[0].data.cpu().numpy()[0, 0:halflen_mel], torch.exp(energy_pred[0]).data.cpu().numpy().reshape(1, -1)[0, 0:halflen_mel]
                         ),
                         # "2_y_org_slice": utils.plot_spectrogram_to_numpy(
                         #     y_slice[0].data.cpu().numpy()
@@ -399,7 +405,7 @@ def evaluate(
                 x_lengths,
                 y,
                 y_lengths,
-                speakers, emos, pitchs, energys, lids
+                speakers, emos, emo_cartesians, pitchs, energys, lids
             ) in enumerate(val_loader):
                 x, x_lengths = x.cuda(rank, non_blocking=True), x_lengths.cuda(
                     rank, non_blocking=True
@@ -409,6 +415,7 @@ def evaluate(
                 )
                 speakers = speakers.cuda(rank, non_blocking=True)
                 emos = emos.cuda(rank, non_blocking=True)
+                emo_cartesians = emo_cartesians.cuda(rank, non_blocking=True)
                 pitchs = pitchs.cuda(rank, non_blocking=True)
                 energys = energys.cuda(rank, non_blocking=True)
                 lids = lids.cuda(rank, non_blocking=True)
@@ -418,7 +425,7 @@ def evaluate(
                     (_, _, _),
                     (_, l_length, l_pitch, l_energy),
                     (pitch_norm, pred_pitch, energy_norm, pred_energy), (l_emo)
-                ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, pitch=pitchs, energy=energys, l=lids)
+                ) = generator(x, x_lengths, y, y_lengths, g=speakers, emo=emos, emo_cartesian=emo_cartesians, pitch=pitchs, energy=energys, l=lids)
                 
                 l_mle = commons.mle_loss(z, z_m, z_logs, logdet, z_mask)
                 l_length = torch.sum(l_length.float())

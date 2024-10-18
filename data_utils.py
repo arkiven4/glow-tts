@@ -306,7 +306,7 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
         3) computes mel-spectrograms from audio files.
     """
     def __init__(self, audiopaths_lid_text, hparams):
-        self.audiopaths_lid_text = load_filepaths_and_text(audiopaths_lid_text)
+        self.audiopaths_lid_text = load_filepaths_and_text(audiopaths_lid_text, hparams.database_name_index)
         print(len(self.audiopaths_lid_text))
         self.text_cleaners = hparams.text_cleaners
         self.max_wav_value = hparams.max_wav_value
@@ -356,22 +356,27 @@ class TextMelMyOwnLoader(torch.utils.data.Dataset):
         text = self.get_text(text, lid)
         mel, energy = self.get_mel(audiopath)
         energy = energy[:, :mel.size(1)]
-        energy[energy == 0] = torch.nan
-        energy = F.pad(input=torch.diff(energy), pad=(0, 1), mode='constant', value=0)
-        energy = torch.nan_to_num(energy, nan=0.0)
+        # energy[energy == 0] = torch.nan
+        # energy = F.pad(input=torch.diff(energy), pad=(0, 1), mode='constant', value=0)
+        # energy = torch.nan_to_num(energy, nan=0.0)
 
         spk_emb = torch.Tensor(np.load(f"{self.spk_embeds_path.replace('dataset_name', database_name)}/{filename}.npy"))
         emo_emb = torch.Tensor(np.load(f"{self.emo_embeds_path.replace('dataset_name', database_name)}/{filename}.npy"))
 
         f0 = np.load(f"{self.f0_embeds_path.replace('dataset_name', database_name)}/{filename}.npy")
         f0 = torch.from_numpy(f0)[None]
-        f0[f0 == 0] = torch.nan
-        f0 = F.pad(input=torch.diff(f0), pad=(0, 1), mode='constant', value=0)
-        f0 = torch.nan_to_num(f0, nan=0.0)
+        f0 = f0[:, :mel.size(1)]
+
+        # f0[f0 == 0] = torch.nan
+        # f0 = F.pad(input=torch.diff(f0), pad=(0, 1), mode='constant', value=0)
+        # f0 = torch.nan_to_num(f0, nan=0.0)
         
         lid = self.get_lid(lid)
 
-        return (text, mel, spk_emb, emo_emb, f0, energy, lid) # f0 or emo
+        emotion = emo_emb[0]
+        emotion_cartesian = emo_emb[1:]
+
+        return (text, mel, spk_emb, emotion, emotion_cartesian, f0, energy, lid) # f0 or emo
 
     def get_mel(self, filename):
         if not self.load_mel_from_disk:
@@ -457,8 +462,10 @@ class TextMelMyOwnCollate():
         #sid = torch.LongTensor(len(batch))
 
         spk_embeds = torch.FloatTensor(len(batch), 512)
-        emo_embeds = torch.FloatTensor(len(batch), 1024)
-        #emo_coord = torch.FloatTensor(len(batch), 3)
+        #emo_embeds = torch.FloatTensor(len(batch), 1024)
+        emo_cartesians = torch.FloatTensor(len(batch), 3)
+        emos = torch.LongTensor(len(batch))
+
         lid = torch.LongTensor(len(batch))
 
         f0_padded = torch.FloatTensor(len(batch), 1, max_target_len)
@@ -473,19 +480,19 @@ class TextMelMyOwnCollate():
             output_lengths[i] = mel.size(1)
 
             spk_embeds[i, :] = batch[ids_sorted_decreasing[i]][2]
-            #emo_coord[i, :] = batch[ids_sorted_decreasing[i]][3]
-            emo_embeds[i, :] = batch[ids_sorted_decreasing[i]][3]
+            emos[i] = batch[ids_sorted_decreasing[i]][3]
+            emo_cartesians[i, :] = batch[ids_sorted_decreasing[i]][4]
+            #emo_embeds[i, :] = batch[ids_sorted_decreasing[i]][3]
 
-            f0 = batch[ids_sorted_decreasing[i]][4]
+            f0 = batch[ids_sorted_decreasing[i]][5]
             f0_padded[i, :, :f0.size(1)] = f0
 
-            energy = batch[ids_sorted_decreasing[i]][5]
+            energy = batch[ids_sorted_decreasing[i]][6]
             energy_padded[i, :, :energy.size(1)] = energy
 
-            lid[i] = batch[ids_sorted_decreasing[i]][6]
+            lid[i] = batch[ids_sorted_decreasing[i]][7]
 
-
-        return text_padded, input_lengths, mel_padded, output_lengths, spk_embeds, emo_embeds, f0_padded, energy_padded, lid
+        return text_padded, input_lengths, mel_padded, output_lengths, spk_embeds, emos, emo_cartesians, f0_padded, energy_padded, lid
     
 
 class DistributedBucketSampler(torch.utils.data.distributed.DistributedSampler):

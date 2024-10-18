@@ -93,8 +93,8 @@ def load_checkpoint(checkpoint_path, model, optimizer=None, scheduler=None):
     learning_rate = checkpoint_dict['learning_rate']
   if optimizer is not None and 'optimizer' in checkpoint_dict.keys():
     optimizer.load_state_dict(checkpoint_dict['optimizer'])
-  # if scheduler is not None and 'scheduler' in checkpoint_dict.keys():
-  #   scheduler.load_state_dict(checkpoint_dict['scheduler'])
+  if scheduler is not None and 'scheduler' in checkpoint_dict.keys():
+    scheduler.load_state_dict(checkpoint_dict['scheduler'])
   saved_state_dict = checkpoint_dict['model']
   if hasattr(model, 'module'):
     state_dict = model.module.state_dict()
@@ -232,9 +232,18 @@ def load_wav_to_torch(full_path):
   return torch.FloatTensor(data.astype(np.float32)), sampling_rate
 
 
-def load_filepaths_and_text(filename, split="|"):
+def load_filepaths_and_text(filename, database_name_index, split="|"):
+  filepaths_and_text = []
   with open(filename, encoding='utf-8') as f:
-    filepaths_and_text = [line.strip().split(split) for line in f ] #if int(line.strip().split(split)[1]) == 0 or int(line.strip().split(split)[1]) == 2
+    for line in f:
+      metadata = line.strip().split(split)
+      audio_path = metadata[0]
+      lang = int(metadata[1])
+      db_name = audio_path.split("/")[database_name_index]
+      if db_name != "VCTK":
+            if lang == 0 or lang == 2:
+              filepaths_and_text.append(metadata)
+    #filepaths_and_text = [ if int(line.strip().split(split)[1]) == 0 or int(line.strip().split(split)[1]) == 2]
   return filepaths_and_text
 
 

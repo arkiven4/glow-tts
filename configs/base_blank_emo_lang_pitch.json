@@ -10,11 +10,11 @@
     "lr_decay": 0.999875,
     "warmup_steps": 0,
     "scheduler": "noam",
-    "batch_size": 36,
+    "batch_size": 32,
     "ddi": false,
     "fp16_run": false,
     "warm_start": false,
-    "warm_start_checkpoint": "./logs/base_blank_emo_lang_pitch_styleencoder/G_200.pth",
+    "warm_start_checkpoint": "/run/media/fourier/Data2/Pras/Thesis/demo_1/glow-tts/logs/base_blank_emo_lang_pitch/G_1000.pth",
     "ignored_layer": []
   },
   "data": {
@@ -36,7 +36,7 @@
     "n_speakers": 109,
     "n_lang": 10,
     "spk_embeds_path": "/run/media/fourier/Data2/Pras/Thesis/Database/dataset_name/spk_embeds/",
-    "emo_embeds_path": "/run/media/fourier/Data2/Pras/Thesis/Database/dataset_name/emo_embeds/",
+    "emo_embeds_path": "/run/media/fourier/Data2/Pras/Thesis/Database/dataset_name/emo_cartesians/",
     "f0_embeds_path": "/run/media/fourier/Data2/Pras/Thesis/Database/dataset_name/f0_straight/",
     "database_name_index": 8
   },
