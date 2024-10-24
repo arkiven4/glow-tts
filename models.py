@@ -1,4 +1,5 @@
 import math
+import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -916,10 +917,24 @@ class FlowGenerator(nn.Module):
 
     if self.use_emo_embeds:
       print("Use Cartesian Emo")
-      self.emo_id_proj = nn.Embedding(5, gin_channels // 2)
+      self.emo_id_proj = nn.Embedding(5, gin_channels // 4)
+      nn.init.normal_(self.emo_id_proj.weight, mean=0, std=gin_channels // 4 ** -0.5)
+
+      self.emo_proj = nn.Linear(gin_channels // 4, gin_channels // 4, bias=True)
+
       self.emo_VAD_inten_proj = nn.Linear(1, gin_channels // 2)
-      self.emo_VAD_style_proj = nn.Linear(2, gin_channels // 2)
-      
+      #self.emo_VAD_style_proj = nn.Linear(2, gin_channels // 2)
+
+      self.elevation_bins = nn.Parameter(torch.linspace(np.pi/2, np.pi, 2), requires_grad=False)
+      self.elevation_emb = nn.Embedding(2, gin_channels // 8)
+      nn.init.normal_(self.elevation_emb.weight, mean=0, std=gin_channels // 8 ** -0.5)
+
+      self.azimuth_bins = nn.Parameter(torch.linspace(-np.pi/2, np.pi, 4), requires_grad=False)
+      self.azimuth_emb = nn.Embedding(4, gin_channels // 8)
+      nn.init.normal_(self.azimuth_emb.weight, mean=0, std=gin_channels // 8 ** -0.5)
+
+      self.sty_proj = nn.Linear(gin_channels // 4, gin_channels // 4, bias=True)
+      self.emosty_layer_norm = nn.LayerNorm(gin_channels // 2)
       #print("Use GST Custom Module")
       # self.gst_proj = GST(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size)
       #self.gst_proj = GSTNoReff(token_num, token_embedding_size, num_heads, ref_enc_filters, 80, ref_enc_gru_size, emoin_channels=1024)
@@ -1000,21 +1015,30 @@ class FlowGenerator(nn.Module):
     if emo is not None:
       emo = emo #.unsqueeze(-1) #self.gst_proj(emo) # [b, h, 1]
 
-  
     emos_embed = 0
-    emos_embed = emos_embed + self.emo_id_proj(emo)
-
-    style_embed = 0
-    style_embed = style_embed + self.emo_VAD_style_proj(emo_cartesian[:, 1:])
+    emos_embed = emos_embed + self.emo_id_proj(emo) # gin_channels // 4
+    emos_proj_embed = self.emo_proj(emos_embed) # gin_channels // 4
 
     intens_embed = 0
-    intens_embed = intens_embed + self.emo_VAD_inten_proj(emo_cartesian[:, :1])
-        
-    # Softplus
-    combined_embedding = emos_embed + style_embed
-    emotion_embedding = F.softplus(combined_embedding)
-    emo_all_emb = (intens_embed + emotion_embedding)
+    intens_embed = intens_embed + self.emo_VAD_inten_proj(emo_cartesian[:, :1]) # gin_channels // 2
 
+    ele_embed = 0
+    elevation_index = torch.bucketize(emo_cartesian[:, 1], self.elevation_bins)
+    ele_embed = ele_embed + self.elevation_emb(elevation_index) # gin_channels // 8
+
+    azi_embed = 0
+    azimuth_index = torch.bucketize(emo_cartesian[:, 2], self.azimuth_bins)
+    azi_embed = azi_embed + self.azimuth_emb(azimuth_index) # gin_channels // 8
+
+    style_embed = torch.cat((ele_embed, azi_embed), dim=-1) # gin_channels // 4
+    style_proj_embed = self.sty_proj(style_embed)  # gin_channels // 4
+
+    # Softplus
+    combined_embedding = torch.cat((emos_proj_embed, style_proj_embed), dim=-1) # gin_channels // 2
+    emotion_embedding = F.softplus(combined_embedding)
+    emosty_embed = self.emosty_layer_norm(emotion_embedding) # gin_channels // 2
+    emo_all_emb = (intens_embed + emosty_embed)
+        
     g = torch.cat((g, emo_all_emb), dim=-1).unsqueeze(-1)
 
     #emo, kl_loss_emo = self.gst_proj(y)
@@ -1119,21 +1143,30 @@ class FlowGenerator(nn.Module):
     if emo is not None:
       emo = emo #.unsqueeze(-1) #self.gst_proj(emo) # [b, h, 1]
 
-  
     emos_embed = 0
-    emos_embed = emos_embed + self.emo_id_proj(emo)
-
-    style_embed = 0
-    style_embed = style_embed + self.emo_VAD_style_proj(emo_cartesian[:, 1:])
+    emos_embed = emos_embed + self.emo_id_proj(emo) # gin_channels // 4
+    emos_proj_embed = self.emo_proj(emos_embed) # gin_channels // 4
 
     intens_embed = 0
-    intens_embed = intens_embed + self.emo_VAD_inten_proj(emo_cartesian[:, :1])
-        
-    # Softplus
-    combined_embedding = emos_embed + style_embed
-    emotion_embedding = F.softplus(combined_embedding)
-    emo_all_emb = (intens_embed + emotion_embedding)
+    intens_embed = intens_embed + self.emo_VAD_inten_proj(emo_cartesian[:, :1]) # gin_channels // 2
 
+    ele_embed = 0
+    elevation_index = torch.bucketize(emo_cartesian[:, 1], self.elevation_bins)
+    ele_embed = ele_embed + self.elevation_emb(elevation_index) # gin_channels // 8
+
+    azi_embed = 0
+    azimuth_index = torch.bucketize(emo_cartesian[:, 2], self.azimuth_bins)
+    azi_embed = azi_embed + self.azimuth_emb(azimuth_index) # gin_channels // 8
+
+    style_embed = torch.cat((ele_embed, azi_embed), dim=-1) # gin_channels // 4
+    style_proj_embed = self.sty_proj(style_embed)  # gin_channels // 4
+
+    # Softplus
+    combined_embedding = torch.cat((emos_proj_embed, style_proj_embed), dim=-1) # gin_channels // 2
+    emotion_embedding = F.softplus(combined_embedding)
+    emosty_embed = self.emosty_layer_norm(emotion_embedding) # gin_channels // 2
+    emo_all_emb = (intens_embed + emosty_embed)
+        
     g = torch.cat((g, emo_all_emb), dim=-1).unsqueeze(-1)
     
     # if gst_token is not None:

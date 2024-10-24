@@ -14,7 +14,7 @@
     "ddi": false,
     "fp16_run": false,
     "warm_start": false,
-    "warm_start_checkpoint": "/run/media/fourier/Data2/Pras/Thesis/demo_1/glow-tts/logs/base_blank_emo_lang_pitch/G_1000.pth",
+    "warm_start_checkpoint": "/run/media/fourier/Data2/Pras/Thesis/TryModel/glow-tts/logs/base_blank_emo_lang_pitch_v1/G_561.pth",
     "ignored_layer": []
   },
   "data": {
